@@ -4,6 +4,9 @@ export default defineConfig({
   testDir: './tests',
   use: {
     baseURL: 'http://localhost:3000',
+    launchOptions: {
+      slowMo: 500,
+    },
   },
   projects: [
     {
