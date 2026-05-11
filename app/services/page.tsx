@@ -11,13 +11,22 @@ import {
   Sun,
   Sparkles,
   Search,
+  Clock,
+  TrendingUp,
   type LucideIcon,
 } from 'lucide-react';
 import { BookingModal } from '@/components/booking-modal';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 
-type ServiceType = 'grooming' | 'walking' | 'boarding' | 'training' | 'vet' | 'daycare' | 'custom';
+type ServiceType =
+  | 'grooming'
+  | 'walking'
+  | 'boarding'
+  | 'training'
+  | 'vet'
+  | 'daycare'
+  | 'custom';
 
 interface Service {
   id: string;
@@ -28,6 +37,7 @@ interface Service {
   gradient: string;
   description: string;
   duration: string;
+  popular?: boolean;
 }
 
 const SERVICES: Service[] = [
@@ -40,6 +50,7 @@ const SERVICES: Service[] = [
     gradient: 'from-pink-500 to-rose-500',
     description: 'Full grooming session including bath, trim, and styling by certified groomers.',
     duration: '90 min',
+    popular: true,
   },
   {
     id: '2',
@@ -68,7 +79,7 @@ const SERVICES: Service[] = [
     price: 45,
     icon: GraduationCap,
     gradient: 'from-amber-500 to-yellow-500',
-    description: 'Professional obedience and behavior training sessions with certified trainers.',
+    description: 'Professional obedience and behavior training with certified trainers.',
     duration: '60 min',
   },
   {
@@ -104,7 +115,7 @@ const SERVICES: Service[] = [
 ];
 
 const TYPE_FILTERS: { value: 'all' | ServiceType; label: string }[] = [
-  { value: 'all', label: 'All' },
+  { value: 'all', label: 'All Services' },
   { value: 'grooming', label: 'Grooming' },
   { value: 'walking', label: 'Walking' },
   { value: 'boarding', label: 'Boarding' },
@@ -138,56 +149,63 @@ export default function ServicesPage() {
   }, [search, typeFilter, sort]);
 
   return (
-    <div className="min-h-screen bg-[#0f0d09]">
+    <div className="relative min-h-screen">
 
       {/* HEADER */}
-      <section className="relative overflow-hidden px-6 pb-16 pt-20 text-center">
-        <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 size-[400px] rounded-full bg-doggy/8 blur-[80px]" />
+      <section className="relative overflow-hidden px-6 pb-16 pt-24 text-center">
+        <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 size-[500px] rounded-full bg-doggy/[0.1] blur-[100px]" />
+        <div className="pointer-events-none absolute right-[10%] top-[60%] size-[200px] rounded-full bg-[#F9D923]/[0.05] blur-[80px]" />
+
         <div className="relative z-10 mx-auto max-w-2xl">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#F9D923]/25 bg-[#F9D923]/8 px-4 py-1.5">
-            <span className="font-pawprint text-xs font-bold uppercase tracking-widest text-[#F9D923]">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#F9D923]/30 bg-[#F9D923]/[0.08] px-4 py-1.5 animate-fade-down">
+            <Sparkles className="size-3 text-[#F9D923]" />
+            <span className="font-pawprint text-xs font-bold uppercase tracking-[0.2em] text-[#F9D923]">
               Book a Service
             </span>
           </div>
-          <h1 className="mb-4 font-elegant text-5xl font-black text-paw md:text-6xl">
-            Our <em className="not-italic text-doggy">Services</em>
+          <h1 className="mb-5 text-balance font-elegant text-5xl font-black tracking-tight text-paw md:text-7xl animate-fade-up delay-100">
+            Our <em className="not-italic animate-shimmer">Services</em>
           </h1>
-          <p className="font-pawprint text-lg text-paw/55">
-            Find the perfect care for your furry companion.
+          <p className="font-pawprint text-lg text-paw/55 animate-fade-up delay-200">
+            Find the perfect care for your furry companion — all premium, all vetted.
           </p>
         </div>
       </section>
 
       {/* FILTERS */}
-      <div className="border-y border-paw/8 px-6 py-5">
+      <div className="sticky top-[73px] z-30 border-y border-paw/[0.06] bg-[#0f0d09]/85 px-6 py-5 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           {/* Search */}
           <div className="relative max-w-xs flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-paw/30" strokeWidth={1.5} />
+            <Search
+              className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-paw/30"
+              strokeWidth={1.5}
+            />
             <input
               type="text"
               placeholder="Search services..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className={cn(
-                'w-full rounded-xl border border-paw/10 bg-paw/[0.04] py-2.5 pl-11 pr-4',
+                'w-full rounded-xl border border-paw/[0.08] bg-paw/[0.03] py-2.5 pl-11 pr-4',
                 'font-pawprint text-sm text-paw placeholder:text-paw/25',
-                'outline-none transition-all duration-200 focus:border-doggy/50 focus:ring-2 focus:ring-doggy/10',
+                'outline-none transition-all duration-300',
+                'focus:border-doggy/50 focus:bg-paw/[0.05] focus:ring-2 focus:ring-doggy/15',
               )}
             />
           </div>
 
           {/* Type filter pills */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {TYPE_FILTERS.map(({ value, label }) => (
               <button
                 key={value}
                 onClick={() => setTypeFilter(value)}
                 className={cn(
-                  'cursor-pointer rounded-full px-4 py-1.5 font-pawprint text-xs font-semibold transition-all duration-200',
+                  'cursor-pointer rounded-full px-4 py-1.5 font-pawprint text-xs font-semibold transition-all duration-300',
                   typeFilter === value
-                    ? 'bg-doggy text-white shadow-md shadow-doggy/25'
-                    : 'border border-paw/10 text-paw/50 hover:border-paw/25 hover:text-paw',
+                    ? 'bg-doggy text-white shadow-md shadow-doggy/30'
+                    : 'border border-paw/[0.1] text-paw/50 hover:border-paw/30 hover:text-paw',
                 )}
               >
                 {label}
@@ -200,15 +218,15 @@ export default function ServicesPage() {
             value={sort}
             onChange={(e) => setSort(e.target.value as SortOption)}
             className={cn(
-              'cursor-pointer rounded-xl border border-paw/10 bg-[#0f0d09] px-4 py-2.5',
-              'font-pawprint text-sm text-paw/60',
-              'outline-none transition-all duration-200 focus:border-doggy/50',
+              'cursor-pointer rounded-xl border border-paw/[0.08] bg-paw/[0.03] px-4 py-2.5',
+              'font-pawprint text-sm text-paw/70',
+              'outline-none transition-all duration-300 focus:border-doggy/50',
             )}
           >
-            <option value="relevance">Sort: Relevance</option>
-            <option value="price-asc">Price: Low → High</option>
-            <option value="price-desc">Price: High → Low</option>
-            <option value="name">Name: A–Z</option>
+            <option value="relevance" className="bg-[#0f0d09]">Relevance</option>
+            <option value="price-asc" className="bg-[#0f0d09]">Price: Low → High</option>
+            <option value="price-desc" className="bg-[#0f0d09]">Price: High → Low</option>
+            <option value="name" className="bg-[#0f0d09]">Name: A–Z</option>
           </select>
         </div>
       </div>
@@ -216,69 +234,109 @@ export default function ServicesPage() {
       {/* AUTH NOTICE */}
       {!token && (
         <div className="px-6 pt-6">
-          <div className="mx-auto max-w-7xl">
-            <div className="rounded-2xl border border-doggy/20 bg-doggy/8 px-6 py-4 text-center font-pawprint text-sm text-doggy">
-              Please{' '}
-              <Link href="/login" className="font-bold underline underline-offset-4 transition-opacity hover:opacity-80">
-                log in
-              </Link>{' '}
-              to book a service.
+          <div className="mx-auto max-w-7xl animate-fade-in">
+            <div className="flex items-center justify-center gap-3 rounded-2xl border border-doggy/25 bg-gradient-to-r from-doggy/[0.08] via-doggy/[0.04] to-doggy/[0.08] px-6 py-4 font-pawprint text-sm text-doggy">
+              <Sparkles className="size-4" />
+              <span>
+                Please{' '}
+                <Link
+                  href="/login"
+                  className="font-bold underline underline-offset-4 transition-opacity hover:opacity-80"
+                >
+                  log in
+                </Link>{' '}
+                to book a service.
+              </span>
             </div>
           </div>
         </div>
       )}
 
       {/* SERVICE GRID */}
-      <section className="px-6 py-10 pb-24">
+      <section className="px-6 py-12 pb-28">
         <div className="mx-auto max-w-7xl">
+          <div className="mb-6 flex items-center justify-between">
+            <p className="font-pawprint text-sm text-paw/50">
+              <strong className="text-paw">{filtered.length}</strong>{' '}
+              {filtered.length === 1 ? 'service' : 'services'} available
+            </p>
+          </div>
+
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center gap-4 py-24 text-center">
-              <span className="font-pawprint text-4xl text-paw/20">🔍</span>
-              <p className="font-pawprint text-base text-paw/40">No services match your search.</p>
+            <div className="flex flex-col items-center gap-4 rounded-2xl border border-paw/[0.06] bg-paw/[0.02] py-24 text-center">
+              <div className="flex size-16 items-center justify-center rounded-2xl border border-paw/10 bg-paw/[0.04]">
+                <Search className="size-7 text-paw/30" strokeWidth={1.5} />
+              </div>
+              <p className="font-elegant text-xl font-bold text-paw/60">No services match</p>
+              <p className="font-pawprint text-sm text-paw/40">Try adjusting your filters or search query.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filtered.map((service) => {
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filtered.map((service, i) => {
                 const Icon = service.icon;
                 return (
                   <div
                     key={service.id}
-                    className="group flex flex-col overflow-hidden rounded-2xl border border-paw/8 bg-paw/[0.03] transition-all duration-300 hover:border-paw/20 hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/40"
+                    className="group relative flex flex-col overflow-hidden rounded-2xl border border-paw/[0.08] bg-paw/[0.025] transition-all duration-500 hover:border-paw/25 hover:bg-paw/[0.05] hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-black/40 animate-fade-up"
+                    style={{ animationDelay: `${i * 50}ms` }}
                   >
+                    {service.popular && (
+                      <div className="absolute right-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-[#F9D923] px-2.5 py-1 font-pawprint text-[10px] font-bold uppercase tracking-wider text-[#0f0d09] shadow-lg shadow-[#F9D923]/30">
+                        <TrendingUp className="size-2.5" />
+                        Popular
+                      </div>
+                    )}
+
                     {/* Card gradient header */}
-                    <div className={cn('flex items-center gap-3 bg-gradient-to-r p-5', service.gradient)}>
-                      <div className="flex size-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                    <div
+                      className={cn(
+                        'relative flex items-center gap-3 overflow-hidden bg-gradient-to-r p-5 transition-all duration-500 group-hover:p-6',
+                        service.gradient,
+                      )}
+                    >
+                      <div className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-white/10 blur-2xl transition-opacity duration-500 group-hover:opacity-70" />
+                      <div className="relative flex size-11 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm transition-all duration-500 group-hover:rotate-6 group-hover:scale-110">
                         <Icon className="size-5 text-white" strokeWidth={2} />
                       </div>
-                      <div>
-                        <h3 className="font-elegant text-base font-bold text-white">{service.name}</h3>
-                        <span className="font-pawprint text-xs capitalize text-white/70">{service.type}</span>
+                      <div className="relative">
+                        <h3 className="font-elegant text-lg font-bold text-white">
+                          {service.name}
+                        </h3>
+                        <span className="font-pawprint text-xs capitalize text-white/75">
+                          {service.type}
+                        </span>
                       </div>
-                      <div className="ml-auto rounded-full bg-black/20 px-2.5 py-1 font-pawprint text-xs text-white/80">
+                      <div className="relative ml-auto flex items-center gap-1 rounded-full bg-black/25 px-2.5 py-1 font-pawprint text-xs text-white/85 backdrop-blur-sm">
+                        <Clock className="size-3" />
                         {service.duration}
                       </div>
                     </div>
 
                     {/* Card body */}
-                    <div className="flex flex-1 flex-col gap-4 p-5">
-                      <p className="flex-1 font-pawprint text-sm leading-relaxed text-paw/55">
+                    <div className="flex flex-1 flex-col gap-5 p-6">
+                      <p className="flex-1 font-pawprint text-sm leading-[1.7] text-paw/60">
                         {service.description}
                       </p>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <span className="font-elegant text-2xl font-black text-[#F9D923]">${service.price}</span>
-                          <span className="ml-1 font-pawprint text-xs text-paw/35">/ session</span>
+                      <div className="flex items-center justify-between border-t border-paw/[0.06] pt-5">
+                        <div className="flex items-baseline gap-1">
+                          <span className="font-elegant text-3xl font-black text-[#F9D923]">
+                            ${service.price}
+                          </span>
+                          <span className="font-pawprint text-xs text-paw/35">
+                            /session
+                          </span>
                         </div>
                         {token ? (
                           <button
                             onClick={() => setSelectedService(service)}
-                            className="cursor-pointer rounded-xl bg-doggy px-4 py-2 font-pawprint text-xs font-bold text-white shadow-md shadow-doggy/20 transition-all duration-200 hover:bg-doggy/90 hover:shadow-doggy/35"
+                            className="group/btn relative cursor-pointer overflow-hidden rounded-xl bg-doggy px-5 py-2.5 font-pawprint text-xs font-bold text-white shadow-md shadow-doggy/25 transition-all duration-300 hover:shadow-doggy/45"
                           >
-                            Book Now
+                            <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover/btn:translate-x-full" />
+                            <span className="relative">Book Now</span>
                           </button>
                         ) : (
                           <Link href="/login">
-                            <button className="cursor-pointer rounded-xl border border-paw/15 px-4 py-2 font-pawprint text-xs font-semibold text-paw/50 transition-all duration-200 hover:border-paw/30 hover:text-paw">
+                            <button className="cursor-pointer rounded-xl border border-paw/15 px-5 py-2.5 font-pawprint text-xs font-semibold text-paw/55 transition-all duration-300 hover:border-paw/35 hover:text-paw">
                               Book Now
                             </button>
                           </Link>

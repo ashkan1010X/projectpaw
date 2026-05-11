@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { PawPrint, User, Mail, Lock, ArrowRight } from 'lucide-react';
+import { PawPrint, User, Mail, Lock, ArrowRight, Sparkles, Check } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +13,13 @@ interface RegisterResponse {
   message?: string;
 }
 
+const PERKS = [
+  'Free to join, cancel anytime',
+  'Book in under 2 minutes',
+  'Vetted, certified professionals',
+  'Email confirmations for every booking',
+];
+
 export default function SignupPage() {
   const { login } = useAuth();
   const router = useRouter();
@@ -21,6 +28,18 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const passwordStrength = (() => {
+    if (!password) return 0;
+    let s = 0;
+    if (password.length >= 8) s++;
+    if (/[A-Z]/.test(password)) s++;
+    if (/[0-9]/.test(password)) s++;
+    if (/[^A-Za-z0-9]/.test(password)) s++;
+    return s;
+  })();
+  const strengthLabel = ['', 'Weak', 'Fair', 'Good', 'Strong'][passwordStrength];
+  const strengthColor = ['', 'bg-red-500', 'bg-amber-500', 'bg-[#F9D923]', 'bg-emerald-500'][passwordStrength];
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -54,34 +73,109 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0f0d09] px-4 py-16">
-      {/* Ambient glow */}
-      <div className="pointer-events-none fixed left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 size-[500px] rounded-full bg-doggy/8 blur-[100px]" />
+    <div className="relative grid min-h-[calc(100vh-73px)] grid-cols-1 lg:grid-cols-5">
 
-      <div className="relative z-10 w-full max-w-md">
-        {/* Logo mark */}
-        <div className="mb-8 flex flex-col items-center gap-4 text-center">
-          <div className="flex size-14 items-center justify-center rounded-2xl border border-paw/10 bg-paw/[0.05]">
-            <PawPrint className="size-7 text-doggy" strokeWidth={1.5} />
+      {/* LEFT — Brand benefits */}
+      <aside className="relative hidden overflow-hidden border-r border-paw/[0.06] lg:col-span-2 lg:flex lg:flex-col lg:justify-between lg:p-12">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute -left-40 top-1/3 size-[500px] rounded-full bg-doggy/[0.18] blur-[120px]" />
+          <div className="absolute -right-32 bottom-1/4 size-[400px] rounded-full bg-[#F9D923]/[0.08] blur-[100px]" />
+        </div>
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage: 'radial-gradient(circle, #F5CBA7 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
+        />
+
+        <Link href="/" className="relative inline-flex items-center gap-2 font-elegant text-xl font-black text-paw">
+          <PawPrint className="size-5 text-doggy" strokeWidth={2.5} />
+          ProjectPaw
+        </Link>
+
+        <div className="relative">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#F9D923]/25 bg-[#F9D923]/[0.08] px-3 py-1">
+            <Sparkles className="size-3 text-[#F9D923]" />
+            <span className="font-pawprint text-[10px] font-bold uppercase tracking-[0.2em] text-[#F9D923]">
+              Join 2,400+ families
+            </span>
           </div>
-          <div>
-            <h1 className="font-elegant text-3xl font-black text-paw">Join ProjectPaw</h1>
-            <p className="mt-1 font-pawprint text-sm text-paw/50">
-              Create your free account today
-            </p>
-          </div>
+
+          <h2 className="mb-8 font-elegant text-4xl font-black leading-[1.05] tracking-tight text-paw">
+            Premium care.
+            <br />
+            <em className="not-italic text-doggy">Zero hassle.</em>
+          </h2>
+
+          <ul className="space-y-3">
+            {PERKS.map((perk) => (
+              <li key={perk} className="flex items-start gap-3">
+                <div className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border border-doggy/35 bg-doggy/15">
+                  <Check className="size-3 text-doggy" strokeWidth={3} />
+                </div>
+                <span className="font-pawprint text-base text-paw/75">{perk}</span>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {/* Card */}
-        <div className="rounded-3xl border border-paw/10 bg-paw/[0.03] p-8 backdrop-blur-sm">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="relative flex items-center gap-3 font-pawprint text-xs text-paw/40">
+          <div className="flex -space-x-2">
+            {['SM', 'JK', 'PL', 'AN'].map((i, idx) => (
+              <div
+                key={i}
+                className="flex size-7 items-center justify-center rounded-full border-2 border-[#0f0d09] bg-gradient-to-br from-doggy to-paw-dark font-pawprint text-[10px] font-bold text-white"
+                style={{ zIndex: 4 - idx }}
+              >
+                {i}
+              </div>
+            ))}
+          </div>
+          <span>Loved by 2,400+ dog families</span>
+        </div>
+      </aside>
 
+      {/* RIGHT — Form */}
+      <div className="relative flex items-center justify-center px-4 py-16 lg:col-span-3">
+        <div className="pointer-events-none absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 size-[400px] rounded-full bg-doggy/[0.06] blur-[100px] lg:hidden" />
+
+        <div className="relative z-10 w-full max-w-md">
+          {/* Mark (mobile only) */}
+          <div className="mb-8 flex flex-col items-center gap-4 text-center lg:hidden animate-fade-down">
+            <div className="flex size-14 items-center justify-center rounded-2xl border border-paw/15 bg-paw/[0.05]">
+              <PawPrint className="size-6 text-doggy" strokeWidth={1.5} />
+            </div>
+          </div>
+
+          <div className="mb-8 animate-fade-up">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#F9D923]/25 bg-[#F9D923]/[0.08] px-3 py-1">
+              <Sparkles className="size-3 text-[#F9D923]" />
+              <span className="font-pawprint text-[10px] font-bold uppercase tracking-[0.2em] text-[#F9D923]">
+                Free Forever
+              </span>
+            </div>
+            <h1 className="font-elegant text-5xl font-black tracking-tight text-paw">
+              Create <em className="not-italic text-doggy">account</em>.
+            </h1>
+            <p className="mt-2 font-pawprint text-sm text-paw/50">
+              Takes less than a minute. No card required.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5 animate-fade-up delay-100">
             <div className="flex flex-col gap-2">
-              <label htmlFor="name" className="font-pawprint text-xs font-semibold uppercase tracking-wider text-paw/50">
+              <label
+                htmlFor="name"
+                className="font-pawprint text-xs font-semibold uppercase tracking-[0.18em] text-paw/50"
+              >
                 Full Name
               </label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-paw/30" strokeWidth={1.5} />
+              <div className="group relative">
+                <User
+                  className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-paw/30 transition-colors duration-300 group-focus-within:text-doggy"
+                  strokeWidth={1.5}
+                />
                 <input
                   id="name"
                   type="text"
@@ -91,21 +185,27 @@ export default function SignupPage() {
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Jane Doe"
                   className={cn(
-                    'w-full rounded-xl border border-paw/10 bg-paw/[0.04] py-3 pl-11 pr-4',
+                    'w-full rounded-xl border border-paw/[0.1] bg-paw/[0.03] py-3.5 pl-11 pr-4',
                     'font-pawprint text-sm text-paw placeholder:text-paw/25',
-                    'outline-none transition-all duration-200',
-                    'focus:border-doggy/60 focus:ring-2 focus:ring-doggy/15',
+                    'outline-none transition-all duration-300',
+                    'focus:border-doggy/60 focus:bg-paw/[0.05] focus:ring-2 focus:ring-doggy/15',
                   )}
                 />
               </div>
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="email" className="font-pawprint text-xs font-semibold uppercase tracking-wider text-paw/50">
+              <label
+                htmlFor="email"
+                className="font-pawprint text-xs font-semibold uppercase tracking-[0.18em] text-paw/50"
+              >
                 Email
               </label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-paw/30" strokeWidth={1.5} />
+              <div className="group relative">
+                <Mail
+                  className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-paw/30 transition-colors duration-300 group-focus-within:text-doggy"
+                  strokeWidth={1.5}
+                />
                 <input
                   id="email"
                   type="email"
@@ -115,21 +215,32 @@ export default function SignupPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   className={cn(
-                    'w-full rounded-xl border border-paw/10 bg-paw/[0.04] py-3 pl-11 pr-4',
+                    'w-full rounded-xl border border-paw/[0.1] bg-paw/[0.03] py-3.5 pl-11 pr-4',
                     'font-pawprint text-sm text-paw placeholder:text-paw/25',
-                    'outline-none transition-all duration-200',
-                    'focus:border-doggy/60 focus:ring-2 focus:ring-doggy/15',
+                    'outline-none transition-all duration-300',
+                    'focus:border-doggy/60 focus:bg-paw/[0.05] focus:ring-2 focus:ring-doggy/15',
                   )}
                 />
               </div>
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="password" className="font-pawprint text-xs font-semibold uppercase tracking-wider text-paw/50">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-paw/30" strokeWidth={1.5} />
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="password"
+                  className="font-pawprint text-xs font-semibold uppercase tracking-[0.18em] text-paw/50"
+                >
+                  Password
+                </label>
+                {password && (
+                  <span className="font-pawprint text-xs font-semibold text-paw/60">{strengthLabel}</span>
+                )}
+              </div>
+              <div className="group relative">
+                <Lock
+                  className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-paw/30 transition-colors duration-300 group-focus-within:text-doggy"
+                  strokeWidth={1.5}
+                />
                 <input
                   id="password"
                   type="password"
@@ -137,19 +248,32 @@ export default function SignupPage() {
                   autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="At least 8 characters"
                   className={cn(
-                    'w-full rounded-xl border border-paw/10 bg-paw/[0.04] py-3 pl-11 pr-4',
+                    'w-full rounded-xl border border-paw/[0.1] bg-paw/[0.03] py-3.5 pl-11 pr-4',
                     'font-pawprint text-sm text-paw placeholder:text-paw/25',
-                    'outline-none transition-all duration-200',
-                    'focus:border-doggy/60 focus:ring-2 focus:ring-doggy/15',
+                    'outline-none transition-all duration-300',
+                    'focus:border-doggy/60 focus:bg-paw/[0.05] focus:ring-2 focus:ring-doggy/15',
                   )}
                 />
               </div>
+              {password && (
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4].map((bar) => (
+                    <div
+                      key={bar}
+                      className={cn(
+                        'h-1 flex-1 rounded-full transition-all duration-300',
+                        bar <= passwordStrength ? strengthColor : 'bg-paw/[0.08]',
+                      )}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
 
             {error && (
-              <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3">
+              <div className="rounded-xl border border-red-500/25 bg-red-500/[0.08] px-4 py-3 animate-fade-in">
                 <p className="font-pawprint text-sm text-red-400">{error}</p>
               </div>
             )}
@@ -157,30 +281,30 @@ export default function SignupPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-1 flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-doggy py-3.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/25 transition-all duration-200 hover:bg-doggy/90 hover:shadow-doggy/40 disabled:cursor-not-allowed disabled:opacity-60"
+              className="group relative mt-2 flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl bg-doggy py-3.5 font-pawprint text-sm font-bold text-white shadow-xl shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? 'Creating account...' : (
-                <>
-                  Create Account
-                  <ArrowRight className="size-4" />
-                </>
+              <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+              <span className="relative">
+                {loading ? 'Creating account...' : 'Create Account'}
+              </span>
+              {!loading && (
+                <ArrowRight className="relative size-4 transition-transform duration-300 group-hover:translate-x-1" />
               )}
             </button>
+
+            <p className="text-center font-pawprint text-xs text-paw/35">
+              By creating an account, you agree to our{' '}
+              <a href="#" className="text-paw/55 underline underline-offset-2 hover:text-paw">Terms</a> and{' '}
+              <a href="#" className="text-paw/55 underline underline-offset-2 hover:text-paw">Privacy Policy</a>.
+            </p>
           </form>
 
-          {/* Perks */}
-          <div className="mt-6 flex justify-center gap-6 border-t border-paw/8 pt-6">
-            {['Free to join', 'Cancel anytime', 'Email confirmations'].map((perk) => (
-              <span key={perk} className="font-pawprint text-xs text-paw/30">✓ {perk}</span>
-            ))}
-          </div>
-
-          <div className="mt-4 text-center">
-            <p className="font-pawprint text-sm text-paw/40">
+          <div className="mt-8 border-t border-paw/[0.06] pt-6 text-center animate-fade-in delay-300">
+            <p className="font-pawprint text-sm text-paw/45">
               Already have an account?{' '}
               <Link
                 href="/login"
-                className="font-semibold text-doggy transition-colors hover:text-doggy/80"
+                className="font-bold text-doggy transition-colors hover:text-doggy/80"
               >
                 Sign in
               </Link>

@@ -57,3 +57,10 @@ Use `@/` for all absolute imports (maps to project root).
 - Use server components by default
 - Mobile first responsive design
 - Accessibility first
+
+## End of Session
+When the user says they are done or are ending the session, always save memory before they leave:
+1. Update `memory/project_status.md` with what was completed and what's still pending
+2. Update `memory/feedback.md` with any new preferences or corrections from this session
+3. Update `memory/user_profile.md` if anything new was learned about the user
+4. Confirm to the user that memory has been saved

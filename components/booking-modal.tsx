@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { X, Calendar, Dog, FileText, type LucideIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, Calendar, Dog, FileText, Check, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 
@@ -28,9 +28,15 @@ function FieldWrapper({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={htmlFor} className="flex items-center gap-1.5 font-pawprint text-xs font-semibold uppercase tracking-wider text-paw/50">
-        <Icon className="size-3.5" strokeWidth={1.5} />
+    <div className="group flex flex-col gap-2">
+      <label
+        htmlFor={htmlFor}
+        className="flex items-center gap-2 font-pawprint text-xs font-semibold uppercase tracking-[0.18em] text-paw/55"
+      >
+        <Icon
+          className="size-3.5 text-paw/40 transition-colors duration-300 group-focus-within:text-doggy"
+          strokeWidth={1.5}
+        />
         {label}
       </label>
       {children}
@@ -39,10 +45,10 @@ function FieldWrapper({
 }
 
 const inputClass = cn(
-  'w-full rounded-xl border border-paw/10 bg-paw/[0.04] px-4 py-3',
+  'w-full rounded-xl border border-paw/[0.1] bg-paw/[0.03] px-4 py-3',
   'font-pawprint text-sm text-paw placeholder:text-paw/25',
-  'outline-none transition-all duration-200',
-  'focus:border-doggy/60 focus:ring-2 focus:ring-doggy/15',
+  'outline-none transition-all duration-300',
+  'focus:border-doggy/60 focus:bg-paw/[0.05] focus:ring-2 focus:ring-doggy/15',
 );
 
 export function BookingModal({ service, onClose }: BookingModalProps) {
@@ -56,10 +62,19 @@ export function BookingModal({ service, onClose }: BookingModalProps) {
 
   const minDatetime = new Date().toISOString().slice(0, 16);
 
+  // Esc to close
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+
   if (!token) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-        <div className="rounded-2xl border border-paw/10 bg-[#0f0d09] p-8 text-center shadow-2xl">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md animate-fade-in">
+        <div className="rounded-2xl border border-paw/15 bg-[#0f0d09] p-8 text-center shadow-2xl animate-scale-in">
           <p className="font-pawprint text-sm text-paw/60">Please log in to book a service.</p>
         </div>
       </div>
@@ -102,41 +117,63 @@ export function BookingModal({ service, onClose }: BookingModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md animate-fade-in"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-paw/10 bg-[#0f0d09] shadow-2xl">
+      <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-paw/15 bg-[#0f0d09] shadow-2xl animate-scale-in">
+        {/* Ambient glow */}
+        <div className="pointer-events-none absolute -top-32 left-1/2 size-[300px] -translate-x-1/2 rounded-full bg-doggy/[0.15] blur-[80px]" />
+
         {/* Header */}
-        <div className="relative flex items-center justify-between overflow-hidden bg-gradient-to-r from-doggy/80 to-paw-dark/80 px-6 py-5">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-doggy to-paw-dark opacity-60" />
+        <div className="relative flex items-center justify-between overflow-hidden border-b border-paw/[0.06] bg-gradient-to-r from-doggy/95 via-doggy to-paw-dark px-6 py-5">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.08]"
+            style={{
+              backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
+              backgroundSize: '16px 16px',
+            }}
+          />
+          <div className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-white/15 blur-2xl" />
+
           <div className="relative">
-            <h2 className="font-elegant text-xl font-black text-white">Book {service.name}</h2>
-            <p className="font-pawprint text-sm text-white/70">${service.price} per session</p>
+            <div className="mb-1 inline-block rounded-full bg-white/15 px-2.5 py-0.5 font-pawprint text-[10px] font-bold uppercase tracking-widest text-white/90 backdrop-blur-sm">
+              Booking
+            </div>
+            <h2 className="font-elegant text-2xl font-black leading-none text-white">
+              {service.name}
+            </h2>
+            <p className="mt-1 font-pawprint text-sm text-white/75">
+              <span className="font-elegant text-base font-black text-[#F9D923]">${service.price}</span> per session
+            </p>
           </div>
           <button
             onClick={onClose}
-            className="relative cursor-pointer rounded-xl p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+            className="group relative cursor-pointer rounded-xl border border-white/15 bg-white/[0.08] p-2 text-white/75 transition-all duration-300 hover:rotate-90 hover:border-white/30 hover:bg-white/15 hover:text-white"
             aria-label="Close modal"
           >
-            <X className="size-5" />
+            <X className="size-4" strokeWidth={2} />
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="relative p-6">
           {success ? (
-            <div className="flex flex-col items-center gap-5 py-8 text-center">
-              <div className="flex size-16 items-center justify-center rounded-2xl border border-emerald-500/20 bg-emerald-500/10">
-                <span className="text-3xl">🐾</span>
+            <div className="flex flex-col items-center gap-5 py-6 text-center animate-fade-up">
+              <div className="relative flex size-20 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/[0.1]">
+                <div className="absolute size-12 rounded-full bg-emerald-500/20 blur-2xl" />
+                <Check className="relative size-9 text-emerald-400" strokeWidth={2} />
               </div>
               <div>
-                <p className="font-elegant text-xl font-bold text-paw">Booking Confirmed!</p>
-                <p className="mt-1 font-pawprint text-sm text-paw/50">Check your email for details.</p>
+                <p className="font-elegant text-2xl font-black text-paw">Booking Confirmed!</p>
+                <p className="mt-2 font-pawprint text-sm text-paw/55">
+                  We&apos;ve sent confirmation details to your email.
+                </p>
               </div>
               <button
                 onClick={onClose}
-                className="cursor-pointer rounded-xl bg-doggy px-8 py-3 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/25 transition-all hover:bg-doggy/90"
+                className="group relative mt-2 cursor-pointer overflow-hidden rounded-xl bg-doggy px-10 py-3.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50"
               >
-                Done
+                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                <span className="relative">All Done</span>
               </button>
             </div>
           ) : (
@@ -178,7 +215,7 @@ export function BookingModal({ service, onClose }: BookingModalProps) {
               </FieldWrapper>
 
               {error && (
-                <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3">
+                <div className="rounded-xl border border-red-500/25 bg-red-500/[0.08] px-4 py-3 animate-fade-in">
                   <p className="font-pawprint text-sm text-red-400">{error}</p>
                 </div>
               )}
@@ -188,16 +225,17 @@ export function BookingModal({ service, onClose }: BookingModalProps) {
                   type="button"
                   onClick={onClose}
                   disabled={loading}
-                  className="flex-1 cursor-pointer rounded-xl border border-paw/10 py-3 font-pawprint text-sm font-semibold text-paw/50 transition-all hover:border-paw/20 hover:text-paw disabled:opacity-50"
+                  className="flex-1 cursor-pointer rounded-xl border border-paw/[0.1] py-3.5 font-pawprint text-sm font-semibold text-paw/55 transition-all duration-300 hover:border-paw/25 hover:bg-paw/[0.04] hover:text-paw disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 cursor-pointer rounded-xl bg-doggy py-3 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/25 transition-all hover:bg-doggy/90 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="group relative flex-1 cursor-pointer overflow-hidden rounded-xl bg-doggy py-3.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {loading ? 'Booking...' : 'Confirm Booking'}
+                  <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                  <span className="relative">{loading ? 'Booking...' : 'Confirm'}</span>
                 </button>
               </div>
             </form>
