@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import {
   Sheet,
   SheetContent,
+  SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
 
@@ -25,7 +26,7 @@ export function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-paw/[0.08] bg-[#0f0d09]/85 backdrop-blur-xl">
+    <nav aria-label="Main" className="sticky top-0 z-50 w-full border-b border-paw/[0.08] bg-[#0f0d09]/85 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
 
         {/* Logo */}
@@ -75,7 +76,7 @@ export function NavBar() {
           {/* Desktop auth — hidden on mobile */}
           {user ? (
             <>
-              <span className="hidden font-pawprint text-sm font-medium text-paw/70 sm:block">
+              <span className="hidden font-pawprint text-sm font-medium text-paw/70 md:block">
                 Hi, <span className="text-paw">{user.name}</span>
               </span>
               <button
@@ -135,6 +136,7 @@ export function NavBar() {
             >
               {/* Drawer header */}
               <div className="flex items-center gap-2.5 border-b border-paw/[0.08] px-6 py-5">
+                <SheetTitle className="sr-only">Navigation menu</SheetTitle>
                 <span className="relative">
                   <span className="absolute inset-0 size-5 rounded-full bg-doggy/30 blur-md" />
                   <PawPrint className="relative size-5 text-doggy" strokeWidth={2.5} />
@@ -145,7 +147,7 @@ export function NavBar() {
               </div>
 
               {/* Nav links */}
-              <nav className="flex-1 px-3 py-4">
+              <nav aria-label="Mobile menu" className="flex-1 px-3 py-4">
                 <ul className="flex flex-col gap-1">
                   {NAV_LINKS.map(({ href, label, icon: Icon }, index) => {
                     const isActive = pathname === href;
@@ -173,6 +175,36 @@ export function NavBar() {
                   })}
                 </ul>
               </nav>
+
+              {/* Drawer auth */}
+              <div className="border-t border-paw/[0.08] px-3 py-3">
+                {user ? (
+                  <button
+                    onClick={() => { logout(); setIsOpen(false); }}
+                    className="w-full cursor-pointer rounded-lg border border-paw/15 px-4 py-3 font-pawprint text-sm font-semibold text-paw/70 transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] hover:text-paw"
+                  >
+                    Logout
+                  </button>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <Link
+                      href="/login"
+                      onClick={() => setIsOpen(false)}
+                      className="rounded-lg px-4 py-3 font-pawprint text-sm font-medium text-paw/60 transition-colors duration-300 hover:text-paw"
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      href="/signup"
+                      onClick={() => setIsOpen(false)}
+                      className="group relative overflow-hidden rounded-lg bg-doggy px-4 py-3 text-center font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/25 transition-all duration-300 hover:shadow-doggy/50"
+                    >
+                      <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                      <span className="relative">Sign Up</span>
+                    </Link>
+                  </div>
+                )}
+              </div>
 
               {/* Drawer footer */}
               <div className="border-t border-paw/[0.08] px-6 py-5">
