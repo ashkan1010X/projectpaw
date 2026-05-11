@@ -80,12 +80,12 @@ Three `<span>` elements styled as bars. On `isOpen`:
 - Transition: `duration-300 ease-in-out` on all properties
 
 ### Sheet Slide-in
-shadcn Sheet uses Radix `DialogContent` with hardware-accelerated `translateX`. Override transition timing with `duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]` (Apple's native spring curve).
+shadcn Sheet uses Radix `DialogContent` with hardware-accelerated `translateX`. Override transition timing by passing `className="duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"` directly to `SheetContent` — scoped to this instance only, does not affect other Sheet uses.
 
 ### Nav Link Stagger
 Each link animates on Sheet open: `opacity-0 → 1`, `translateY(8px) → 0`.
 Delay per item: `50ms × index` (0ms, 50ms, 100ms, 150ms).
-Use `style={{ animationDelay: \`${index * 50}ms\` }}` with a Tailwind `animate-fade-up` custom keyframe or inline `@keyframes`.
+Define `@keyframes fadeUp` in `globals.css` and reference it as `animate-fade-up` via Tailwind's `@theme`. Apply per-link delay with `style={{ animationDelay: \`${index * 50}ms\` }}`.
 
 ### Backdrop
 `bg-black/60 backdrop-blur-sm` behind the Sheet. Provided by shadcn `SheetOverlay`.
