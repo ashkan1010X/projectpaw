@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PawPrint, Home, Info, Images, Scissors } from 'lucide-react';
+import { PawPrint, Home, Info, Images, Scissors, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
@@ -79,6 +79,16 @@ export function NavBar() {
               <span className="hidden font-pawprint text-sm font-medium text-paw/70 md:block">
                 Hi, <span className="text-paw">{user.name}</span>
               </span>
+              <Link
+                href="/dashboard"
+                className={cn(
+                  'hidden items-center gap-1.5 rounded-lg border border-paw/15 px-4 py-2 font-pawprint text-xs font-semibold transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] md:flex',
+                  pathname === '/dashboard' ? 'border-doggy/40 text-doggy' : 'text-paw/70 hover:text-paw',
+                )}
+              >
+                <LayoutDashboard size={13} />
+                Dashboard
+              </Link>
               <button
                 onClick={logout}
                 className="hidden cursor-pointer rounded-lg border border-paw/15 px-4 py-2 font-pawprint text-xs font-semibold text-paw/70 transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] hover:text-paw md:block"
@@ -174,6 +184,28 @@ export function NavBar() {
                     );
                   })}
                 </ul>
+                {user && (
+                  <ul className="mt-1">
+                    <li>
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setIsOpen(false)}
+                        className={cn(
+                          'flex items-center gap-3 rounded-lg px-4 py-3 font-pawprint text-lg font-semibold transition-colors duration-200',
+                          pathname === '/dashboard'
+                            ? 'border-l-2 border-doggy bg-doggy/10 text-paw'
+                            : 'border-l-2 border-transparent text-paw/60 hover:bg-paw/[0.04] hover:text-paw',
+                        )}
+                      >
+                        <LayoutDashboard
+                          size={18}
+                          className={cn(pathname === '/dashboard' ? 'text-doggy' : 'text-paw/40')}
+                        />
+                        Dashboard
+                      </Link>
+                    </li>
+                  </ul>
+                )}
               </nav>
 
               {/* Drawer auth */}
