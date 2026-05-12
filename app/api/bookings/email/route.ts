@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { supabase } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
   }
 
-  const { serviceId: _serviceId, serviceName, dogName, datetime, notes } = (await req.json()) as {
+  const { serviceId, serviceName, dogName, datetime, notes } = (await req.json()) as {
     serviceId: string;
     serviceName: string;
     dogName: string;
@@ -76,10 +77,24 @@ export async function POST(req: NextRequest) {
       subject: `Booking Confirmed — ${serviceName} for ${dogName}`,
       html,
     });
-
-    return NextResponse.json({ success: true });
   } catch (err) {
     console.error('Email send error:', err);
     return NextResponse.json({ message: 'Failed to send confirmation email.' }, { status: 500 });
   }
+
+  // Persist booking to DB — non-blocking failure (email already sent)
+  const { error: insertError } = await supabaseAdmin.from('bookings').insert({
+    user_id: user.id,
+    service_id: serviceId,
+    service_name: serviceName,
+    dog_name: dogName,
+    datetime,
+    notes: notes ?? null,
+  });
+
+  if (insertError) {
+    console.error('Booking insert error:', insertError);
+  }
+
+  return NextResponse.json({ success: true });
 }
