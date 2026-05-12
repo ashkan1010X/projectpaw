@@ -23,13 +23,14 @@ function statusBadge(datetime: string) {
 }
 
 export default function DashboardPage() {
-  const { user, token } = useAuth();
+  const { user, token, initialized } = useAuth();
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!initialized) return;
     if (!user || !token) {
       router.replace('/login');
       return;
@@ -47,7 +48,7 @@ export default function DashboardPage() {
         setError(err instanceof Error ? err.message : 'Something went wrong');
       })
       .finally(() => setLoading(false));
-  }, [user, token, router]);
+  }, [initialized, user, token, router]);
 
   if (loading) return null; // loading.tsx handles this
 

@@ -10,6 +10,7 @@ interface User {
 interface AuthContextValue {
   user: User | null;
   token: string | null;
+  initialized: boolean;
   login: (user: User, token: string) => void;
   logout: () => void;
 }
@@ -19,6 +20,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     try {
@@ -30,6 +32,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch {
       // ignore parse errors
+    } finally {
+      setInitialized(true);
     }
   }, []);
 
@@ -48,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, initialized, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
