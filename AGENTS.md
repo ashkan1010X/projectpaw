@@ -121,6 +121,11 @@ Do not wait until end of session. Store immediately when the feature works.
 
 The goal is continuous growth: every session should leave Ruflo smarter than it started.
 
+## Model Selection
+- Default to Sonnet 4.6 for all implementation work (API routes, components, tests, commits)
+- Only request Opus 4.7 when the task genuinely requires deep reasoning: complex architecture decisions, ambiguous multi-system problems, or when stuck after multiple failed attempts
+- Always tell the user explicitly: "This task needs Opus 4.7" before switching — never switch silently
+
 ## Code Quality
 - Always handle loading and error states
 - Never use any
