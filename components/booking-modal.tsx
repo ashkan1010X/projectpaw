@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { X, Calendar, Dog, FileText, Check, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
@@ -53,12 +54,14 @@ const inputClass = cn(
 
 export function BookingModal({ service, onClose }: BookingModalProps) {
   const { token } = useAuth();
+  const router = useRouter();
   const [dogName, setDogName] = useState('');
   const [datetime, setDatetime] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(3);
 
   const minDatetime = new Date().toISOString().slice(0, 16);
 
@@ -70,6 +73,18 @@ export function BookingModal({ service, onClose }: BookingModalProps) {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
+
+  // Auto-redirect to dashboard after booking confirmed
+  useEffect(() => {
+    if (!success) return;
+    if (countdown <= 0) {
+      onClose();
+      router.push('/dashboard');
+      return;
+    }
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [success, countdown, onClose, router]);
 
   if (!token) {
     return (
@@ -164,17 +179,28 @@ export function BookingModal({ service, onClose }: BookingModalProps) {
               </div>
               <div>
                 <p className="font-elegant text-2xl font-black text-paw">Booking Confirmed!</p>
-                <p className="mt-2 font-pawprint text-sm text-paw/55">
-                  We&apos;ve sent confirmation details to your email.
+                <p className="mt-1 font-pawprint text-sm text-paw/55">
+                  Confirmation details sent to your email.
+                </p>
+                <p className="mt-3 font-pawprint text-xs text-paw/35">
+                  Taking you to your bookings in {countdown}s…
                 </p>
               </div>
-              <button
-                onClick={onClose}
-                className="group relative mt-2 cursor-pointer overflow-hidden rounded-xl bg-doggy px-10 py-3.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50"
-              >
-                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                <span className="relative">All Done</span>
-              </button>
+              <div className="flex w-full flex-col gap-2 pt-1">
+                <button
+                  onClick={() => { onClose(); router.push('/dashboard'); }}
+                  className="group relative w-full cursor-pointer overflow-hidden rounded-xl bg-doggy px-6 py-3.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50"
+                >
+                  <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                  <span className="relative">View My Bookings →</span>
+                </button>
+                <button
+                  onClick={onClose}
+                  className="w-full cursor-pointer rounded-xl border border-paw/[0.1] py-3 font-pawprint text-xs font-medium text-paw/40 transition-all duration-300 hover:border-paw/25 hover:text-paw/60"
+                >
+                  Back to Services
+                </button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
