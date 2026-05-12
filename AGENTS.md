@@ -105,6 +105,12 @@ Never do this:
 ## Ruflo Memory — MANDATORY
 Ruflo must be used in every session. This is non-negotiable.
 
+**After every completed feature or fix (mandatory, not just end of session):** Immediately call both:
+1. `mcp__ruflo__agentdb_pattern-store` — what was built, what pattern was used, any gotchas
+2. `mcp__ruflo__memory_store` (namespace: `projectpaw`) — project-specific context and decisions
+
+Do not wait until end of session. Store immediately when the feature works.
+
 **During implementation:** Use `mcp__ruflo__memory_store` to store project-specific knowledge (component patterns, API decisions, gotchas) as you discover them.
 
 **At the end of every session:** Store all learned patterns into Ruflo before the session ends:

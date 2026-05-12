@@ -28,6 +28,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const passwordStrength = (() => {
     if (!password) return 0;
@@ -54,6 +55,11 @@ export default function SignupPage() {
       });
 
       const data = (await res.json().catch(() => ({}))) as Partial<RegisterResponse>;
+
+      if (res.status === 202) {
+        setSuccess(data.message ?? 'Check your email to confirm your account.');
+        return;
+      }
 
       if (!res.ok) {
         throw new Error(data.message ?? 'Registration failed. Please try again.');
@@ -275,6 +281,12 @@ export default function SignupPage() {
             {error && (
               <div className="rounded-xl border border-red-500/25 bg-red-500/[0.08] px-4 py-3 animate-fade-in">
                 <p className="font-pawprint text-sm text-red-400">{error}</p>
+              </div>
+            )}
+
+            {success && (
+              <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.08] px-4 py-3 animate-fade-in">
+                <p className="font-pawprint text-sm text-emerald-400">{success}</p>
               </div>
             )}
 
