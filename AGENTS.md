@@ -102,6 +102,19 @@ Never do this:
 - Always use the Superpowers methodology
 - Before writing any code: brainstorm first, write a spec, create a plan, use TDD
 
+## Ruflo Memory — MANDATORY
+Ruflo must be used in every session. This is non-negotiable.
+
+**During implementation:** Use `mcp__ruflo__memory_store` to store project-specific knowledge (component patterns, API decisions, gotchas) as you discover them.
+
+**At the end of every session:** Store all learned patterns into Ruflo before the session ends:
+1. `mcp__ruflo__agentdb_pattern-store` — for reusable code patterns, error recoveries, and architectural decisions
+2. `mcp__ruflo__memory_store` (namespace: `projectpaw`) — for project-specific context, component details, and implementation notes
+
+**Before starting any task:** Search Ruflo first with `mcp__ruflo__memory_search` or `mcp__ruflo__agentdb_pattern-search` to check if relevant patterns already exist — never re-derive what Ruflo already knows.
+
+The goal is continuous growth: every session should leave Ruflo smarter than it started.
+
 ## Code Quality
 - Always handle loading and error states
 - Never use any
