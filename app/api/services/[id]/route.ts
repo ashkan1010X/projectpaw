@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-
-async function verifyAdmin(req: NextRequest) {
-  const token = req.headers.get('authorization')?.replace('Bearer ', '');
-  if (!token) return null;
-  const { data: { user }, error } = await supabase.auth.getUser(token);
-  if (error || !user) return null;
-  if (user.email !== process.env.ADMIN_EMAIL) return null;
-  return user;
-}
+import { verifyAdmin } from '@/lib/admin-auth';
 
 export async function PATCH(
   req: NextRequest,
@@ -31,14 +22,27 @@ export async function PATCH(
     popular: boolean;
   }>;
 
+  // Explicitly pick allowed fields — prevents unintended column overwrites
+  const patch: Record<string, unknown> = {};
+  if (body.name !== undefined) patch.name = body.name;
+  if (body.price !== undefined) patch.price = body.price;
+  if (body.duration !== undefined) patch.duration = body.duration;
+  if (body.description !== undefined) patch.description = body.description;
+  if (body.icon_key !== undefined) patch.icon_key = body.icon_key;
+  if (body.gradient !== undefined) patch.gradient = body.gradient;
+  if (body.popular !== undefined) patch.popular = body.popular;
+
   const { data, error } = await supabaseAdmin
     .from('services')
-    .update(body)
+    .update(patch)
     .eq('id', id)
     .select()
     .single();
 
   if (error) {
+    if (error.code === 'PGRST116') {
+      return NextResponse.json({ message: 'Service not found' }, { status: 404 });
+    }
     console.error('Service update error:', error);
     return NextResponse.json({ message: 'Failed to update service' }, { status: 500 });
   }
@@ -57,14 +61,19 @@ export async function DELETE(
 
   const { id } = await params;
 
-  const { error } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('services')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .select('id');
 
   if (error) {
     console.error('Service delete error:', error);
     return NextResponse.json({ message: 'Failed to delete service' }, { status: 500 });
+  }
+
+  if (!data || data.length === 0) {
+    return NextResponse.json({ message: 'Service not found' }, { status: 404 });
   }
 
   return NextResponse.json({ success: true });

@@ -1,15 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-
-async function verifyAdmin(req: NextRequest) {
-  const token = req.headers.get('authorization')?.replace('Bearer ', '');
-  if (!token) return null;
-  const { data: { user }, error } = await supabase.auth.getUser(token);
-  if (error || !user) return null;
-  if (user.email !== process.env.ADMIN_EMAIL) return null;
-  return user;
-}
+import { verifyAdmin } from '@/lib/admin-auth';
 
 export async function POST(req: NextRequest) {
   const admin = await verifyAdmin(req);
@@ -28,6 +19,7 @@ export async function POST(req: NextRequest) {
   };
 
   const { name, price, duration, description, icon_key, gradient, popular } = body;
+  // popular is boolean — use == null so `false` is accepted as valid
   if (!name || !duration || !description || !icon_key || !gradient || price == null || popular == null) {
     return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
   }
