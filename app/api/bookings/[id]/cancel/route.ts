@@ -49,21 +49,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { error: updateError } = await supabaseAdmin
     .from('bookings')
     .update({ status: 'cancelled' })
-    .eq('id', id);
+    .eq('id', id)
+    .eq('user_id', user.id);
 
   if (updateError) {
     console.error('Cancel update error:', updateError);
     return NextResponse.json({ message: 'Failed to cancel booking' }, { status: 500 });
   }
 
-  const formattedDate = new Date(booking.datetime).toLocaleString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const parsedDate = new Date(booking.datetime);
+  const formattedDate = isNaN(parsedDate.getTime())
+    ? booking.datetime
+    : parsedDate.toLocaleString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
 
   const html = `
     <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; background: #0f0d09; color: #F5CBA7; border-radius: 16px; overflow: hidden;">
@@ -105,6 +109,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     });
   } catch (err) {
     console.error('Cancellation email error:', err);
+    // Non-blocking — DB already updated, just log
   }
 
   return NextResponse.json({ success: true });
