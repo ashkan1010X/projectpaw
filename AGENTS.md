@@ -196,6 +196,11 @@ Every UI feature must meet the standard of the best production apps (Airbnb, Lin
 - Skeletons use `animate-pulse` with `bg-paw/[0.08]` (dark-theme shimmer, not white flash).
 - Match the skeleton shape to the actual content layout.
 
+**Cursor behavior (non-negotiable):**
+- Every `button`, toggle (`[role="switch"]`), and interactive label must show `cursor-pointer` — this is set globally in `globals.css` and must never be overridden to `cursor-default`.
+- Disabled buttons/inputs must show `cursor-not-allowed` — also set globally.
+- Never add a new interactive element without verifying the cursor changes on hover.
+
 **Accessibility (non-negotiable):**
 - Every interactive element that doesn't have visible text must have `aria-label`.
 - When a page has dual mobile/desktop layouts in the DOM, both versions need `aria-label` — Playwright `.first()` picks the hidden one otherwise.

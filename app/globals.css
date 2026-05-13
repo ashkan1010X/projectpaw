@@ -140,6 +140,21 @@
   * {
     @apply border-border outline-ring/50;
   }
+  button,
+  [role='switch'],
+  [role='checkbox'],
+  [role='radio'],
+  [role='tab'],
+  label[for],
+  select {
+    cursor: pointer;
+  }
+  button:disabled,
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    cursor: not-allowed;
+  }
   body {
     @apply bg-[#0f0d09] text-paw;
     background-image: radial-gradient(
