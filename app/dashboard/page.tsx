@@ -115,7 +115,7 @@ export default function DashboardPage() {
           <div className="mt-1 font-pawprint text-xs text-paw/40">Total Bookings</div>
         </div>
         <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-6 text-center">
-          <div className="font-elegant text-xl font-black text-doggy">{lastService}</div>
+          <div className="truncate font-elegant text-xl font-black text-doggy">{lastService}</div>
           <div className="mt-1 font-pawprint text-xs text-paw/40">Last Service</div>
         </div>
         <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-6 text-center">
@@ -168,15 +168,15 @@ export default function DashboardPage() {
 
               return (
                 <div key={booking.id} className="space-y-1.5">
-                  <div className="flex items-center justify-between rounded-xl border border-paw/[0.08] bg-[#1a1612] px-5 py-4">
-                    <div>
+                  <div className="flex flex-col gap-3 rounded-xl border border-paw/[0.08] bg-[#1a1612] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+                    <div className="min-w-0">
                       <p className="font-pawprint text-sm font-semibold text-paw">
                         {booking.service_name}
                         <span className="ml-2 text-paw/40">— {booking.dog_name}</span>
                       </p>
                       <p className="mt-0.5 font-pawprint text-xs text-paw/40">{formatted}</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-2">
                       {isPastOrCancelled && (
                         <button
                           onClick={() =>
