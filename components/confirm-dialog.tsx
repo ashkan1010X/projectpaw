@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface ConfirmDialogProps {
@@ -24,6 +24,18 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
+  const triggerRef = useRef<Element | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      triggerRef.current = document.activeElement;
+    } else {
+      if (triggerRef.current instanceof HTMLElement) {
+        triggerRef.current.focus();
+      }
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     if (!isOpen) return;
     const handler = (e: KeyboardEvent) => {
@@ -59,18 +71,21 @@ export function ConfirmDialog({
         </p>
         <div className="mt-6 flex gap-3">
           <button
+            type="button"
+            autoFocus
             onClick={onCancel}
             className="flex-1 rounded-xl border border-paw/[0.12] bg-white/[0.03] py-2.5 font-pawprint text-sm font-semibold text-paw/60 transition-all duration-200 hover:border-paw/25 hover:text-paw/80"
           >
             {cancelLabel}
           </button>
           <button
+            type="button"
             onClick={onConfirm}
             className={cn(
               'flex-1 rounded-xl py-2.5 font-pawprint text-sm font-bold text-white shadow-lg transition-all duration-200 hover:-translate-y-0.5',
               destructive
                 ? 'bg-red-500 shadow-red-500/25 hover:bg-red-400 hover:shadow-red-500/40'
-                : 'bg-doggy shadow-doggy/25 hover:shadow-doggy/40',
+                : 'bg-doggy shadow-doggy/25 hover:bg-doggy/90 hover:shadow-doggy/40',
             )}
           >
             {confirmLabel}
