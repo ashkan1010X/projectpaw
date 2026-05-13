@@ -34,6 +34,54 @@ function statusBadge(booking: Booking, now: Date) {
     : { label: 'Completed', className: 'bg-paw/10 text-paw/50' };
 }
 
+function DashboardSkeleton() {
+  return (
+    <main className="mx-auto max-w-4xl px-6 py-12">
+      {/* Header */}
+      <div className="mb-10">
+        <div className="h-9 w-52 animate-pulse rounded-lg bg-paw/[0.08]" />
+        <div className="mt-2 h-4 w-36 animate-pulse rounded bg-paw/[0.05]" />
+      </div>
+
+      {/* Stats row */}
+      <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:p-6">
+          <div className="mx-auto h-8 w-10 animate-pulse rounded bg-paw/[0.08]" />
+          <div className="mx-auto mt-2 h-3 w-20 animate-pulse rounded bg-paw/[0.05]" />
+        </div>
+        <div className="hidden rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:block sm:p-6">
+          <div className="mx-auto h-6 w-28 animate-pulse rounded bg-paw/[0.08]" />
+          <div className="mx-auto mt-2 h-3 w-20 animate-pulse rounded bg-paw/[0.05]" />
+        </div>
+        <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:p-6">
+          <div className="mx-auto h-6 w-16 animate-pulse rounded bg-paw/[0.08]" />
+          <div className="mx-auto mt-2 h-3 w-14 animate-pulse rounded bg-paw/[0.05]" />
+        </div>
+      </div>
+
+      {/* Booking list */}
+      <div className="space-y-3">
+        <div className="mb-4 h-5 w-36 animate-pulse rounded bg-paw/[0.08]" />
+        {[0, 1, 2].map((i) => (
+          <div
+            key={i}
+            className="flex flex-col gap-3 rounded-xl border border-paw/[0.08] bg-[#1a1612] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0"
+          >
+            <div className="min-w-0">
+              <div className="h-4 w-44 animate-pulse rounded bg-paw/[0.08]" />
+              <div className="mt-1.5 h-3 w-28 animate-pulse rounded bg-paw/[0.05]" />
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <div className="h-7 w-16 animate-pulse rounded-lg bg-paw/[0.08]" />
+              <div className="h-6 w-20 animate-pulse rounded-full bg-paw/[0.06]" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </main>
+  );
+}
+
 export default function DashboardPage() {
   const { user, token, initialized } = useAuth();
   const router = useRouter();
@@ -96,7 +144,7 @@ export default function DashboardPage() {
     }
   }
 
-  if (loading) return null;
+  if (loading) return <DashboardSkeleton />;
 
   const lastService = bookings[0]?.service_name ?? '—';
 
