@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   };
 
   const { name, price, duration, description, icon_key, gradient, popular } = body;
-  if (!name || !duration || !description || !icon_key || !gradient || price == null) {
+  if (!name || !duration || !description || !icon_key || !gradient || price == null || popular == null) {
     return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
   }
 
