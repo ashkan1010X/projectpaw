@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/auth-context';
 import { supabase } from '@/lib/supabase';
 import type { ServiceRow } from '@/lib/service-icons';
 import { cn } from '@/lib/utils';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? '';
 
@@ -73,6 +74,8 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [drawerError, setDrawerError] = useState<string | null>(null);
   const [tableError, setTableError] = useState<string | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Auth gate
   useEffect(() => {
@@ -186,7 +189,14 @@ export default function AdminPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm('Delete this service? This cannot be undone.')) return;
+    setPendingDeleteId(id);
+  }
+
+  async function confirmDelete() {
+    if (!pendingDeleteId) return;
+    const id = pendingDeleteId;
+    setPendingDeleteId(null);
+    setDeleteError(null);
     try {
       const res = await fetch(`/api/services/${id}`, {
         method: 'DELETE',
@@ -196,10 +206,10 @@ export default function AdminPage() {
         setServices((prev) => prev.filter((s) => s.id !== id));
         if (editingId === id) closeDrawer();
       } else {
-        alert('Failed to delete service.');
+        setDeleteError('Failed to delete service. Please try again.');
       }
     } catch {
-      alert('Network error. Please try again.');
+      setDeleteError('Network error. Please try again.');
     }
   }
 
@@ -493,6 +503,32 @@ export default function AdminPage() {
           </div>
         )}
       </div>
+
+      {/* Delete error banner */}
+      {deleteError && (
+        <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-xl border border-red-500/25 bg-[#1a1612] px-5 py-3 shadow-2xl">
+          <p className="inline font-pawprint text-sm text-red-400">{deleteError}</p>
+          <button
+            type="button"
+            onClick={() => setDeleteError(null)}
+            className="ml-3 font-pawprint text-xs text-red-400/60 hover:text-red-400"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Delete confirmation dialog */}
+      <ConfirmDialog
+        isOpen={pendingDeleteId !== null}
+        title="Delete Service"
+        message={`Are you sure you want to delete "${services.find((s) => s.id === pendingDeleteId)?.name ?? ''}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        cancelLabel="Keep it"
+        destructive
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </main>
   );
 }
