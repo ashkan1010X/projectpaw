@@ -1,6 +1,6 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -10,11 +10,11 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
-  --color-paw-light: #FDF6F0;
-  --color-paw: #F5CBA7;
-  --color-paw-dark: #A67C52;
-  --color-doggy: #B2A4FF;
-  --color-accent: #F9D923;
+  --color-paw-light: #fdf6f0;
+  --color-paw: #f5cba7;
+  --color-paw-dark: #a67c52;
+  --color-doggy: #b2a4ff;
+  --color-accent: #f9d923;
   --font-elegant: 'Playfair Display', serif;
   --font-pawprint: 'Baloo 2', cursive;
   --color-sidebar-ring: var(--sidebar-ring);
@@ -155,7 +155,7 @@
   }
   ::selection {
     background: rgba(178, 164, 255, 0.3);
-    color: #FDF6F0;
+    color: #fdf6f0;
   }
   ::-webkit-scrollbar {
     width: 10px;
@@ -193,30 +193,47 @@
     animation: float 6s ease-in-out 2s infinite;
   }
   .animate-shimmer {
-    background: linear-gradient(
-      90deg,
-      #B2A4FF 0%,
-      #F9D923 50%,
-      #B2A4FF 100%
-    );
+    background: linear-gradient(90deg, #b2a4ff 0%, #f9d923 50%, #b2a4ff 100%);
     background-size: 200% 100%;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: shimmer 4s ease-in-out infinite;
   }
+  .animate-dialog-in {
+    animation: dialogIn 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-overlay-in {
+    animation: overlayIn 150ms ease-out both;
+  }
   .animate-pulse-glow {
     animation: pulseGlow 3s ease-in-out infinite;
   }
-  .delay-100 { animation-delay: 0.1s; }
-  .delay-200 { animation-delay: 0.2s; }
-  .delay-300 { animation-delay: 0.3s; }
-  .delay-400 { animation-delay: 0.4s; }
-  .delay-500 { animation-delay: 0.5s; }
-  .delay-600 { animation-delay: 0.6s; }
-  .delay-700 { animation-delay: 0.7s; }
+  .delay-100 {
+    animation-delay: 0.1s;
+  }
+  .delay-200 {
+    animation-delay: 0.2s;
+  }
+  .delay-300 {
+    animation-delay: 0.3s;
+  }
+  .delay-400 {
+    animation-delay: 0.4s;
+  }
+  .delay-500 {
+    animation-delay: 0.5s;
+  }
+  .delay-600 {
+    animation-delay: 0.6s;
+  }
+  .delay-700 {
+    animation-delay: 0.7s;
+  }
 
-  .text-balance { text-wrap: balance; }
+  .text-balance {
+    text-wrap: balance;
+  }
 
   .grain {
     position: relative;
@@ -255,8 +272,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes scaleIn {
@@ -271,28 +292,59 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-12px) rotate(2deg); }
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(2deg);
+  }
+}
+
+@keyframes dialogIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes shimmer {
-  0%, 100% { background-position: 0% center; }
-  50% { background-position: 100% center; }
+  0%,
+  100% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
+  }
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(178, 164, 255, 0.4),
-                0 12px 32px -8px rgba(178, 164, 255, 0.5);
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(178, 164, 255, 0.4),
+      0 12px 32px -8px rgba(178, 164, 255, 0.5);
   }
   50% {
-    box-shadow: 0 0 0 12px rgba(178, 164, 255, 0),
-                0 12px 36px -4px rgba(178, 164, 255, 0.7);
+    box-shadow:
+      0 0 0 12px rgba(178, 164, 255, 0),
+      0 12px 36px -4px rgba(178, 164, 255, 0.7);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
