@@ -467,7 +467,7 @@ export default function AdminPage() {
                 <label className="mb-1 block font-pawprint text-[0.65rem] font-semibold uppercase tracking-wider text-paw/40">
                   Description *
                 </label>
-                <input
+                <textarea
                   value={form.description}
                   onChange={(e) => {
                     setForm((f) => ({ ...f, description: e.target.value }));
@@ -477,11 +477,15 @@ export default function AdminPage() {
                     const err = validateField('description', e.target.value);
                     setFieldErrors((fe) => ({ ...fe, description: err }));
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') e.preventDefault();
+                  }}
+                  rows={3}
                   className={cn(
-                    'w-full rounded-lg border bg-white/5 px-3 py-2 font-pawprint text-sm text-paw outline-none focus:border-doggy',
+                    'w-full resize-none rounded-lg border bg-white/5 px-3 py-2 font-pawprint text-sm text-paw outline-none focus:border-doggy',
                     fieldErrors.description ? 'border-red-500/60' : 'border-paw/10',
                   )}
-                  placeholder="One sentence description…"
+                  placeholder="Describe the service…"
                 />
                 {fieldErrors.description && (
                   <p className="mt-1 font-pawprint text-xs text-red-400">{fieldErrors.description}</p>
