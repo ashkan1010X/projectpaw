@@ -77,8 +77,14 @@ export default function AdminPage() {
   // Auth gate
   useEffect(() => {
     if (!initialized) return;
-    if (!user || !token) { router.replace('/login'); return; }
-    if (user.email !== ADMIN_EMAIL) { router.replace('/'); return; }
+    if (!user || !token) {
+      router.replace('/login');
+      return;
+    }
+    if (user.email !== ADMIN_EMAIL) {
+      router.replace('/');
+      return;
+    }
   }, [initialized, user, token, router]);
 
   // Load services
@@ -86,10 +92,7 @@ export default function AdminPage() {
     if (!initialized || !user || user.email !== ADMIN_EMAIL) return;
     void (async () => {
       try {
-        const { data, error } = await supabase
-          .from('services')
-          .select('*')
-          .order('sort_order');
+        const { data, error } = await supabase.from('services').select('*').order('sort_order');
         if (error) {
           setTableError('Failed to load services. Please refresh the page.');
         } else if (data) {
@@ -147,7 +150,11 @@ export default function AdminPage() {
         });
         if (!res.ok) {
           let message = `Request failed (${res.status})`;
-          try { message = ((await res.json()) as { message?: string }).message ?? message; } catch { /* non-JSON */ }
+          try {
+            message = ((await res.json()) as { message?: string }).message ?? message;
+          } catch {
+            /* non-JSON */
+          }
           throw new Error(message);
         }
         const { service } = (await res.json()) as { service: ServiceRow };
@@ -160,7 +167,11 @@ export default function AdminPage() {
         });
         if (!res.ok) {
           let message = `Request failed (${res.status})`;
-          try { message = ((await res.json()) as { message?: string }).message ?? message; } catch { /* non-JSON */ }
+          try {
+            message = ((await res.json()) as { message?: string }).message ?? message;
+          } catch {
+            /* non-JSON */
+          }
           throw new Error(message);
         }
         const { service } = (await res.json()) as { service: ServiceRow };
@@ -214,9 +225,9 @@ export default function AdminPage() {
 
       <div className="flex gap-0 rounded-xl border border-paw/[0.08] overflow-hidden bg-[#1a1612]">
         {/* Table */}
-        <div className={cn('flex-1 overflow-x-auto', drawerOpen && 'hidden md:block')}>
-          {/* Table header */}
-          <div className="grid grid-cols-[2fr_70px_100px_60px_100px] gap-2 border-b border-paw/[0.08] px-5 py-3 font-pawprint text-[0.68rem] font-semibold uppercase tracking-wider text-paw/40">
+        <div className={cn('flex-1', drawerOpen && 'hidden md:block')}>
+          {/* Table header — desktop only */}
+          <div className="hidden sm:grid grid-cols-[2fr_70px_100px_60px_100px] gap-2 border-b border-paw/[0.08] px-5 py-3 font-pawprint text-[0.68rem] font-semibold uppercase tracking-wider text-paw/40">
             <span>Service</span>
             <span>Price</span>
             <span>Duration</span>
@@ -233,40 +244,89 @@ export default function AdminPage() {
             <div
               key={service.id}
               className={cn(
-                'grid grid-cols-[2fr_70px_100px_60px_100px] gap-2 border-b border-paw/[0.05] px-5 py-3.5 font-pawprint text-sm text-paw/80 transition-colors last:border-0',
+                'border-b border-paw/[0.05] transition-colors last:border-0',
                 editingId === service.id && 'border-l-2 border-l-doggy bg-doggy/5',
               )}
             >
-              <span className="flex items-center gap-2 font-semibold text-paw">
-                <span
-                  className={cn(
-                    'flex size-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br text-xs',
-                    service.gradient,
-                  )}
-                >
-                  {ICON_OPTIONS.find((i) => i.key === service.icon_key)?.emoji ?? '✨'}
+              {/* Mobile card layout */}
+              <div className="flex items-center justify-between gap-3 px-5 py-3.5 sm:hidden">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span
+                    className={cn(
+                      'flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br text-sm',
+                      service.gradient,
+                    )}
+                  >
+                    {ICON_OPTIONS.find((i) => i.key === service.icon_key)?.emoji ?? '✨'}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate font-pawprint text-sm font-semibold text-paw">
+                      {service.name}
+                    </p>
+                    <p className="font-pawprint text-xs text-paw/50">
+                      <span className="text-accent">${service.price}</span>
+                      <span className="mx-1 text-paw/20">·</span>
+                      {service.duration}
+                      {service.popular && (
+                        <>
+                          <span className="mx-1 text-paw/20">·</span>
+                          <span className="text-emerald-400">Popular</span>
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <button
+                    onClick={() => openEdit(service)}
+                    aria-label={`Edit ${service.name}`}
+                    className="rounded-md border border-doggy/30 px-3 py-1.5 font-pawprint text-xs font-semibold text-doggy transition-all hover:border-doggy/60 hover:bg-doggy/10"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(service.id)}
+                    aria-label={`Delete ${service.name}`}
+                    className="rounded-md border border-red-500/25 px-3 py-1.5 font-pawprint text-xs font-semibold text-red-400 transition-all hover:border-red-500/50 hover:bg-red-500/10"
+                  >
+                    Del
+                  </button>
+                </div>
+              </div>
+
+              {/* Desktop row layout */}
+              <div className="hidden sm:grid grid-cols-[2fr_70px_100px_60px_100px] gap-2 px-5 py-3.5 font-pawprint text-sm text-paw/80">
+                <span className="flex items-center gap-2 font-semibold text-paw">
+                  <span
+                    className={cn(
+                      'flex size-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br text-xs',
+                      service.gradient,
+                    )}
+                  >
+                    {ICON_OPTIONS.find((i) => i.key === service.icon_key)?.emoji ?? '✨'}
+                  </span>
+                  {service.name}
                 </span>
-                {service.name}
-              </span>
-              <span className="text-accent">${service.price}</span>
-              <span className="text-paw/50">{service.duration}</span>
-              <span className={service.popular ? 'text-emerald-400' : 'text-paw/20'}>
-                {service.popular ? '✓' : '—'}
-              </span>
-              <span className="flex items-center gap-3">
-                <button
-                  onClick={() => openEdit(service)}
-                  className="font-semibold text-doggy hover:text-doggy/80"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(service.id)}
-                  className="font-semibold text-red-400 hover:text-red-300"
-                >
-                  Del
-                </button>
-              </span>
+                <span className="text-accent">${service.price}</span>
+                <span className="text-paw/50">{service.duration}</span>
+                <span className={service.popular ? 'text-emerald-400' : 'text-paw/20'}>
+                  {service.popular ? '✓' : '—'}
+                </span>
+                <span className="flex items-center gap-3">
+                  <button
+                    onClick={() => openEdit(service)}
+                    className="font-semibold text-doggy hover:text-doggy/80"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(service.id)}
+                    className="font-semibold text-red-400 hover:text-red-300"
+                  >
+                    Del
+                  </button>
+                </span>
+              </div>
             </div>
           ))}
         </div>
