@@ -24,11 +24,11 @@ type RebookTarget = {
   dogName: string;
 };
 
-function statusBadge(booking: Booking) {
+function statusBadge(booking: Booking, now: Date) {
   if (booking.status === 'cancelled') {
     return { label: 'Cancelled', className: 'bg-red-500/15 text-red-400' };
   }
-  const isUpcoming = new Date(booking.datetime) > new Date();
+  const isUpcoming = new Date(booking.datetime) > now;
   return isUpcoming
     ? { label: 'Upcoming', className: 'bg-doggy/20 text-doggy' }
     : { label: 'Completed', className: 'bg-paw/10 text-paw/50' };
@@ -151,79 +151,83 @@ export default function DashboardPage() {
       {bookings.length > 0 && (
         <div className="space-y-3">
           <h2 className="mb-4 font-elegant text-lg font-bold text-paw/70">Recent Bookings</h2>
-          {bookings.map((booking) => {
-            const badge = statusBadge(booking);
-            const isUpcoming =
-              booking.status !== 'cancelled' && new Date(booking.datetime) > new Date();
-            const isPastOrCancelled =
-              booking.status === 'cancelled' || new Date(booking.datetime) <= new Date();
-            const formatted = new Date(booking.datetime).toLocaleString('en-US', {
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            });
+          {(() => {
+            const now = new Date();
+            return bookings.map((booking) => {
+              const badge = statusBadge(booking, now);
+              const isUpcoming = booking.status !== 'cancelled' && new Date(booking.datetime) > now;
+              const isPastOrCancelled =
+                booking.status === 'cancelled' || new Date(booking.datetime) <= now;
+              const formatted = new Date(booking.datetime).toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              });
 
-            return (
-              <div key={booking.id} className="space-y-1.5">
-                <div className="flex items-center justify-between rounded-xl border border-paw/[0.08] bg-[#1a1612] px-5 py-4">
-                  <div>
-                    <p className="font-pawprint text-sm font-semibold text-paw">
-                      {booking.service_name}
-                      <span className="ml-2 text-paw/40">— {booking.dog_name}</span>
-                    </p>
-                    <p className="mt-0.5 font-pawprint text-xs text-paw/40">{formatted}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {isPastOrCancelled && (
-                      <button
-                        onClick={() =>
-                          setRebookTarget({
-                            serviceId: booking.service_id,
-                            serviceName: booking.service_name,
-                            dogName: booking.dog_name,
-                          })
-                        }
-                        className="rounded-lg border border-doggy/30 px-3 py-1 font-pawprint text-xs font-semibold text-doggy transition-all duration-200 hover:border-doggy/60 hover:bg-doggy/10"
-                      >
-                        Rebook
-                      </button>
-                    )}
-                    {isUpcoming && (
-                      <button
-                        onClick={() => handleCancel(booking)}
-                        disabled={cancellingId === booking.id}
-                        className="flex items-center gap-1.5 rounded-lg border border-red-500/25 px-3 py-1 font-pawprint text-xs font-semibold text-red-400 transition-all duration-200 hover:border-red-500/50 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {cancellingId === booking.id ? (
-                          <>
-                            <Loader2 className="size-3 animate-spin" />
-                            Cancelling…
-                          </>
-                        ) : (
-                          'Cancel'
-                        )}
-                      </button>
-                    )}
-                    <span
-                      className={cn(
-                        'rounded-full px-3 py-1 font-pawprint text-xs font-semibold',
-                        badge.className,
+              return (
+                <div key={booking.id} className="space-y-1.5">
+                  <div className="flex items-center justify-between rounded-xl border border-paw/[0.08] bg-[#1a1612] px-5 py-4">
+                    <div>
+                      <p className="font-pawprint text-sm font-semibold text-paw">
+                        {booking.service_name}
+                        <span className="ml-2 text-paw/40">— {booking.dog_name}</span>
+                      </p>
+                      <p className="mt-0.5 font-pawprint text-xs text-paw/40">{formatted}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isPastOrCancelled && (
+                        <button
+                          onClick={() =>
+                            setRebookTarget({
+                              serviceId: booking.service_id,
+                              serviceName: booking.service_name,
+                              dogName: booking.dog_name,
+                            })
+                          }
+                          aria-label={`Rebook ${booking.service_name} for ${booking.dog_name}`}
+                          className="rounded-lg border border-doggy/30 px-3 py-1 font-pawprint text-xs font-semibold text-doggy transition-all duration-200 hover:border-doggy/60 hover:bg-doggy/10"
+                        >
+                          Rebook
+                        </button>
                       )}
-                    >
-                      {badge.label}
-                    </span>
+                      {isUpcoming && (
+                        <button
+                          onClick={() => handleCancel(booking)}
+                          disabled={cancellingId === booking.id}
+                          aria-label={`Cancel booking for ${booking.service_name}`}
+                          className="flex items-center gap-1.5 rounded-lg border border-red-500/25 px-3 py-1 font-pawprint text-xs font-semibold text-red-400 transition-all duration-200 hover:border-red-500/50 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {cancellingId === booking.id ? (
+                            <>
+                              <Loader2 className="size-3 animate-spin" />
+                              Cancelling…
+                            </>
+                          ) : (
+                            'Cancel'
+                          )}
+                        </button>
+                      )}
+                      <span
+                        className={cn(
+                          'rounded-full px-3 py-1 font-pawprint text-xs font-semibold',
+                          badge.className,
+                        )}
+                      >
+                        {badge.label}
+                      </span>
+                    </div>
                   </div>
+                  {cancelErrors[booking.id] && (
+                    <p role="alert" className="px-2 font-pawprint text-xs text-red-400">
+                      {cancelErrors[booking.id]}
+                    </p>
+                  )}
                 </div>
-                {cancelErrors[booking.id] && (
-                  <p className="px-2 font-pawprint text-xs text-red-400">
-                    {cancelErrors[booking.id]}
-                  </p>
-                )}
-              </div>
-            );
-          })}
+              );
+            });
+          })()}
         </div>
       )}
 
