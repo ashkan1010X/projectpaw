@@ -109,16 +109,16 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats row */}
-      <div className="mb-10 grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-6 text-center">
+      <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
+        <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:p-6">
           <div className="font-elegant text-3xl font-black text-accent">{bookings.length}</div>
           <div className="mt-1 font-pawprint text-xs text-paw/40">Total Bookings</div>
         </div>
-        <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-6 text-center">
+        <div className="hidden rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:block sm:p-6">
           <div className="truncate font-elegant text-xl font-black text-doggy">{lastService}</div>
           <div className="mt-1 font-pawprint text-xs text-paw/40">Last Service</div>
         </div>
-        <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-6 text-center">
+        <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:p-6">
           <div className="font-elegant text-xl font-black text-emerald-400">Active</div>
           <div className="mt-1 font-pawprint text-xs text-paw/40">Status</div>
         </div>
