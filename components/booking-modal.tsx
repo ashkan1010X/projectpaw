@@ -54,6 +54,8 @@ const inputClass = cn(
 );
 
 export function BookingModal({ service, onClose, initialDogName }: BookingModalProps) {
+  type BookingErrors = { dogName?: string; datetime?: string };
+
   const { token } = useAuth();
   const router = useRouter();
   const [dogName, setDogName] = useState(initialDogName ?? '');
@@ -62,6 +64,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<BookingErrors>({});
   const [countdown, setCountdown] = useState(3);
 
   const minDatetime = new Date().toISOString().slice(0, 16);
@@ -97,8 +100,26 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     );
   }
 
+  function validateBookingField(field: keyof BookingErrors, value: string): string | undefined {
+    if (field === 'dogName' && !value.trim()) return "Your dog's name is required.";
+    if (field === 'datetime') {
+      if (!value) return 'Please select a date and time.';
+      if (new Date(value) <= new Date()) return 'Please choose a future date and time.';
+    }
+    return undefined;
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const errors: BookingErrors = {
+      dogName: validateBookingField('dogName', dogName),
+      datetime: validateBookingField('datetime', datetime),
+    };
+    const hasErrors = Object.values(errors).some(Boolean);
+    if (hasErrors) {
+      setFieldErrors(errors);
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -215,25 +236,49 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                 <input
                   id="dogName"
                   type="text"
-                  required
                   value={dogName}
-                  onChange={(e) => setDogName(e.target.value)}
+                  onChange={(e) => {
+                    setDogName(e.target.value);
+                    setFieldErrors((fe) => ({ ...fe, dogName: undefined }));
+                  }}
+                  onBlur={(e) => {
+                    const err = validateBookingField('dogName', e.target.value);
+                    setFieldErrors((fe) => ({ ...fe, dogName: err }));
+                  }}
                   placeholder="e.g. Buddy"
-                  className={inputClass}
+                  className={cn(
+                    inputClass,
+                    fieldErrors.dogName && 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/10',
+                  )}
                 />
+                {fieldErrors.dogName && (
+                  <p className="font-pawprint text-xs text-red-400">{fieldErrors.dogName}</p>
+                )}
               </FieldWrapper>
 
               <FieldWrapper label="Date & Time" htmlFor="datetime" icon={Calendar}>
                 <input
                   id="datetime"
                   type="datetime-local"
-                  required
                   min={minDatetime}
                   value={datetime}
-                  onChange={(e) => setDatetime(e.target.value)}
-                  className={inputClass}
+                  onChange={(e) => {
+                    setDatetime(e.target.value);
+                    setFieldErrors((fe) => ({ ...fe, datetime: undefined }));
+                  }}
+                  onBlur={(e) => {
+                    const err = validateBookingField('datetime', e.target.value);
+                    setFieldErrors((fe) => ({ ...fe, datetime: err }));
+                  }}
+                  className={cn(
+                    inputClass,
+                    fieldErrors.datetime && 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/10',
+                  )}
                   style={{ colorScheme: 'dark' }}
                 />
+                {fieldErrors.datetime && (
+                  <p className="font-pawprint text-xs text-red-400">{fieldErrors.datetime}</p>
+                )}
               </FieldWrapper>
 
               <FieldWrapper label="Notes (optional)" htmlFor="notes" icon={FileText}>
