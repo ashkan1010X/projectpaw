@@ -15,6 +15,7 @@ interface Service {
 interface BookingModalProps {
   service: Service;
   onClose: () => void;
+  initialDogName?: string;
 }
 
 function FieldWrapper({
@@ -52,10 +53,10 @@ const inputClass = cn(
   'focus:border-doggy/60 focus:bg-paw/[0.05] focus:ring-2 focus:ring-doggy/15',
 );
 
-export function BookingModal({ service, onClose }: BookingModalProps) {
+export function BookingModal({ service, onClose, initialDogName }: BookingModalProps) {
   const { token } = useAuth();
   const router = useRouter();
-  const [dogName, setDogName] = useState('');
+  const [dogName, setDogName] = useState(initialDogName ?? '');
   const [datetime, setDatetime] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
@@ -158,7 +159,10 @@ export function BookingModal({ service, onClose }: BookingModalProps) {
               {service.name}
             </h2>
             <p className="mt-1 font-pawprint text-sm text-white/75">
-              <span className="font-elegant text-base font-black text-[#F9D923]">${service.price}</span> per session
+              <span className="font-elegant text-base font-black text-[#F9D923]">
+                ${service.price}
+              </span>{' '}
+              per session
             </p>
           </div>
           <button
@@ -188,7 +192,10 @@ export function BookingModal({ service, onClose }: BookingModalProps) {
               </div>
               <div className="flex w-full flex-col gap-2 pt-1">
                 <button
-                  onClick={() => { onClose(); router.push('/dashboard'); }}
+                  onClick={() => {
+                    onClose();
+                    router.push('/dashboard');
+                  }}
                   className="group relative w-full cursor-pointer overflow-hidden rounded-xl bg-doggy px-6 py-3.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50"
                 >
                   <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
