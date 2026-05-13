@@ -12,25 +12,27 @@
 
 ## File Map
 
-| Action | Path | Responsibility |
-|--------|------|----------------|
-| Create | `lib/supabase-admin.ts` | Service role Supabase client — server-side only |
-| Modify | `.env.local` | Add `SUPABASE_SERVICE_ROLE_KEY` |
-| Modify | `app/api/bookings/email/route.ts` | Also insert booking row after sending email |
-| Create | `app/api/bookings/route.ts` | GET — return authenticated user's bookings |
-| Create | `app/dashboard/page.tsx` | Client component: stats + booking list |
-| Create | `app/dashboard/loading.tsx` | Skeleton matching stats + list layout |
-| Modify | `components/nav-bar.tsx` | Dashboard link (desktop + mobile) when logged in |
-| Create | `C:\Windows\Temp\playwright-test-dashboard.js` | E2E test: login → book → view dashboard |
+| Action | Path                                           | Responsibility                                   |
+| ------ | ---------------------------------------------- | ------------------------------------------------ |
+| Create | `lib/supabase-admin.ts`                        | Service role Supabase client — server-side only  |
+| Modify | `.env.local`                                   | Add `SUPABASE_SERVICE_ROLE_KEY`                  |
+| Modify | `app/api/bookings/email/route.ts`              | Also insert booking row after sending email      |
+| Create | `app/api/bookings/route.ts`                    | GET — return authenticated user's bookings       |
+| Create | `app/dashboard/page.tsx`                       | Client component: stats + booking list           |
+| Create | `app/dashboard/loading.tsx`                    | Skeleton matching stats + list layout            |
+| Modify | `components/nav-bar.tsx`                       | Dashboard link (desktop + mobile) when logged in |
+| Create | `C:\Windows\Temp\playwright-test-dashboard.js` | E2E test: login → book → view dashboard          |
 
 ---
 
 ## Task 1: Get Service Role Key + Update .env.local
 
 **Files:**
+
 - Modify: `.env.local`
 
 > **Manual step (user must do this):**
+>
 > 1. Go to https://supabase.com/dashboard/project/ncxaphqjduzjybptbict/settings/api-keys
 > 2. Under **Secret keys**, copy the `service_role` key (starts with `eyJ...`)
 > 3. Add it to `.env.local`
@@ -38,6 +40,7 @@
 - [ ] **Step 1: Add service role key to .env.local**
 
 Append this line to `.env.local`:
+
 ```
 SUPABASE_SERVICE_ROLE_KEY=eyJ...your_service_role_key_here...
 ```
@@ -47,6 +50,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...your_service_role_key_here...
 - [ ] **Step 2: Verify .env.local has all four keys**
 
 The file should contain exactly:
+
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://ncxaphqjduzjybptbict.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_MlGCrKqa4NfCMHyuHDdr3Q_JOHjQqyj
@@ -62,6 +66,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 **Files:** (no code files — SQL run in Supabase dashboard)
 
 > **Manual step (user must do this):**
+>
 > 1. Go to https://supabase.com/dashboard/project/ncxaphqjduzjybptbict/sql/new
 > 2. Paste and run the SQL below
 
@@ -96,6 +101,7 @@ Navigate to https://supabase.com/dashboard/project/ncxaphqjduzjybptbict/editor a
 ## Task 3: Create Service Role Supabase Client
 
 **Files:**
+
 - Create: `lib/supabase-admin.ts`
 
 - [ ] **Step 1: Create lib/supabase-admin.ts**
@@ -128,6 +134,7 @@ git commit -m "feat(db): add service role supabase client and bookings table"
 ## Task 4: Update Email Route to Insert Booking
 
 **Files:**
+
 - Modify: `app/api/bookings/email/route.ts`
 
 The current route sends the email and returns. Add a DB insert using `supabaseAdmin` after the email sends. If the insert fails, log it but still return success (email already sent).
@@ -158,7 +165,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser(token);
 
   if (authError || !user?.email) {
     return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
@@ -251,6 +261,7 @@ git commit -m "feat(db): persist booking to supabase on confirmation"
 ## Task 5: Create GET /api/bookings Route
 
 **Files:**
+
 - Create: `app/api/bookings/route.ts`
 
 - [ ] **Step 1: Create app/api/bookings/route.ts**
@@ -279,7 +290,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser(token);
 
   if (authError || !user) {
     return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
@@ -312,6 +326,7 @@ git commit -m "feat(api): add GET /api/bookings for authenticated user"
 ## Task 6: Create Dashboard Loading Skeleton
 
 **Files:**
+
 - Create: `app/dashboard/loading.tsx`
 
 - [ ] **Step 1: Create app/dashboard/loading.tsx**
@@ -367,6 +382,7 @@ git commit -m "feat(dashboard): add loading skeleton"
 ## Task 7: Create Dashboard Page
 
 **Files:**
+
 - Create: `app/dashboard/page.tsx`
 
 - [ ] **Step 1: Create app/dashboard/page.tsx**
@@ -531,6 +547,7 @@ git commit -m "feat(dashboard): add booking history page with stats and list"
 ## Task 8: Add Dashboard Link to NavBar
 
 **Files:**
+
 - Modify: `components/nav-bar.tsx`
 
 Two places need the Dashboard link: the desktop nav (right side, between the greeting and logout button) and the mobile Sheet drawer (in the nav links list).
@@ -548,45 +565,47 @@ import { PawPrint, Home, Info, Images, Scissors, LayoutDashboard } from 'lucide-
 Replace the desktop auth block (the `{user ? (...)  : (...)}` block inside the `hidden md:flex` div) with:
 
 ```tsx
-{user ? (
-  <>
-    <span className="hidden font-pawprint text-sm font-medium text-paw/70 md:block">
-      Hi, <span className="text-paw">{user.name}</span>
-    </span>
-    <Link
-      href="/dashboard"
-      className={cn(
-        'hidden items-center gap-1.5 rounded-lg border border-paw/15 px-4 py-2 font-pawprint text-xs font-semibold transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] md:flex',
-        pathname === '/dashboard' ? 'border-doggy/40 text-doggy' : 'text-paw/70 hover:text-paw',
-      )}
-    >
-      <LayoutDashboard size={13} />
-      Dashboard
-    </Link>
-    <button
-      onClick={logout}
-      className="hidden cursor-pointer rounded-lg border border-paw/15 px-4 py-2 font-pawprint text-xs font-semibold text-paw/70 transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] hover:text-paw md:block"
-    >
-      Logout
-    </button>
-  </>
-) : (
-  <>
-    <Link
-      href="/login"
-      className="hidden font-pawprint text-sm font-medium text-paw/60 transition-colors duration-300 hover:text-paw md:block"
-    >
-      Login
-    </Link>
-    <Link
-      href="/signup"
-      className="group relative hidden cursor-pointer overflow-hidden rounded-lg bg-doggy px-5 py-2 font-pawprint text-xs font-bold text-white shadow-lg shadow-doggy/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-doggy/50 md:block"
-    >
-      <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-      <span className="relative">Sign Up</span>
-    </Link>
-  </>
-)}
+{
+  user ? (
+    <>
+      <span className="hidden font-pawprint text-sm font-medium text-paw/70 md:block">
+        Hi, <span className="text-paw">{user.name}</span>
+      </span>
+      <Link
+        href="/dashboard"
+        className={cn(
+          'hidden items-center gap-1.5 rounded-lg border border-paw/15 px-4 py-2 font-pawprint text-xs font-semibold transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] md:flex',
+          pathname === '/dashboard' ? 'border-doggy/40 text-doggy' : 'text-paw/70 hover:text-paw',
+        )}
+      >
+        <LayoutDashboard size={13} />
+        Dashboard
+      </Link>
+      <button
+        onClick={logout}
+        className="hidden cursor-pointer rounded-lg border border-paw/15 px-4 py-2 font-pawprint text-xs font-semibold text-paw/70 transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] hover:text-paw md:block"
+      >
+        Logout
+      </button>
+    </>
+  ) : (
+    <>
+      <Link
+        href="/login"
+        className="hidden font-pawprint text-sm font-medium text-paw/60 transition-colors duration-300 hover:text-paw md:block"
+      >
+        Login
+      </Link>
+      <Link
+        href="/signup"
+        className="group relative hidden cursor-pointer overflow-hidden rounded-lg bg-doggy px-5 py-2 font-pawprint text-xs font-bold text-white shadow-lg shadow-doggy/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-doggy/50 md:block"
+      >
+        <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+        <span className="relative">Sign Up</span>
+      </Link>
+    </>
+  );
+}
 ```
 
 - [ ] **Step 3: Add Dashboard link to mobile Sheet drawer nav list**
@@ -594,26 +613,28 @@ Replace the desktop auth block (the `{user ? (...)  : (...)}` block inside the `
 In the mobile `<ul>` that maps `NAV_LINKS`, add a Dashboard link after the list — only when user is logged in. After the closing `</ul>` in the mobile nav section, add:
 
 ```tsx
-{user && (
-  <li>
-    <Link
-      href="/dashboard"
-      onClick={() => setIsOpen(false)}
-      className={cn(
-        'flex items-center gap-3 rounded-lg px-4 py-3 font-pawprint text-lg font-semibold transition-colors duration-200',
-        pathname === '/dashboard'
-          ? 'border-l-2 border-doggy bg-doggy/10 text-paw'
-          : 'border-l-2 border-transparent text-paw/60 hover:bg-paw/[0.04] hover:text-paw',
-      )}
-    >
-      <LayoutDashboard
-        size={18}
-        className={cn(pathname === '/dashboard' ? 'text-doggy' : 'text-paw/40')}
-      />
-      Dashboard
-    </Link>
-  </li>
-)}
+{
+  user && (
+    <li>
+      <Link
+        href="/dashboard"
+        onClick={() => setIsOpen(false)}
+        className={cn(
+          'flex items-center gap-3 rounded-lg px-4 py-3 font-pawprint text-lg font-semibold transition-colors duration-200',
+          pathname === '/dashboard'
+            ? 'border-l-2 border-doggy bg-doggy/10 text-paw'
+            : 'border-l-2 border-transparent text-paw/60 hover:bg-paw/[0.04] hover:text-paw',
+        )}
+      >
+        <LayoutDashboard
+          size={18}
+          className={cn(pathname === '/dashboard' ? 'text-doggy' : 'text-paw/40')}
+        />
+        Dashboard
+      </Link>
+    </li>
+  );
+}
 ```
 
 - [ ] **Step 4: Commit**
@@ -628,6 +649,7 @@ git commit -m "feat(nav): add dashboard link for logged-in users"
 ## Task 9: End-to-End Playwright Test
 
 **Files:**
+
 - Create: `C:\Windows\Temp\playwright-test-dashboard.js`
 
 - [ ] **Step 1: Write the Playwright test**
@@ -730,6 +752,7 @@ node run.js C:\Windows\Temp\playwright-test-dashboard.js
 ```
 
 Expected output:
+
 ```
 ✅ Logged in
 ✅ Dashboard link visible in nav
@@ -769,10 +792,12 @@ git push origin main
 - [ ] **Step 4: Store to Ruflo**
 
 Call `mcp__ruflo__agentdb_pattern-store` with:
+
 - Pattern: Dashboard + Bookings DB feature pattern for ProjectPaw
 - What was built: bookings table in Supabase, service role client, email route updated to persist, GET /api/bookings, /dashboard page with stats + list, nav link
 
 Call `mcp__ruflo__memory_store` (namespace: `projectpaw`) with:
+
 - bookings table schema, RLS policy, service role key usage pattern, dashboard layout decisions, status badge logic
 
 ---

@@ -40,7 +40,9 @@ export default function SignupPage() {
     return s;
   })();
   const strengthLabel = ['', 'Weak', 'Fair', 'Good', 'Strong'][passwordStrength];
-  const strengthColor = ['', 'bg-red-500', 'bg-amber-500', 'bg-[#F9D923]', 'bg-emerald-500'][passwordStrength];
+  const strengthColor = ['', 'bg-red-500', 'bg-amber-500', 'bg-[#F9D923]', 'bg-emerald-500'][
+    passwordStrength
+  ];
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -80,7 +82,6 @@ export default function SignupPage() {
 
   return (
     <div className="relative grid min-h-[calc(100vh-73px)] grid-cols-1 lg:grid-cols-5">
-
       {/* LEFT — Brand benefits */}
       <aside className="relative hidden overflow-hidden border-r border-paw/[0.06] lg:col-span-2 lg:flex lg:flex-col lg:justify-between lg:p-12">
         <div className="pointer-events-none absolute inset-0">
@@ -95,7 +96,10 @@ export default function SignupPage() {
           }}
         />
 
-        <Link href="/" className="relative inline-flex items-center gap-2 font-elegant text-xl font-black text-paw">
+        <Link
+          href="/"
+          className="relative inline-flex items-center gap-2 font-elegant text-xl font-black text-paw"
+        >
           <PawPrint className="size-5 text-doggy" strokeWidth={2.5} />
           ProjectPaw
         </Link>
@@ -239,7 +243,9 @@ export default function SignupPage() {
                   Password
                 </label>
                 {password && (
-                  <span className="font-pawprint text-xs font-semibold text-paw/60">{strengthLabel}</span>
+                  <span className="font-pawprint text-xs font-semibold text-paw/60">
+                    {strengthLabel}
+                  </span>
                 )}
               </div>
               <div className="group relative">
@@ -296,9 +302,7 @@ export default function SignupPage() {
               className="group relative mt-2 flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl bg-doggy py-3.5 font-pawprint text-sm font-bold text-white shadow-xl shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-              <span className="relative">
-                {loading ? 'Creating account...' : 'Create Account'}
-              </span>
+              <span className="relative">{loading ? 'Creating account...' : 'Create Account'}</span>
               {!loading && (
                 <ArrowRight className="relative size-4 transition-transform duration-300 group-hover:translate-x-1" />
               )}
@@ -306,8 +310,14 @@ export default function SignupPage() {
 
             <p className="text-center font-pawprint text-xs text-paw/35">
               By creating an account, you agree to our{' '}
-              <a href="#" className="text-paw/55 underline underline-offset-2 hover:text-paw">Terms</a> and{' '}
-              <a href="#" className="text-paw/55 underline underline-offset-2 hover:text-paw">Privacy Policy</a>.
+              <a href="#" className="text-paw/55 underline underline-offset-2 hover:text-paw">
+                Terms
+              </a>{' '}
+              and{' '}
+              <a href="#" className="text-paw/55 underline underline-offset-2 hover:text-paw">
+                Privacy Policy
+              </a>
+              .
             </p>
           </form>
 

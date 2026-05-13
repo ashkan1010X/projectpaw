@@ -6,12 +6,7 @@ import { PawPrint, Home, Info, Images, Scissors, LayoutDashboard, Settings } fro
 import { useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
-import {
-  Sheet,
-  SheetContent,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 const NAV_LINKS = [
   { href: '/', label: 'Home', icon: Home },
@@ -28,9 +23,11 @@ export function NavBar() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <nav aria-label="Main" className="sticky top-0 z-50 w-full border-b border-paw/[0.08] bg-[#0f0d09]/85 backdrop-blur-xl">
+    <nav
+      aria-label="Main"
+      className="sticky top-0 z-50 w-full border-b border-paw/[0.08] bg-[#0f0d09]/85 backdrop-blur-xl"
+    >
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-
         {/* Logo */}
         <Link
           href="/"
@@ -74,7 +71,6 @@ export function NavBar() {
 
         {/* Right side: desktop auth + mobile hamburger */}
         <div className="flex items-center gap-3">
-
           {/* Desktop auth — hidden on mobile */}
           {user ? (
             <>
@@ -85,7 +81,9 @@ export function NavBar() {
                 href="/dashboard"
                 className={cn(
                   'hidden items-center gap-1.5 rounded-lg border border-paw/15 px-4 py-2 font-pawprint text-xs font-semibold transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] md:flex',
-                  pathname === '/dashboard' ? 'border-doggy/40 text-doggy' : 'text-paw/70 hover:text-paw',
+                  pathname === '/dashboard'
+                    ? 'border-doggy/40 text-doggy'
+                    : 'text-paw/70 hover:text-paw',
                 )}
               >
                 <LayoutDashboard size={13} />
@@ -96,7 +94,9 @@ export function NavBar() {
                   href="/admin"
                   className={cn(
                     'hidden items-center gap-1.5 rounded-lg border border-paw/15 px-4 py-2 font-pawprint text-xs font-semibold transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] md:flex',
-                    pathname === '/admin' ? 'border-doggy/40 text-doggy' : 'text-paw/70 hover:text-paw',
+                    pathname === '/admin'
+                      ? 'border-doggy/40 text-doggy'
+                      : 'text-paw/70 hover:text-paw',
                   )}
                 >
                   <Settings size={13} />
@@ -188,10 +188,7 @@ export function NavBar() {
                               : 'border-l-2 border-transparent text-paw/60 hover:bg-paw/[0.04] hover:text-paw',
                           )}
                         >
-                          <Icon
-                            size={18}
-                            className={cn(isActive ? 'text-doggy' : 'text-paw/40')}
-                          />
+                          <Icon size={18} className={cn(isActive ? 'text-doggy' : 'text-paw/40')} />
                           {label}
                         </Link>
                       </li>
@@ -246,7 +243,10 @@ export function NavBar() {
               <div className="border-t border-paw/[0.08] px-3 py-3">
                 {user ? (
                   <button
-                    onClick={() => { logout(); setIsOpen(false); }}
+                    onClick={() => {
+                      logout();
+                      setIsOpen(false);
+                    }}
                     className="w-full cursor-pointer rounded-lg border border-paw/15 px-4 py-3 font-pawprint text-sm font-semibold text-paw/70 transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] hover:text-paw"
                   >
                     Logout
@@ -280,7 +280,6 @@ export function NavBar() {
               </div>
             </SheetContent>
           </Sheet>
-
         </div>
       </div>
     </nav>

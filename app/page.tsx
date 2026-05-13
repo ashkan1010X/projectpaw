@@ -65,7 +65,6 @@ const TRUST_BADGES = [
 export default function HomePage() {
   return (
     <div className="relative min-h-screen overflow-hidden">
-
       {/* HERO */}
       <section className="relative flex min-h-[92vh] flex-col items-center justify-center overflow-hidden px-6 py-28 text-center">
         {/* Ambient glows */}
@@ -88,15 +87,35 @@ export default function HomePage() {
 
         {/* Floating paw decorations */}
         <div className="pointer-events-none absolute left-[8%] top-[18%] hidden opacity-30 md:block animate-float">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#B2A4FF" strokeWidth="1.5">
-            <circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="7" cy="9" r="2"/>
-            <path d="M9 18a5 5 0 1 0 6 0c-1 0-2-2-3-2s-2 2-3 2Z"/>
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#B2A4FF"
+            strokeWidth="1.5"
+          >
+            <circle cx="11" cy="4" r="2" />
+            <circle cx="18" cy="8" r="2" />
+            <circle cx="20" cy="16" r="2" />
+            <circle cx="7" cy="9" r="2" />
+            <path d="M9 18a5 5 0 1 0 6 0c-1 0-2-2-3-2s-2 2-3 2Z" />
           </svg>
         </div>
         <div className="pointer-events-none absolute right-[12%] top-[28%] hidden opacity-20 md:block animate-float-delayed">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F5CBA7" strokeWidth="1.5">
-            <circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="7" cy="9" r="2"/>
-            <path d="M9 18a5 5 0 1 0 6 0c-1 0-2-2-3-2s-2 2-3 2Z"/>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#F5CBA7"
+            strokeWidth="1.5"
+          >
+            <circle cx="11" cy="4" r="2" />
+            <circle cx="18" cy="8" r="2" />
+            <circle cx="20" cy="16" r="2" />
+            <circle cx="7" cy="9" r="2" />
+            <path d="M9 18a5 5 0 1 0 6 0c-1 0-2-2-3-2s-2 2-3 2Z" />
           </svg>
         </div>
 
@@ -121,7 +140,8 @@ export default function HomePage() {
 
           {/* Subtext */}
           <p className="max-w-xl font-pawprint text-lg leading-[1.7] text-paw/55 md:text-xl animate-fade-up delay-200">
-            Premium grooming, boarding, training and more — all in one trusted place. Give your furry friend the life they deserve.
+            Premium grooming, boarding, training and more — all in one trusted place. Give your
+            furry friend the life they deserve.
           </p>
 
           {/* CTAs */}
@@ -139,7 +159,9 @@ export default function HomePage() {
               className="group inline-flex items-center justify-center gap-2 rounded-xl border border-paw/20 px-9 py-4 font-pawprint text-base font-semibold text-paw/80 backdrop-blur-sm transition-all duration-300 hover:border-paw/40 hover:bg-paw/[0.04] hover:text-paw hover:-translate-y-0.5"
             >
               Sign Up Free
-              <span className="text-doggy transition-transform duration-300 group-hover:translate-x-1">→</span>
+              <span className="text-doggy transition-transform duration-300 group-hover:translate-x-1">
+                →
+              </span>
             </Link>
           </div>
 
@@ -217,13 +239,19 @@ export default function HomePage() {
                 className="group relative flex cursor-pointer flex-col items-center gap-3 overflow-hidden rounded-2xl border border-paw/[0.08] bg-paw/[0.025] p-6 text-center transition-all duration-500 hover:border-paw/25 hover:bg-paw/[0.05] hover:-translate-y-1.5"
               >
                 {/* Hover glow */}
-                <div className={`pointer-events-none absolute -top-12 left-1/2 size-24 -translate-x-1/2 rounded-full bg-gradient-to-br ${color} opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-50`} />
+                <div
+                  className={`pointer-events-none absolute -top-12 left-1/2 size-24 -translate-x-1/2 rounded-full bg-gradient-to-br ${color} opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-50`}
+                />
 
-                <div className={`relative flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br ${color} shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}>
+                <div
+                  className={`relative flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br ${color} shadow-lg transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3`}
+                >
                   <Icon className="size-6 text-white" strokeWidth={2} />
                 </div>
                 <span className="relative font-elegant text-base font-bold text-paw">{label}</span>
-                <span className="relative font-pawprint text-sm font-bold text-[#F9D923]">${price}</span>
+                <span className="relative font-pawprint text-sm font-bold text-[#F9D923]">
+                  ${price}
+                </span>
               </Link>
             ))}
           </div>
@@ -299,8 +327,7 @@ export default function HomePage() {
           <div
             className="pointer-events-none absolute inset-0 opacity-[0.04]"
             style={{
-              backgroundImage:
-                'radial-gradient(circle, #F5CBA7 1px, transparent 1px)',
+              backgroundImage: 'radial-gradient(circle, #F5CBA7 1px, transparent 1px)',
               backgroundSize: '24px 24px',
             }}
           />
@@ -334,10 +361,23 @@ export default function HomePage() {
       {/* FOOTER */}
       <footer className="border-t border-paw/[0.06] px-6 py-10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 md:flex-row">
-          <Link href="/" className="flex items-center gap-2 font-elegant text-base font-black text-paw/70 transition-colors hover:text-paw">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B2A4FF" strokeWidth="2">
-              <circle cx="11" cy="4" r="2"/><circle cx="18" cy="8" r="2"/><circle cx="20" cy="16" r="2"/><circle cx="7" cy="9" r="2"/>
-              <path d="M9 18a5 5 0 1 0 6 0c-1 0-2-2-3-2s-2 2-3 2Z"/>
+          <Link
+            href="/"
+            className="flex items-center gap-2 font-elegant text-base font-black text-paw/70 transition-colors hover:text-paw"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#B2A4FF"
+              strokeWidth="2"
+            >
+              <circle cx="11" cy="4" r="2" />
+              <circle cx="18" cy="8" r="2" />
+              <circle cx="20" cy="16" r="2" />
+              <circle cx="7" cy="9" r="2" />
+              <path d="M9 18a5 5 0 1 0 6 0c-1 0-2-2-3-2s-2 2-3 2Z" />
             </svg>
             ProjectPaw
           </Link>

@@ -56,7 +56,6 @@ const DOG_IMAGES = [
 export default function GalleryPage() {
   return (
     <div className="relative min-h-screen">
-
       {/* HEADER */}
       <section className="relative overflow-hidden px-6 pb-16 pt-24 text-center">
         <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 size-[500px] rounded-full bg-doggy/[0.1] blur-[100px]" />

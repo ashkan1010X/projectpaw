@@ -7,10 +7,7 @@ export default async function ServicesPage() {
   let services: ServiceRow[] = FALLBACK_SERVICES;
 
   try {
-    const { data, error } = await supabase
-      .from('services')
-      .select('*')
-      .order('sort_order');
+    const { data, error } = await supabase.from('services').select('*').order('sort_order');
 
     if (!error && data && data.length > 0) {
       services = data as ServiceRow[];

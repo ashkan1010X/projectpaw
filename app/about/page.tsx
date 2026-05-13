@@ -28,14 +28,17 @@ const VALUES = [
 const MILESTONES = [
   { year: '2021', label: 'Founded', detail: 'Started with 3 dogs and one big dream.' },
   { year: '2023', label: 'Network expansion', detail: 'Grew to 50+ certified professionals.' },
-  { year: '2024', label: '2,000 happy paws', detail: 'Served over 2,000 families across the city.' },
+  {
+    year: '2024',
+    label: '2,000 happy paws',
+    detail: 'Served over 2,000 families across the city.',
+  },
   { year: '2026', label: 'Premium platform', detail: 'Launched the new ProjectPaw experience.' },
 ];
 
 export default function AboutPage() {
   return (
     <div className="relative min-h-screen">
-
       {/* HERO */}
       <section className="relative overflow-hidden px-6 pb-24 pt-24 text-center">
         <div className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 size-[600px] rounded-full bg-doggy/[0.1] blur-[120px]" />
@@ -120,7 +123,9 @@ export default function AboutPage() {
                     i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
                   }`}
                 >
-                  <div className={`w-full md:w-5/12 ${i % 2 === 0 ? 'md:text-right' : 'md:text-left'} text-center`}>
+                  <div
+                    className={`w-full md:w-5/12 ${i % 2 === 0 ? 'md:text-right' : 'md:text-left'} text-center`}
+                  >
                     <div className="font-elegant text-5xl font-black tracking-tight text-doggy">
                       {year}
                     </div>
@@ -161,7 +166,9 @@ export default function AboutPage() {
                 key={title}
                 className="group relative flex flex-col gap-5 overflow-hidden rounded-2xl border border-paw/[0.08] bg-paw/[0.025] p-8 transition-all duration-500 hover:border-paw/20 hover:bg-paw/[0.045] hover:-translate-y-1"
               >
-                <div className={`pointer-events-none absolute -right-12 -top-12 size-48 rounded-full bg-gradient-to-br ${gradient} blur-2xl opacity-50 transition-opacity duration-500 group-hover:opacity-100`} />
+                <div
+                  className={`pointer-events-none absolute -right-12 -top-12 size-48 rounded-full bg-gradient-to-br ${gradient} blur-2xl opacity-50 transition-opacity duration-500 group-hover:opacity-100`}
+                />
 
                 <div className="relative flex size-14 items-center justify-center rounded-2xl border border-paw/15 bg-paw/[0.05] backdrop-blur-sm transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110">
                   <Icon className={`size-6 ${iconColor}`} strokeWidth={1.5} />

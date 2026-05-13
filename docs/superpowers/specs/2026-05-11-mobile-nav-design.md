@@ -1,4 +1,5 @@
 # Mobile Navigation Design Spec
+
 **Date:** 2026-05-11
 **Project:** ProjectPaw
 **Status:** Approved
@@ -14,6 +15,7 @@ Add a production-quality mobile navigation drawer to the existing `NavBar` compo
 ## Scope
 
 **In scope:**
+
 - Hamburger button (mobile only, `md:hidden`) on the right side of the navbar
 - shadcn `Sheet` component (right side) containing nav links with icons
 - Morphing X animation on the hamburger button
@@ -24,6 +26,7 @@ Add a production-quality mobile navigation drawer to the existing `NavBar` compo
 - Playwright tests on iPhone and desktop viewports
 
 **Out of scope:**
+
 - Auth actions inside the drawer (stays top-right as-is)
 - Bottom tab bar
 - Sub-menus or nested navigation
@@ -34,10 +37,12 @@ Add a production-quality mobile navigation drawer to the existing `NavBar` compo
 ## Architecture
 
 **Files changed:**
+
 - `components/nav-bar.tsx` — only file modified; all mobile nav logic lives here
 - `components/ui/sheet.tsx` — added via `npx shadcn@latest add sheet`
 
 **Component tree inside NavBar:**
+
 ```
 NavBar
 ├── Logo                          (unchanged)
@@ -59,12 +64,12 @@ NavBar
 
 ## Nav Links & Icons
 
-| Route | Label | Lucide Icon |
-|-------|-------|-------------|
-| `/` | Home | `Home` |
-| `/about` | About | `Info` |
-| `/gallery` | Gallery | `Images` |
-| `/services` | Services | `Scissors` |
+| Route       | Label    | Lucide Icon |
+| ----------- | -------- | ----------- |
+| `/`         | Home     | `Home`      |
+| `/about`    | About    | `Info`      |
+| `/gallery`  | Gallery  | `Images`    |
+| `/services` | Services | `Scissors`  |
 
 Icons: 18px, `text-doggy` on active route, `text-paw/40` otherwise.
 
@@ -73,38 +78,43 @@ Icons: 18px, `text-doggy` on active route, `text-paw/40` otherwise.
 ## Animations
 
 ### Hamburger → X Morph
+
 Three `<span>` elements styled as bars. On `isOpen`:
+
 - Top bar: `rotate-45 translate-y-[7px]`
 - Middle bar: `opacity-0 scale-x-0`
 - Bottom bar: `-rotate-45 -translate-y-[7px]`
 - Transition: `duration-300 ease-in-out` on all properties
 
 ### Sheet Slide-in
+
 shadcn Sheet uses Radix `DialogContent` with hardware-accelerated `translateX`. Override transition timing by passing `className="duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]"` directly to `SheetContent` — scoped to this instance only, does not affect other Sheet uses.
 
 ### Nav Link Stagger
+
 Each link animates on Sheet open: `opacity-0 → 1`, `translateY(8px) → 0`.
 Delay per item: `50ms × index` (0ms, 50ms, 100ms, 150ms).
-Define `@keyframes fadeUp` in `globals.css` and reference it as `animate-fade-up` via Tailwind's `@theme`. Apply per-link delay with `style={{ animationDelay: \`${index * 50}ms\` }}`.
+Define `@keyframes fadeUp` in `globals.css` and reference it as `animate-fade-up` via Tailwind's `@theme`. Apply per-link delay with `style={{ animationDelay: \`${index \* 50}ms\` }}`.
 
 ### Backdrop
+
 `bg-black/60 backdrop-blur-sm` behind the Sheet. Provided by shadcn `SheetOverlay`.
 
 ---
 
 ## Visual Design
 
-| Property | Value |
-|----------|-------|
-| Sheet width | `280px` (fixed, `w-[280px]`) |
-| Sheet background | `bg-[#0f0d09]` |
-| Sheet border | `border-l border-paw/[0.08]` |
-| Link text | `font-pawprint text-lg font-semibold` |
-| Active link | `border-l-2 border-doggy bg-doggy/10 text-paw` |
-| Inactive link | `text-paw/60 hover:text-paw hover:bg-paw/[0.04]` |
-| Header brand | `font-elegant text-xl font-black text-paw` + PawPrint icon with doggy glow |
-| Footer tagline | `"Find your perfect paw match"` — `font-elegant text-sm italic text-paw/30` |
-| Hamburger button | `44×44px` touch target, `rounded-lg`, `border border-paw/15` |
+| Property         | Value                                                                       |
+| ---------------- | --------------------------------------------------------------------------- |
+| Sheet width      | `280px` (fixed, `w-[280px]`)                                                |
+| Sheet background | `bg-[#0f0d09]`                                                              |
+| Sheet border     | `border-l border-paw/[0.08]`                                                |
+| Link text        | `font-pawprint text-lg font-semibold`                                       |
+| Active link      | `border-l-2 border-doggy bg-doggy/10 text-paw`                              |
+| Inactive link    | `text-paw/60 hover:text-paw hover:bg-paw/[0.04]`                            |
+| Header brand     | `font-elegant text-xl font-black text-paw` + PawPrint icon with doggy glow  |
+| Footer tagline   | `"Find your perfect paw match"` — `font-elegant text-sm italic text-paw/30` |
+| Hamburger button | `44×44px` touch target, `rounded-lg`, `border border-paw/15`                |
 
 ---
 
@@ -122,6 +132,7 @@ Define `@keyframes fadeUp` in `globals.css` and reference it as `animate-fade-up
 Run in headed mode (`headless: false, slowMo: 500`) so the developer can watch live.
 
 **Test cases:**
+
 1. **Desktop viewport (1280×800)** — hamburger button is not visible; desktop links are visible
 2. **iPhone viewport (390×844)** — hamburger button is visible; desktop links are hidden
 3. **Open drawer** — tap hamburger, Sheet slides in from right, links visible with icons

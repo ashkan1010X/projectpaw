@@ -15,12 +15,18 @@ export async function POST(req: NextRequest) {
   });
 
   if (error || !data.user) {
-    return NextResponse.json({ message: error?.message ?? 'Registration failed.' }, { status: 400 });
+    return NextResponse.json(
+      { message: error?.message ?? 'Registration failed.' },
+      { status: 400 },
+    );
   }
 
   if (!data.session) {
     return NextResponse.json(
-      { message: 'Account created! Please check your email to confirm your address before signing in.' },
+      {
+        message:
+          'Account created! Please check your email to confirm your address before signing in.',
+      },
       { status: 202 },
     );
   }

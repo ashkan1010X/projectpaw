@@ -20,7 +20,15 @@ export async function POST(req: NextRequest) {
 
   const { name, price, duration, description, icon_key, gradient, popular } = body;
   // popular is boolean — use == null so `false` is accepted as valid
-  if (!name || !duration || !description || !icon_key || !gradient || price == null || popular == null) {
+  if (
+    !name ||
+    !duration ||
+    !description ||
+    !icon_key ||
+    !gradient ||
+    price == null ||
+    popular == null
+  ) {
     return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
   }
 

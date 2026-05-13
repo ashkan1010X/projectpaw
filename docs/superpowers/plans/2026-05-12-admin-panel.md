@@ -12,20 +12,21 @@
 
 ## File Map
 
-| File | Action | Responsibility |
-|---|---|---|
-| `.env.local` | Modify | Add `ADMIN_EMAIL` + `NEXT_PUBLIC_ADMIN_EMAIL` |
-| `app/api/services/route.ts` | Create | POST — create a new service |
-| `app/api/services/[id]/route.ts` | Create | PATCH — update, DELETE — delete |
-| `app/admin/page.tsx` | Create | Auth gate + services table + edit drawer (all in one) |
-| `app/admin/loading.tsx` | Create | Skeleton loader |
-| `components/nav-bar.tsx` | Modify | Add Admin link (visible to admin only) |
+| File                             | Action | Responsibility                                        |
+| -------------------------------- | ------ | ----------------------------------------------------- |
+| `.env.local`                     | Modify | Add `ADMIN_EMAIL` + `NEXT_PUBLIC_ADMIN_EMAIL`         |
+| `app/api/services/route.ts`      | Create | POST — create a new service                           |
+| `app/api/services/[id]/route.ts` | Create | PATCH — update, DELETE — delete                       |
+| `app/admin/page.tsx`             | Create | Auth gate + services table + edit drawer (all in one) |
+| `app/admin/loading.tsx`          | Create | Skeleton loader                                       |
+| `components/nav-bar.tsx`         | Modify | Add Admin link (visible to admin only)                |
 
 ---
 
 ## Task 1: Environment Variables
 
 **Files:**
+
 - Modify: `.env.local`
 
 - [ ] **Step 1: Add env vars to `.env.local`**
@@ -51,6 +52,7 @@ git commit -m "chore(env): add ADMIN_EMAIL vars for admin panel auth"
 ## Task 2: API Route — Create Service
 
 **Files:**
+
 - Create: `app/api/services/route.ts`
 
 - [ ] **Step 1: Create the file**
@@ -63,7 +65,10 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 async function verifyAdmin(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return null;
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser(token);
   if (error || !user) return null;
   if (user.email !== process.env.ADMIN_EMAIL) return null;
   return user;
@@ -136,6 +141,7 @@ git commit -m "feat(api): add POST /api/services for admin service creation"
 ## Task 3: API Route — Update and Delete Service
 
 **Files:**
+
 - Create: `app/api/services/[id]/route.ts`
 
 - [ ] **Step 1: Create the directory and file**
@@ -148,16 +154,16 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 async function verifyAdmin(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return null;
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser(token);
   if (error || !user) return null;
   if (user.email !== process.env.ADMIN_EMAIL) return null;
   return user;
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await verifyAdmin(req);
   if (!admin) {
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
@@ -189,10 +195,7 @@ export async function PATCH(
   return NextResponse.json({ service: data });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await verifyAdmin(req);
   if (!admin) {
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
@@ -200,10 +203,7 @@ export async function DELETE(
 
   const { id } = await params;
 
-  const { error } = await supabaseAdmin
-    .from('services')
-    .delete()
-    .eq('id', id);
+  const { error } = await supabaseAdmin.from('services').delete().eq('id', id);
 
   if (error) {
     console.error('Service delete error:', error);
@@ -234,6 +234,7 @@ git commit -m "feat(api): add PATCH and DELETE /api/services/[id] for admin"
 ## Task 4: Admin Page — Auth Gate, Table, and Drawer
 
 **Files:**
+
 - Create: `app/admin/page.tsx`
 
 This is a single `'use client'` component. It contains: auth gate logic, services table, and the edit/add drawer with form.
@@ -677,6 +678,7 @@ git commit -m "feat(admin): add admin page with services table and edit drawer"
 ## Task 5: Admin Loading Skeleton
 
 **Files:**
+
 - Create: `app/admin/loading.tsx`
 
 - [ ] **Step 1: Create the file**
@@ -726,6 +728,7 @@ git commit -m "feat(admin): add loading skeleton for admin page"
 ## Task 6: Admin Link in Navbar
 
 **Files:**
+
 - Modify: `components/nav-bar.tsx`
 
 - [ ] **Step 1: Add `Settings` to the lucide-react import and add `ADMIN_EMAIL` constant**
@@ -747,18 +750,20 @@ const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? '';
 Find the desktop Dashboard `<Link>` (around line 82 — `href="/dashboard"` with `hidden ... md:flex` classes). Add the Admin link directly after the closing `</Link>` tag of Dashboard, before the Logout `<button>`:
 
 ```tsx
-{user && user.email === ADMIN_EMAIL && (
-  <Link
-    href="/admin"
-    className={cn(
-      'hidden items-center gap-1.5 rounded-lg border border-paw/15 px-4 py-2 font-pawprint text-xs font-semibold transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] md:flex',
-      pathname === '/admin' ? 'border-doggy/40 text-doggy' : 'text-paw/70 hover:text-paw',
-    )}
-  >
-    <Settings size={13} />
-    Admin
-  </Link>
-)}
+{
+  user && user.email === ADMIN_EMAIL && (
+    <Link
+      href="/admin"
+      className={cn(
+        'hidden items-center gap-1.5 rounded-lg border border-paw/15 px-4 py-2 font-pawprint text-xs font-semibold transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] md:flex',
+        pathname === '/admin' ? 'border-doggy/40 text-doggy' : 'text-paw/70 hover:text-paw',
+      )}
+    >
+      <Settings size={13} />
+      Admin
+    </Link>
+  );
+}
 ```
 
 - [ ] **Step 3: Add the mobile Admin link**
@@ -766,26 +771,25 @@ Find the desktop Dashboard `<Link>` (around line 82 — `href="/dashboard"` with
 Find the mobile `{user && (<ul className="mt-1">...)}` block (around line 187). It contains the Dashboard `<li>`. Add the Admin `<li>` directly after the Dashboard `<li>`, inside the same `<ul>`:
 
 ```tsx
-{user && user.email === ADMIN_EMAIL && (
-  <li>
-    <Link
-      href="/admin"
-      onClick={() => setIsOpen(false)}
-      className={cn(
-        'flex items-center gap-3 rounded-lg px-4 py-3 font-pawprint text-lg font-semibold transition-colors duration-200',
-        pathname === '/admin'
-          ? 'border-l-2 border-doggy bg-doggy/10 text-paw'
-          : 'border-l-2 border-transparent text-paw/60 hover:bg-paw/[0.04] hover:text-paw',
-      )}
-    >
-      <Settings
-        size={18}
-        className={cn(pathname === '/admin' ? 'text-doggy' : 'text-paw/40')}
-      />
-      Admin
-    </Link>
-  </li>
-)}
+{
+  user && user.email === ADMIN_EMAIL && (
+    <li>
+      <Link
+        href="/admin"
+        onClick={() => setIsOpen(false)}
+        className={cn(
+          'flex items-center gap-3 rounded-lg px-4 py-3 font-pawprint text-lg font-semibold transition-colors duration-200',
+          pathname === '/admin'
+            ? 'border-l-2 border-doggy bg-doggy/10 text-paw'
+            : 'border-l-2 border-transparent text-paw/60 hover:bg-paw/[0.04] hover:text-paw',
+        )}
+      >
+        <Settings size={18} className={cn(pathname === '/admin' ? 'text-doggy' : 'text-paw/40')} />
+        Admin
+      </Link>
+    </li>
+  );
+}
 ```
 
 - [ ] **Step 5: Verify the build is clean**

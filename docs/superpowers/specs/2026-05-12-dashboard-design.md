@@ -1,4 +1,5 @@
 # Dashboard + Bookings Table — Design Spec
+
 **Date:** 2026-05-12  
 **Status:** Approved  
 **Feature:** Bookings DB table in Supabase + `/dashboard` page for logged-in users
@@ -8,6 +9,7 @@
 ## 1. Data Architecture
 
 **Supabase bookings table:**
+
 ```sql
 create table bookings (
   id uuid primary key default gen_random_uuid(),
@@ -82,6 +84,7 @@ Add a "Dashboard" link that appears only when the user is logged in (alongside t
 ---
 
 ## Out of Scope
+
 - Address/phone fields on user profile (deferred, user acknowledged)
 - Admin view of all bookings
 - Booking cancellation

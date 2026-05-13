@@ -12,18 +12,19 @@
 
 ## File Map
 
-| File | Action | Responsibility |
-|------|--------|----------------|
-| `components/nav-bar.tsx` | Modify | Add hamburger button, Sheet drawer, isOpen state |
-| `app/globals.css` | Modify | Add `@keyframes fade-up` + `--animate-fade-up` token |
-| `components/ui/sheet.tsx` | Create (via CLI) | shadcn Sheet component |
-| `tests/mobile-nav.spec.ts` | Create | Playwright tests for mobile and desktop viewports |
+| File                       | Action           | Responsibility                                       |
+| -------------------------- | ---------------- | ---------------------------------------------------- |
+| `components/nav-bar.tsx`   | Modify           | Add hamburger button, Sheet drawer, isOpen state     |
+| `app/globals.css`          | Modify           | Add `@keyframes fade-up` + `--animate-fade-up` token |
+| `components/ui/sheet.tsx`  | Create (via CLI) | shadcn Sheet component                               |
+| `tests/mobile-nav.spec.ts` | Create           | Playwright tests for mobile and desktop viewports    |
 
 ---
 
 ## Task 1: Install shadcn Sheet component
 
 **Files:**
+
 - Create: `components/ui/sheet.tsx` (via shadcn CLI)
 
 - [ ] **Step 1: Run shadcn add**
@@ -54,6 +55,7 @@ git commit -m "chore: add shadcn Sheet component"
 ## Task 2: Add fade-up animation to globals.css
 
 **Files:**
+
 - Modify: `app/globals.css`
 
 - [ ] **Step 1: Add keyframe and theme token**
@@ -76,7 +78,7 @@ Open `app/globals.css`. After the closing `}` of the `@theme inline { ... }` blo
 Then inside the `@theme inline { ... }` block, add this line before the closing `}`:
 
 ```css
-  --animate-fade-up: fade-up 300ms ease-out both;
+--animate-fade-up: fade-up 300ms ease-out both;
 ```
 
 This registers `animate-fade-up` as a Tailwind utility class.
@@ -101,6 +103,7 @@ git commit -m "chore: add fade-up animation token"
 ## Task 3: Rewrite nav-bar.tsx with mobile drawer
 
 **Files:**
+
 - Modify: `components/nav-bar.tsx`
 
 - [ ] **Step 1: Replace the entire file with this implementation**
@@ -114,11 +117,7 @@ import { PawPrint, Home, Info, Images, Scissors } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 const NAV_LINKS = [
   { href: '/', label: 'Home', icon: Home },
@@ -135,7 +134,6 @@ export function NavBar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-paw/[0.08] bg-[#0f0d09]/85 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-
         {/* Logo */}
         <Link
           href="/"
@@ -179,7 +177,6 @@ export function NavBar() {
 
         {/* Right side: desktop auth + mobile hamburger */}
         <div className="flex items-center gap-3">
-
           {/* Desktop auth — hidden on mobile */}
           {user ? (
             <>
@@ -270,10 +267,7 @@ export function NavBar() {
                               : 'border-l-2 border-transparent text-paw/60 hover:bg-paw/[0.04] hover:text-paw',
                           )}
                         >
-                          <Icon
-                            size={18}
-                            className={cn(isActive ? 'text-doggy' : 'text-paw/40')}
-                          />
+                          <Icon size={18} className={cn(isActive ? 'text-doggy' : 'text-paw/40')} />
                           {label}
                         </Link>
                       </li>
@@ -290,7 +284,6 @@ export function NavBar() {
               </div>
             </SheetContent>
           </Sheet>
-
         </div>
       </div>
     </nav>
@@ -318,6 +311,7 @@ git commit -m "feat: add mobile navigation drawer with hamburger button"
 ## Task 4: Install Playwright and write tests
 
 **Files:**
+
 - Create: `tests/mobile-nav.spec.ts`
 
 - [ ] **Step 1: Install Playwright**
@@ -445,6 +439,7 @@ git commit -m "test: add Playwright mobile nav tests"
 - [ ] **Step 1: Start the dev server in the background**
 
 In a separate terminal:
+
 ```bash
 npm run dev
 ```

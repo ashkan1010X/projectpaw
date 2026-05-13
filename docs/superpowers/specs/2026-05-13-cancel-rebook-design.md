@@ -39,6 +39,7 @@ Same dark-styled HTML template as booking confirmation. Subject: `Booking Cancel
 ### Status badge logic (`statusBadge`)
 
 Updated to three cases (checked in order):
+
 1. `status === 'cancelled'` → red "Cancelled" badge
 2. `new Date(datetime) > new Date()` → purple "Upcoming" badge
 3. fallback → muted "Completed" badge
@@ -46,13 +47,15 @@ Updated to three cases (checked in order):
 ### Booking row buttons
 
 **Cancel button** — shown when: `status !== 'cancelled'` AND `new Date(datetime) > new Date()`
+
 - Calls `POST /api/bookings/[id]/cancel` with auth token
 - On success: updates local booking state to `status: 'cancelled'` (optimistic update)
 - On failure: shows inline error message under the row
 - Shows a loading spinner while in-flight; button disabled during request
 - Styled: small ghost/outline button, red text
 
-**Rebook button** — shown when: `new Date(datetime) <= new Date()` OR `status === 'cancelled'`  
+**Rebook button** — shown when: `new Date(datetime) <= new Date()` OR `status === 'cancelled'`
+
 - Opens `BookingModal` pre-filled with `service_id`, `service_name`, and `dog_name` from the booking
 - Does not require any API call by itself — modal handles booking creation as normal
 
@@ -64,11 +67,11 @@ Updated to three cases (checked in order):
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
-| `app/api/bookings/[id]/cancel/route.ts` | New — cancel endpoint |
-| `app/dashboard/page.tsx` | Updated — Cancel/Rebook buttons, badge logic |
-| `components/booking-modal.tsx` | Updated — accept `initialDogName` prop |
+| File                                    | Change                                       |
+| --------------------------------------- | -------------------------------------------- |
+| `app/api/bookings/[id]/cancel/route.ts` | New — cancel endpoint                        |
+| `app/dashboard/page.tsx`                | Updated — Cancel/Rebook buttons, badge logic |
+| `components/booking-modal.tsx`          | Updated — accept `initialDogName` prop       |
 
 ---
 

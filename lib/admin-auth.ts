@@ -1,7 +1,9 @@
 import { NextRequest } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
-export async function verifyAdmin(req: NextRequest): Promise<{ id: string; email?: string } | null> {
+export async function verifyAdmin(
+  req: NextRequest,
+): Promise<{ id: string; email?: string } | null> {
   const adminEmail = process.env.ADMIN_EMAIL;
   if (!adminEmail) {
     console.error('ADMIN_EMAIL env var is not set');

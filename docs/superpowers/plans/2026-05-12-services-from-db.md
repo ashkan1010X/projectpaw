@@ -12,11 +12,11 @@
 
 ## File Map
 
-| File | Action | Responsibility |
-|---|---|---|
-| `lib/service-icons.ts` | **Create** | Maps `icon_key` string → LucideIcon + exports `FALLBACK_SERVICES` |
-| `components/services-client.tsx` | **Create** | All interactive UI: search, filter, sort, booking modal |
-| `app/services/page.tsx` | **Modify** | Convert to async server component, fetch from Supabase, pass to client |
+| File                             | Action     | Responsibility                                                         |
+| -------------------------------- | ---------- | ---------------------------------------------------------------------- |
+| `lib/service-icons.ts`           | **Create** | Maps `icon_key` string → LucideIcon + exports `FALLBACK_SERVICES`      |
+| `components/services-client.tsx` | **Create** | All interactive UI: search, filter, sort, booking modal                |
+| `app/services/page.tsx`          | **Modify** | Convert to async server component, fetch from Supabase, pass to client |
 
 ---
 
@@ -80,6 +80,7 @@
 ## Task 2: Create `lib/service-icons.ts`
 
 **Files:**
+
 - Create: `lib/service-icons.ts`
 
 - [ ] **Step 1: Create the file**
@@ -224,6 +225,7 @@
 ## Task 3: Create `components/services-client.tsx`
 
 **Files:**
+
 - Create: `components/services-client.tsx`
 - This file contains ALL interactive logic from the current `app/services/page.tsx` — search, filter, sort, booking modal — but receives `ServiceRow[]` as a prop and resolves icons at render time via `getServiceIcon`.
 
@@ -469,6 +471,7 @@
 ## Task 4: Convert `app/services/page.tsx` to a server component
 
 **Files:**
+
 - Modify: `app/services/page.tsx`
 
 - [ ] **Step 1: Replace the entire file**
@@ -557,6 +560,7 @@
 ## Self-Review
 
 **Spec coverage:**
+
 - [x] Section 1 — `services` table + RLS + seed: Task 1
 - [x] Section 2 — `lib/service-icons.ts`, server component, client component: Tasks 2, 3, 4
 - [x] Section 3 — Silent fallback on fetch error: Task 4 (try/catch in server component)
@@ -565,6 +569,7 @@
 **Placeholder scan:** None found — all steps have exact code.
 
 **Type consistency:**
+
 - `ServiceRow` defined once in `lib/service-icons.ts`, imported in both `services-client.tsx` and `page.tsx`
 - `getServiceIcon` defined in Task 2, used in Task 3
 - `FALLBACK_SERVICES` defined in Task 2, used in Task 4

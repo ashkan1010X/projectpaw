@@ -10,7 +10,10 @@ export default function DashboardLoading() {
       {/* Stats row skeleton */}
       <div className="mb-10 grid grid-cols-3 gap-4">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="animate-pulse rounded-xl border border-paw/[0.08] bg-[#1a1612] p-6">
+          <div
+            key={i}
+            className="animate-pulse rounded-xl border border-paw/[0.08] bg-[#1a1612] p-6"
+          >
             <div className="mb-2 h-8 w-10 rounded bg-paw/10" />
             <div className="h-3 w-20 rounded bg-paw/[0.06]" />
           </div>
@@ -20,7 +23,10 @@ export default function DashboardLoading() {
       {/* List skeleton */}
       <div className="space-y-3">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="animate-pulse rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5">
+          <div
+            key={i}
+            className="animate-pulse rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5"
+          >
             <div className="flex items-center justify-between">
               <div className="space-y-2">
                 <div className="h-4 w-32 rounded bg-paw/10" />

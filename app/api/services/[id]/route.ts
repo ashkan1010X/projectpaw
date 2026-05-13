@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { verifyAdmin } from '@/lib/admin-auth';
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await verifyAdmin(req);
   if (!admin) {
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
@@ -50,10 +47,7 @@ export async function PATCH(
   return NextResponse.json({ service: data });
 }
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const admin = await verifyAdmin(req);
   if (!admin) {
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
@@ -61,11 +55,7 @@ export async function DELETE(
 
   const { id } = await params;
 
-  const { data, error } = await supabaseAdmin
-    .from('services')
-    .delete()
-    .eq('id', id)
-    .select('id');
+  const { data, error } = await supabaseAdmin.from('services').delete().eq('id', id).select('id');
 
   if (error) {
     console.error('Service delete error:', error);

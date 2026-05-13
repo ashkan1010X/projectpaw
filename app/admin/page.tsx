@@ -358,6 +358,7 @@ export default function AdminPage() {
                   </button>
                   <button
                     onClick={() => handleDelete(service.id)}
+                    aria-label={`Delete ${service.name}`}
                     className="font-semibold text-red-400 hover:text-red-300"
                   >
                     Del

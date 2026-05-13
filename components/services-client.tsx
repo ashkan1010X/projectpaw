@@ -8,7 +8,15 @@ import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 import { getServiceIcon, type ServiceRow } from '@/lib/service-icons';
 
-type ServiceType = 'all' | 'grooming' | 'walking' | 'boarding' | 'training' | 'vet' | 'daycare' | 'custom';
+type ServiceType =
+  | 'all'
+  | 'grooming'
+  | 'walking'
+  | 'boarding'
+  | 'training'
+  | 'vet'
+  | 'daycare'
+  | 'custom';
 type SortOption = 'relevance' | 'price-asc' | 'price-desc' | 'name';
 
 const TYPE_FILTERS: { value: ServiceType; label: string }[] = [
@@ -93,10 +101,18 @@ export function ServicesClient({ services }: { services: ServiceRow[] }) {
               'outline-none transition-all duration-300 focus:border-doggy/50',
             )}
           >
-            <option value="relevance" className="bg-[#0f0d09]">Relevance</option>
-            <option value="price-asc" className="bg-[#0f0d09]">Price: Low → High</option>
-            <option value="price-desc" className="bg-[#0f0d09]">Price: High → Low</option>
-            <option value="name" className="bg-[#0f0d09]">Name: A–Z</option>
+            <option value="relevance" className="bg-[#0f0d09]">
+              Relevance
+            </option>
+            <option value="price-asc" className="bg-[#0f0d09]">
+              Price: Low → High
+            </option>
+            <option value="price-desc" className="bg-[#0f0d09]">
+              Price: High → Low
+            </option>
+            <option value="name" className="bg-[#0f0d09]">
+              Name: A–Z
+            </option>
           </select>
         </div>
       </div>
@@ -138,7 +154,9 @@ export function ServicesClient({ services }: { services: ServiceRow[] }) {
                 <Search className="size-7 text-paw/30" strokeWidth={1.5} />
               </div>
               <p className="font-elegant text-xl font-bold text-paw/60">No services match</p>
-              <p className="font-pawprint text-sm text-paw/40">Try adjusting your filters or search query.</p>
+              <p className="font-pawprint text-sm text-paw/40">
+                Try adjusting your filters or search query.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -168,8 +186,12 @@ export function ServicesClient({ services }: { services: ServiceRow[] }) {
                         <Icon className="size-5 text-white" strokeWidth={2} />
                       </div>
                       <div className="relative">
-                        <h3 className="font-elegant text-lg font-bold text-white">{service.name}</h3>
-                        <span className="font-pawprint text-xs capitalize text-white/75">{service.type}</span>
+                        <h3 className="font-elegant text-lg font-bold text-white">
+                          {service.name}
+                        </h3>
+                        <span className="font-pawprint text-xs capitalize text-white/75">
+                          {service.type}
+                        </span>
                       </div>
                       <div className="relative ml-auto flex items-center gap-1 rounded-full bg-black/25 px-2.5 py-1 font-pawprint text-xs text-white/85 backdrop-blur-sm">
                         <Clock className="size-3" />
@@ -178,10 +200,14 @@ export function ServicesClient({ services }: { services: ServiceRow[] }) {
                     </div>
 
                     <div className="flex flex-1 flex-col gap-5 p-6">
-                      <p className="flex-1 font-pawprint text-sm leading-[1.7] text-paw/60">{service.description}</p>
+                      <p className="flex-1 font-pawprint text-sm leading-[1.7] text-paw/60">
+                        {service.description}
+                      </p>
                       <div className="flex items-center justify-between border-t border-paw/[0.06] pt-5">
                         <div className="flex items-baseline gap-1">
-                          <span className="font-elegant text-3xl font-black text-[#F9D923]">${service.price}</span>
+                          <span className="font-elegant text-3xl font-black text-[#F9D923]">
+                            ${service.price}
+                          </span>
                           <span className="font-pawprint text-xs text-paw/35">/session</span>
                         </div>
                         {token ? (
@@ -210,10 +236,7 @@ export function ServicesClient({ services }: { services: ServiceRow[] }) {
       </section>
 
       {selectedService && (
-        <BookingModal
-          service={selectedService}
-          onClose={() => setSelectedService(null)}
-        />
+        <BookingModal service={selectedService} onClose={() => setSelectedService(null)} />
       )}
     </>
   );

@@ -8,7 +8,9 @@ test.describe('NavBar — desktop', () => {
     // Desktop links visible inside the main nav ul (hidden md:flex)
     const desktopNav = page.locator('ul.hidden');
     // On desktop the ul renders visibly — check a link inside it
-    await expect(page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Services' })).toBeVisible();
+    await expect(
+      page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Services' }),
+    ).toBeVisible();
     // Hamburger trigger not visible on desktop (md:hidden)
     const hamburger = page.getByRole('button', { name: /navigation menu/i });
     await expect(hamburger).toBeHidden();
