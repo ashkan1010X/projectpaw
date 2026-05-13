@@ -72,6 +72,7 @@ export default function AdminPage() {
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [drawerError, setDrawerError] = useState<string | null>(null);
+  const [tableError, setTableError] = useState<string | null>(null);
 
   // Auth gate
   useEffect(() => {
@@ -85,11 +86,15 @@ export default function AdminPage() {
     if (!initialized || !user || user.email !== ADMIN_EMAIL) return;
     void (async () => {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('services')
           .select('*')
           .order('sort_order');
-        if (data) setServices(data as ServiceRow[]);
+        if (error) {
+          setTableError('Failed to load services. Please refresh the page.');
+        } else if (data) {
+          setServices(data as ServiceRow[]);
+        }
       } finally {
         setLoading(false);
       }
@@ -140,8 +145,12 @@ export default function AdminPage() {
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify(payload),
         });
-        if (!res.ok) throw new Error((await res.json() as { message: string }).message);
-        const { service } = await res.json() as { service: ServiceRow };
+        if (!res.ok) {
+          let message = `Request failed (${res.status})`;
+          try { message = ((await res.json()) as { message?: string }).message ?? message; } catch { /* non-JSON */ }
+          throw new Error(message);
+        }
+        const { service } = (await res.json()) as { service: ServiceRow };
         setServices((prev) => prev.map((s) => (s.id === editingId ? service : s)));
       } else {
         const res = await fetch('/api/services', {
@@ -149,8 +158,12 @@ export default function AdminPage() {
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
           body: JSON.stringify(payload),
         });
-        if (!res.ok) throw new Error((await res.json() as { message: string }).message);
-        const { service } = await res.json() as { service: ServiceRow };
+        if (!res.ok) {
+          let message = `Request failed (${res.status})`;
+          try { message = ((await res.json()) as { message?: string }).message ?? message; } catch { /* non-JSON */ }
+          throw new Error(message);
+        }
+        const { service } = (await res.json()) as { service: ServiceRow };
         setServices((prev) => [...prev, service]);
       }
       closeDrawer();
@@ -163,15 +176,19 @@ export default function AdminPage() {
 
   async function handleDelete(id: string) {
     if (!window.confirm('Delete this service? This cannot be undone.')) return;
-    const res = await fetch(`/api/services/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (res.ok) {
-      setServices((prev) => prev.filter((s) => s.id !== id));
-      if (editingId === id) closeDrawer();
-    } else {
-      alert('Failed to delete service.');
+    try {
+      const res = await fetch(`/api/services/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setServices((prev) => prev.filter((s) => s.id !== id));
+        if (editingId === id) closeDrawer();
+      } else {
+        alert('Failed to delete service.');
+      }
+    } catch {
+      alert('Network error. Please try again.');
     }
   }
 
@@ -206,6 +223,9 @@ export default function AdminPage() {
             <span>Pop.</span>
             <span>Actions</span>
           </div>
+          {tableError && (
+            <p className="px-5 py-8 font-pawprint text-sm text-red-400">{tableError}</p>
+          )}
           {services.length === 0 && (
             <p className="px-5 py-8 font-pawprint text-sm text-paw/40">No services yet.</p>
           )}
