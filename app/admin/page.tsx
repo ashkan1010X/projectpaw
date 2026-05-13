@@ -451,15 +451,16 @@ export default function AdminPage() {
                 <span className="font-pawprint text-sm text-paw/70">Mark as Popular</span>
                 <button
                   onClick={() => setForm((f) => ({ ...f, popular: !f.popular }))}
+                  aria-label={form.popular ? 'Mark as not popular' : 'Mark as popular'}
                   className={cn(
-                    'relative h-6 w-10 rounded-full transition-colors duration-200',
+                    'relative h-6 w-11 rounded-full transition-colors duration-200',
                     form.popular ? 'bg-doggy' : 'bg-paw/20',
                   )}
                 >
                   <span
                     className={cn(
-                      'absolute top-0.5 size-5 rounded-full bg-white shadow transition-transform duration-200',
-                      form.popular ? 'translate-x-4' : 'translate-x-0.5',
+                      'absolute left-[2px] top-[2px] size-5 rounded-full bg-white shadow transition-transform duration-200',
+                      form.popular ? 'translate-x-[1.25rem]' : 'translate-x-0',
                     )}
                   />
                 </button>
