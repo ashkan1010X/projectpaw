@@ -40,6 +40,13 @@ type FormData = {
   popular: boolean;
 };
 
+type DrawerErrors = {
+  name?: string;
+  price?: string;
+  duration?: string;
+  description?: string;
+};
+
 const EMPTY_FORM: FormData = {
   name: '',
   price: '',
@@ -73,6 +80,7 @@ export default function AdminPage() {
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [drawerError, setDrawerError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<DrawerErrors>({});
   const [tableError, setTableError] = useState<string | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -124,11 +132,30 @@ export default function AdminPage() {
   function closeDrawer() {
     setDrawerOpen(false);
     setDrawerError(null);
+    setFieldErrors({});
+  }
+
+  function validateField(field: keyof DrawerErrors, value: string): string | undefined {
+    if (field === 'name' && !value.trim()) return 'Name is required.';
+    if (field === 'price') {
+      if (!value) return 'Price is required.';
+      if (isNaN(Number(value)) || Number(value) < 0) return 'Enter a valid price (0 or more).';
+    }
+    if (field === 'duration' && !value.trim()) return 'Duration is required.';
+    if (field === 'description' && !value.trim()) return 'Description is required.';
+    return undefined;
   }
 
   async function handleSave() {
-    if (!form.name.trim() || !form.duration.trim() || !form.description.trim() || !form.price) {
-      setDrawerError('Name, price, duration, and description are required.');
+    const errors: DrawerErrors = {
+      name: validateField('name', form.name),
+      price: validateField('price', form.price),
+      duration: validateField('duration', form.duration),
+      description: validateField('description', form.description),
+    };
+    const hasErrors = Object.values(errors).some(Boolean);
+    if (hasErrors) {
+      setFieldErrors(errors);
       return;
     }
     setSaving(true);
@@ -361,10 +388,23 @@ export default function AdminPage() {
                 </label>
                 <input
                   value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  className="w-full rounded-lg border border-paw/10 bg-white/5 px-3 py-2 font-pawprint text-sm text-paw outline-none focus:border-doggy"
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, name: e.target.value }));
+                    setFieldErrors((fe) => ({ ...fe, name: undefined }));
+                  }}
+                  onBlur={(e) => {
+                    const err = validateField('name', e.target.value);
+                    setFieldErrors((fe) => ({ ...fe, name: err }));
+                  }}
+                  className={cn(
+                    'w-full rounded-lg border bg-white/5 px-3 py-2 font-pawprint text-sm text-paw outline-none focus:border-doggy',
+                    fieldErrors.name ? 'border-red-500/60' : 'border-paw/10',
+                  )}
                   placeholder="e.g. Grooming"
                 />
+                {fieldErrors.name && (
+                  <p className="mt-1 font-pawprint text-xs text-red-400">{fieldErrors.name}</p>
+                )}
               </div>
 
               {/* Price + Duration */}
@@ -377,10 +417,23 @@ export default function AdminPage() {
                     type="number"
                     min={0}
                     value={form.price}
-                    onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                    className="w-full rounded-lg border border-paw/10 bg-white/5 px-3 py-2 font-pawprint text-sm text-paw outline-none focus:border-doggy"
+                    onChange={(e) => {
+                      setForm((f) => ({ ...f, price: e.target.value }));
+                      setFieldErrors((fe) => ({ ...fe, price: undefined }));
+                    }}
+                    onBlur={(e) => {
+                      const err = validateField('price', e.target.value);
+                      setFieldErrors((fe) => ({ ...fe, price: err }));
+                    }}
+                    className={cn(
+                      'w-full rounded-lg border bg-white/5 px-3 py-2 font-pawprint text-sm text-paw outline-none focus:border-doggy',
+                      fieldErrors.price ? 'border-red-500/60' : 'border-paw/10',
+                    )}
                     placeholder="30"
                   />
+                  {fieldErrors.price && (
+                    <p className="mt-1 font-pawprint text-xs text-red-400">{fieldErrors.price}</p>
+                  )}
                 </div>
                 <div>
                   <label className="mb-1 block font-pawprint text-[0.65rem] font-semibold uppercase tracking-wider text-paw/40">
@@ -388,10 +441,23 @@ export default function AdminPage() {
                   </label>
                   <input
                     value={form.duration}
-                    onChange={(e) => setForm((f) => ({ ...f, duration: e.target.value }))}
-                    className="w-full rounded-lg border border-paw/10 bg-white/5 px-3 py-2 font-pawprint text-sm text-paw outline-none focus:border-doggy"
+                    onChange={(e) => {
+                      setForm((f) => ({ ...f, duration: e.target.value }));
+                      setFieldErrors((fe) => ({ ...fe, duration: undefined }));
+                    }}
+                    onBlur={(e) => {
+                      const err = validateField('duration', e.target.value);
+                      setFieldErrors((fe) => ({ ...fe, duration: err }));
+                    }}
+                    className={cn(
+                      'w-full rounded-lg border bg-white/5 px-3 py-2 font-pawprint text-sm text-paw outline-none focus:border-doggy',
+                      fieldErrors.duration ? 'border-red-500/60' : 'border-paw/10',
+                    )}
                     placeholder="90 min"
                   />
+                  {fieldErrors.duration && (
+                    <p className="mt-1 font-pawprint text-xs text-red-400">{fieldErrors.duration}</p>
+                  )}
                 </div>
               </div>
 
@@ -402,11 +468,24 @@ export default function AdminPage() {
                 </label>
                 <textarea
                   value={form.description}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, description: e.target.value }));
+                    setFieldErrors((fe) => ({ ...fe, description: undefined }));
+                  }}
+                  onBlur={(e) => {
+                    const err = validateField('description', e.target.value);
+                    setFieldErrors((fe) => ({ ...fe, description: err }));
+                  }}
                   rows={3}
-                  className="w-full rounded-lg border border-paw/10 bg-white/5 px-3 py-2 font-pawprint text-sm text-paw outline-none focus:border-doggy resize-none"
+                  className={cn(
+                    'w-full rounded-lg border bg-white/5 px-3 py-2 font-pawprint text-sm text-paw outline-none focus:border-doggy resize-none',
+                    fieldErrors.description ? 'border-red-500/60' : 'border-paw/10',
+                  )}
                   placeholder="Describe the service..."
                 />
+                {fieldErrors.description && (
+                  <p className="mt-1 font-pawprint text-xs text-red-400">{fieldErrors.description}</p>
+                )}
               </div>
 
               {/* Icon picker */}
