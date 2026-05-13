@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { BookingModal } from '@/components/booking-modal';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { cn } from '@/lib/utils';
 
 type Booking = {
@@ -91,6 +92,7 @@ export default function DashboardPage() {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancelErrors, setCancelErrors] = useState<Record<string, string>>({});
   const [rebookTarget, setRebookTarget] = useState<RebookTarget | null>(null);
+  const [pendingCancelBooking, setPendingCancelBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     if (!initialized) return;
@@ -242,7 +244,7 @@ export default function DashboardPage() {
                       )}
                       {isUpcoming && (
                         <button
-                          onClick={() => handleCancel(booking)}
+                          onClick={() => setPendingCancelBooking(booking)}
                           disabled={cancellingId === booking.id}
                           aria-label={`Cancel booking for ${booking.service_name}`}
                           className="flex items-center gap-1.5 rounded-lg border border-red-500/25 px-3 py-1 font-pawprint text-xs font-semibold text-red-400 transition-all duration-200 hover:border-red-500/50 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
@@ -277,6 +279,23 @@ export default function DashboardPage() {
             });
           })()}
         </div>
+      )}
+
+      {/* Cancel confirmation */}
+      {pendingCancelBooking && (
+        <ConfirmDialog
+          isOpen
+          title="Cancel Booking"
+          message={`Cancel ${pendingCancelBooking.service_name} for ${pendingCancelBooking.dog_name}? This cannot be undone.`}
+          confirmLabel="Yes, Cancel"
+          cancelLabel="Keep it"
+          destructive
+          onConfirm={() => {
+            void handleCancel(pendingCancelBooking);
+            setPendingCancelBooking(null);
+          }}
+          onCancel={() => setPendingCancelBooking(null)}
+        />
       )}
 
       {/* Rebook modal */}
