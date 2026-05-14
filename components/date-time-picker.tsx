@@ -70,8 +70,6 @@ export function DateTimePicker({
   error,
   minDate,
 }: DateTimePickerProps) {
-  const min = minDate ?? new Date();
-
   const [open, setOpen] = useState(false);
   const [nowAtOpen, setNowAtOpen] = useState(() => new Date());
   const [mounted, setMounted] = useState(false);
@@ -83,6 +81,7 @@ export function DateTimePicker({
   const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0, width: 0 });
 
   const now = nowAtOpen;
+  const min = minDate ?? nowAtOpen;
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
