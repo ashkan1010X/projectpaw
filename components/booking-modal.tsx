@@ -90,6 +90,17 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     return () => clearTimeout(t);
   }, [success, countdown, onClose, router]);
 
+  // Pre-fill dog name from profile when no initialDogName is provided
+  useEffect(() => {
+    if (initialDogName || !token) return;
+    fetch('/api/profile', { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.json() as Promise<{ profile: { dog_name?: string | null } | null }>)
+      .then(({ profile }) => {
+        if (profile?.dog_name) setDogName(profile.dog_name);
+      })
+      .catch(() => {}); // silent — auto-fill is best-effort
+  }, [token, initialDogName]);
+
   if (!token) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md animate-fade-in">
