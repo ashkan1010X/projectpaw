@@ -13,6 +13,7 @@ interface AuthContextValue {
   initialized: boolean;
   login: (user: User, token: string) => void;
   logout: () => void;
+  updateName: (name: string) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -51,8 +52,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('token');
   }
 
+  function updateName(name: string) {
+    if (!user) return;
+    const updated = { ...user, name };
+    setUser(updated);
+    localStorage.setItem('doguser', JSON.stringify(updated));
+  }
+
   return (
-    <AuthContext.Provider value={{ user, token, initialized, login, logout }}>
+    <AuthContext.Provider value={{ user, token, initialized, login, logout, updateName }}>
       {children}
     </AuthContext.Provider>
   );
@@ -60,8 +68,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
   return ctx;
 }
