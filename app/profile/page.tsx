@@ -62,8 +62,8 @@ export default function ProfilePage() {
         };
         setForm(loaded);
         savedRef.current = loaded;
-        setName(n);
-        setEmail(e);
+        setName(n || user?.name || '');
+        setEmail(e || user?.email || '');
       })
       .catch(() => setToast({ message: 'Failed to load profile', variant: 'error' }))
       .finally(() => setLoading(false));
