@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { PawPrint, Home, Info, Images, Scissors, LayoutDashboard, Settings } from 'lucide-react';
-import { useState } from 'react';
+import { PawPrint, Home, Info, Images, Scissors, LayoutDashboard, Settings, ChevronDown } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -21,6 +21,18 @@ export function NavBar() {
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    if (dropdownOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [dropdownOpen]);
 
   return (
     <nav
@@ -73,43 +85,62 @@ export function NavBar() {
         <div className="flex items-center gap-3">
           {/* Desktop auth — hidden on mobile */}
           {user ? (
-            <>
-              <span className="hidden font-pawprint text-sm font-medium text-paw/70 md:block">
-                Hi, <span className="text-paw">{user.name}</span>
-              </span>
-              <Link
-                href="/dashboard"
-                className={cn(
-                  'hidden items-center gap-1.5 rounded-lg border border-paw/15 px-4 py-2 font-pawprint text-xs font-semibold transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] md:flex',
-                  pathname === '/dashboard'
-                    ? 'border-doggy/40 text-doggy'
-                    : 'text-paw/70 hover:text-paw',
-                )}
-              >
-                <LayoutDashboard size={13} />
-                Dashboard
-              </Link>
-              {user && user.email === ADMIN_EMAIL && (
-                <Link
-                  href="/admin"
-                  className={cn(
-                    'hidden items-center gap-1.5 rounded-lg border border-paw/15 px-4 py-2 font-pawprint text-xs font-semibold transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] md:flex',
-                    pathname === '/admin'
-                      ? 'border-doggy/40 text-doggy'
-                      : 'text-paw/70 hover:text-paw',
-                  )}
-                >
-                  <Settings size={13} />
-                  Admin
-                </Link>
-              )}
+            <div ref={dropdownRef} className="relative hidden md:block">
+              {/* Pill chip */}
               <button
-                onClick={logout}
-                className="hidden cursor-pointer rounded-lg border border-paw/15 px-4 py-2 font-pawprint text-xs font-semibold text-paw/70 transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] hover:text-paw md:block"
+                onClick={() => setDropdownOpen((v) => !v)}
+                aria-label="Open account menu"
+                aria-expanded={dropdownOpen}
+                className="flex items-center gap-2 rounded-full border border-doggy/25 bg-doggy/[0.08] py-1.5 pl-1.5 pr-3 font-pawprint text-sm font-semibold text-paw transition-all duration-300 hover:border-doggy/50 hover:bg-doggy/[0.12]"
               >
-                Logout
+                <span className="flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-doggy to-paw-dark text-xs font-black text-white">
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+                <span>{user.name}</span>
+                <ChevronDown
+                  size={13}
+                  className={cn('text-paw/40 transition-transform duration-200', dropdownOpen && 'rotate-180')}
+                />
               </button>
-            </>
+
+              {/* Dropdown */}
+              {dropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-48 overflow-hidden rounded-xl border border-paw/[0.1] bg-[#1a1612] shadow-2xl shadow-black/40">
+                  <div className="py-1">
+                    <Link
+                      href="/profile"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2.5 font-pawprint text-sm text-paw/70 transition-colors hover:bg-paw/[0.04] hover:text-paw"
+                    >
+                      <span className="text-base">👤</span> My Profile
+                    </Link>
+                    <Link
+                      href="/dashboard"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-4 py-2.5 font-pawprint text-sm text-paw/70 transition-colors hover:bg-paw/[0.04] hover:text-paw"
+                    >
+                      <LayoutDashboard size={14} /> My Bookings
+                    </Link>
+                    {user.email === ADMIN_EMAIL && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 font-pawprint text-sm text-paw/70 transition-colors hover:bg-paw/[0.04] hover:text-paw"
+                      >
+                        <Settings size={14} /> Admin
+                      </Link>
+                    )}
+                    <div className="my-1 h-px bg-paw/[0.06]" />
+                    <button
+                      onClick={() => { logout(); setDropdownOpen(false); }}
+                      className="flex w-full items-center gap-2.5 px-4 py-2.5 font-pawprint text-sm text-paw/50 transition-colors hover:bg-paw/[0.04] hover:text-paw/70"
+                    >
+                      <span className="text-base">🚪</span> Logout
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
             <>
               <Link
@@ -206,6 +237,21 @@ export function NavBar() {
                 </ul>
                 {user && (
                   <ul className="mt-1">
+                    <li>
+                      <Link
+                        href="/profile"
+                        onClick={() => setIsOpen(false)}
+                        className={cn(
+                          'flex items-center gap-3 rounded-lg px-4 py-3 font-pawprint text-lg font-semibold transition-colors duration-200',
+                          pathname === '/profile'
+                            ? 'border-l-2 border-doggy bg-doggy/10 text-paw'
+                            : 'border-l-2 border-transparent text-paw/60 hover:bg-paw/[0.04] hover:text-paw',
+                        )}
+                      >
+                        <Settings size={18} className={cn(pathname === '/profile' ? 'text-doggy' : 'text-paw/40')} />
+                        My Profile
+                      </Link>
+                    </li>
                     <li>
                       <Link
                         href="/dashboard"
