@@ -35,13 +35,24 @@ function statusBadge(booking: Booking, now: Date) {
     : { label: 'Completed', className: 'bg-paw/10 text-paw/50' };
 }
 
-function daysAway(datetime: string): string {
-  const diff = Math.ceil(
-    (new Date(datetime).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+function daysAway(datetime: string, now: Date): string {
+  const diff = Math.floor(
+    (new Date(datetime).getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
   );
   if (diff <= 0) return 'Today';
   if (diff === 1) return 'Tomorrow';
   return `${diff} days away`;
+}
+
+function formatBookingDate(datetime: string, includeWeekday = false): string {
+  return new Date(datetime).toLocaleString('en-US', {
+    ...(includeWeekday ? { weekday: 'short' } : {}),
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
 function DashboardSkeleton() {
@@ -224,9 +235,9 @@ export default function DashboardPage() {
           {/* ── Hero: next upcoming booking ── */}
           {heroBooking ? (
             <div>
-              <p className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-doggy/60">
+              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-doggy/60">
                 Next Appointment
-              </p>
+              </h2>
               <div className="space-y-1.5">
                 <div className="rounded-2xl border border-doggy/[0.2] bg-gradient-to-br from-doggy/[0.1] to-doggy/[0.03] p-5 animate-fade-in">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -238,19 +249,12 @@ export default function DashboardPage() {
                         {heroBooking.dog_name}
                       </p>
                       <p className="mt-1.5 font-pawprint text-xs text-paw/40">
-                        {new Date(heroBooking.datetime).toLocaleString('en-US', {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                        {formatBookingDate(heroBooking.datetime, true)}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <span className="font-pawprint text-xs font-semibold text-doggy/70">
-                        {daysAway(heroBooking.datetime)}
+                        {daysAway(heroBooking.datetime, now)}
                       </span>
                       <button
                         onClick={() => setPendingCancelBooking(heroBooking)}
@@ -294,9 +298,9 @@ export default function DashboardPage() {
           {/* ── Also upcoming (compact) ── */}
           {alsoUpcoming.length > 0 && (
             <div>
-              <p className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/35">
+              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/35">
                 Also Upcoming
-              </p>
+              </h2>
               <div className="space-y-2">
                 {alsoUpcoming.map((booking) => (
                   <div key={booking.id} className="space-y-1.5">
@@ -307,18 +311,12 @@ export default function DashboardPage() {
                           <span className="ml-2 text-paw/40">— {booking.dog_name}</span>
                         </p>
                         <p className="mt-0.5 font-pawprint text-xs text-paw/40">
-                          {new Date(booking.datetime).toLocaleString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                          {formatBookingDate(booking.datetime)}
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         <span className="font-pawprint text-xs font-semibold text-doggy/60">
-                          {daysAway(booking.datetime)}
+                          {daysAway(booking.datetime, now)}
                         </span>
                         <button
                           onClick={() => setPendingCancelBooking(booking)}
@@ -351,9 +349,9 @@ export default function DashboardPage() {
           {/* ── History (past + cancelled) ── */}
           {past.length > 0 && (
             <div>
-              <p className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/25">
+              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/25">
                 History
-              </p>
+              </h2>
               <div className="space-y-2">
                 {past.map((booking) => {
                   const badge = statusBadge(booking, now);
@@ -366,13 +364,7 @@ export default function DashboardPage() {
                             <span className="ml-2 text-paw/40">— {booking.dog_name}</span>
                           </p>
                           <p className="mt-0.5 font-pawprint text-xs text-paw/40">
-                            {new Date(booking.datetime).toLocaleString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                            {formatBookingDate(booking.datetime)}
                           </p>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
@@ -385,7 +377,7 @@ export default function DashboardPage() {
                               })
                             }
                             aria-label={`Rebook ${booking.service_name} for ${booking.dog_name}`}
-                            className="rounded-lg border border-doggy/30 px-3 py-1 font-pawprint text-xs font-semibold text-doggy transition-all duration-200 hover:border-doggy/60 hover:bg-doggy/10"
+                            className="rounded-lg border border-doggy/30 px-3 py-1 font-pawprint text-xs font-semibold text-doggy opacity-100 transition-all duration-200 hover:border-doggy/60 hover:bg-doggy/10"
                           >
                             Rebook
                           </button>
