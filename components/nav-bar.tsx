@@ -183,16 +183,15 @@ export function NavBar() {
               {/* Nav links */}
               <nav aria-label="Mobile menu" className="flex-1 px-3 py-4">
                 <ul className="flex flex-col gap-1">
-                  {NAV_LINKS.map(({ href, label, icon: Icon }, index) => {
+                  {NAV_LINKS.map(({ href, label, icon: Icon }) => {
                     const isActive = pathname === href;
                     return (
                       <li key={href}>
                         <Link
                           href={href}
                           onClick={() => setIsOpen(false)}
-                          style={{ animationDelay: `${index * 20}ms` }}
                           className={cn(
-                            'animate-fade-up flex items-center gap-3 rounded-lg px-4 py-3 font-pawprint text-lg font-semibold transition-colors duration-200',
+                            'flex items-center gap-3 rounded-lg px-4 py-3 font-pawprint text-lg font-semibold transition-colors duration-200',
                             isActive
                               ? 'border-l-2 border-doggy bg-doggy/10 text-paw'
                               : 'border-l-2 border-transparent text-paw/60 hover:bg-paw/[0.04] hover:text-paw',
