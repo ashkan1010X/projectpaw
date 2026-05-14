@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { CalendarIcon, ChevronLeft, ChevronRight, ArrowLeft, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const MONTH_NAMES = [
@@ -12,16 +12,16 @@ const MONTH_NAMES = [
 const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 const TIME_SLOTS = [
-  { label: '9 AM',  hour: 9  },
-  { label: '10 AM', hour: 10 },
-  { label: '11 AM', hour: 11 },
-  { label: '12 PM', hour: 12 },
-  { label: '1 PM',  hour: 13 },
-  { label: '2 PM',  hour: 14 },
-  { label: '3 PM',  hour: 15 },
-  { label: '4 PM',  hour: 16 },
-  { label: '5 PM',  hour: 17 },
-  { label: '6 PM',  hour: 18 },
+  { label: '9:00 AM',  hour: 9  },
+  { label: '10:00 AM', hour: 10 },
+  { label: '11:00 AM', hour: 11 },
+  { label: '12:00 PM', hour: 12 },
+  { label: '1:00 PM',  hour: 13 },
+  { label: '2:00 PM',  hour: 14 },
+  { label: '3:00 PM',  hour: 15 },
+  { label: '4:00 PM',  hour: 16 },
+  { label: '5:00 PM',  hour: 17 },
+  { label: '6:00 PM',  hour: 18 },
 ];
 
 interface DateTimePickerProps {
@@ -71,6 +71,7 @@ export function DateTimePicker({
   minDate,
 }: DateTimePickerProps) {
   const [open, setOpen] = useState(false);
+  const [step, setStep] = useState<'date' | 'time'>('date');
   const [nowAtOpen, setNowAtOpen] = useState(() => new Date());
   const [mounted, setMounted] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -78,7 +79,7 @@ export function DateTimePicker({
   const [selectedLabel, setSelectedLabel] = useState('');
   const [viewYear, setViewYear] = useState(() => new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(() => new Date().getMonth());
-  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0, width: 0 });
+  const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0, width: 0, maxHeight: 520 });
 
   const now = nowAtOpen;
   const min = minDate ?? nowAtOpen;
@@ -95,15 +96,24 @@ export function DateTimePicker({
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
-    const estimatedHeight = 400;
-    const top =
-      spaceBelow < estimatedHeight && rect.top > estimatedHeight
-        ? rect.top - estimatedHeight - 6
-        : rect.bottom + 6;
+    const spaceAbove = rect.top;
+    const estimatedHeight = 360;
+
+    let top: number;
+    if (spaceBelow >= estimatedHeight + 16) {
+      top = rect.bottom + 6;
+    } else if (spaceAbove >= estimatedHeight + 16) {
+      top = rect.top - estimatedHeight - 6;
+    } else {
+      top = rect.bottom + 6;
+    }
+
+    const maxHeight = Math.min(520, window.innerHeight - top - 16);
     const left = Math.max(8, Math.min(rect.left, window.innerWidth - 280));
-    setPopoverPos({ top, left, width: rect.width });
+    setPopoverPos({ top, left, width: rect.width, maxHeight });
     setOpen(true);
-  }, []);
+    if (!selectedDate) setStep('date');
+  }, [selectedDate]);
 
   useEffect(() => {
     if (!open) return;
@@ -152,6 +162,7 @@ export function DateTimePicker({
     setSelectedDate(date);
     setSelectedHour(null);
     setSelectedLabel('');
+    setStep('time');
   }
 
   function handleSlotClick(hour: number, label: string) {
@@ -162,6 +173,12 @@ export function DateTimePicker({
     setOpen(false);
   }
 
+  function handleBack() {
+    setStep('date');
+    setSelectedHour(null);
+    setSelectedLabel('');
+  }
+
   const triggerText = (() => {
     if (!selectedDate || selectedHour === null) return null;
     const wd = selectedDate.toLocaleDateString('en-US', { weekday: 'short' });
@@ -169,18 +186,12 @@ export function DateTimePicker({
     return `${wd}, ${mo} ${selectedDate.getDate()} · ${selectedLabel}`;
   })();
 
-  const popoverContent = (
-    <div
-      ref={popoverRef}
-      style={{
-        position: 'fixed',
-        top: popoverPos.top,
-        left: popoverPos.left,
-        minWidth: Math.max(popoverPos.width, 272),
-        zIndex: 9999,
-      }}
-      className="w-[272px] rounded-2xl border border-paw/[0.12] bg-[#1a1612] p-4 shadow-2xl shadow-black/70 animate-fade-in"
-    >
+  const formattedSelectedDate = selectedDate
+    ? selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+    : '';
+
+  const calendarStep = (
+    <div className="p-4">
       {/* Month navigation */}
       <div className="mb-3 flex items-center justify-between">
         <button
@@ -244,38 +255,84 @@ export function DateTimePicker({
         })}
       </div>
 
-      <hr className="my-3 border-paw/[0.07]" />
-
-      {/* Time label */}
-      <p className="mb-2 font-pawprint text-[9px] font-semibold uppercase tracking-[0.13em] text-paw/30">
-        {selectedDate ? 'Select Time' : 'Pick a date first'}
+      <p className="mt-3 text-center font-pawprint text-[9px] text-paw/30">
+        Tap a date to pick a time
       </p>
+    </div>
+  );
 
-      {/* Time slot grid */}
-      <div className="grid grid-cols-5 gap-1.5">
-        {TIME_SLOTS.map(({ label, hour }) => {
-          const slotDisabled = !selectedDate || (sameDay(selectedDate, min) && hour <= min.getHours());
-          const active = selectedHour === hour;
-          return (
-            <button
-              key={hour}
-              type="button"
-              disabled={slotDisabled}
-              onClick={() => handleSlotClick(hour, label)}
-              className={cn(
-                'rounded-lg py-1.5 font-pawprint text-[10px] font-medium transition-all duration-150',
-                active
-                  ? 'bg-doggy text-white'
-                  : slotDisabled
-                    ? 'cursor-not-allowed text-paw/[0.18]'
-                    : 'cursor-pointer border border-paw/[0.1] text-paw/60 hover:border-doggy/40 hover:bg-doggy/[0.07] hover:text-paw',
-              )}
-            >
-              {label}
-            </button>
-          );
-        })}
+  const timeStep = (
+    <div className="flex min-h-0 flex-1 flex-col">
+      {/* Back header */}
+      <div className="flex shrink-0 items-center gap-3 border-b border-paw/[0.07] px-4 py-3">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-paw/[0.1] bg-paw/[0.04] text-paw/50 transition-colors duration-150 hover:bg-paw/[0.08] hover:text-paw"
+          aria-label="Back to calendar"
+        >
+          <ArrowLeft className="size-3.5" strokeWidth={2} />
+        </button>
+        <div className="min-w-0">
+          <p className="font-pawprint text-[9px] font-semibold uppercase tracking-[0.13em] text-paw/30">
+            Date selected
+          </p>
+          <p className="truncate font-pawprint text-sm font-semibold text-paw">
+            {formattedSelectedDate}
+          </p>
+        </div>
+        <Clock className="ml-auto size-4 shrink-0 text-doggy/40" strokeWidth={1.5} />
       </div>
+
+      {/* Scrollable time list */}
+      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+        <p className="mb-2 px-1 font-pawprint text-[9px] font-semibold uppercase tracking-[0.13em] text-paw/30">
+          Select a time
+        </p>
+        <div className="space-y-1.5">
+          {TIME_SLOTS.map(({ label, hour }) => {
+            const slotDisabled =
+              !selectedDate ||
+              (sameDay(selectedDate, min) && hour <= min.getHours());
+            const active = selectedHour === hour;
+            return (
+              <button
+                key={hour}
+                type="button"
+                disabled={slotDisabled}
+                onClick={() => handleSlotClick(hour, label)}
+                className={cn(
+                  'w-full rounded-xl px-4 py-2.5 text-left font-pawprint text-sm font-medium transition-all duration-150',
+                  active
+                    ? 'bg-doggy text-white shadow-sm shadow-doggy/30'
+                    : slotDisabled
+                      ? 'cursor-not-allowed text-paw/[0.18]'
+                      : 'cursor-pointer border border-paw/[0.1] text-paw/70 hover:border-doggy/40 hover:bg-doggy/[0.07] hover:text-paw',
+                )}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
+  const popoverContent = (
+    <div
+      ref={popoverRef}
+      style={{
+        position: 'fixed',
+        top: popoverPos.top,
+        left: popoverPos.left,
+        minWidth: Math.max(popoverPos.width, 272),
+        maxHeight: popoverPos.maxHeight,
+        zIndex: 9999,
+      }}
+      className="w-[272px] flex flex-col overflow-hidden rounded-2xl border border-paw/[0.12] bg-[#1a1612] shadow-2xl shadow-black/70 animate-fade-in"
+    >
+      {step === 'date' ? calendarStep : timeStep}
     </div>
   );
 
