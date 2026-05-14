@@ -223,7 +223,6 @@ export default function DashboardPage() {
         <div className="space-y-3">
           <h2 className="mb-4 font-elegant text-lg font-bold text-paw/70">Recent Bookings</h2>
           {(() => {
-            const now = new Date();
             return bookings.map((booking) => {
               const badge = statusBadge(booking, now);
               const isUpcoming = booking.status !== 'cancelled' && new Date(booking.datetime) > now;
