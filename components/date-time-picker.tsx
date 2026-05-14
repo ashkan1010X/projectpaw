@@ -71,27 +71,28 @@ export function DateTimePicker({
   minDate,
 }: DateTimePickerProps) {
   const min = minDate ?? new Date();
-  const now = new Date();
 
   const [open, setOpen] = useState(false);
+  const [nowAtOpen, setNowAtOpen] = useState(() => new Date());
   const [mounted, setMounted] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedHour, setSelectedHour] = useState<number | null>(null);
   const [selectedLabel, setSelectedLabel] = useState('');
-  const [viewYear, setViewYear] = useState(now.getFullYear());
-  const [viewMonth, setViewMonth] = useState(now.getMonth());
+  const [viewYear, setViewYear] = useState(() => new Date().getFullYear());
+  const [viewMonth, setViewMonth] = useState(() => new Date().getMonth());
   const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0, width: 0 });
+
+  const now = nowAtOpen;
 
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => setMounted(true), []);
 
-  const currentHour = now.getHours();
-  const isToday = selectedDate ? sameDay(selectedDate, now) : false;
   const calendarDays = buildCalendarDays(viewYear, viewMonth);
 
   const openPopover = useCallback(() => {
+    setNowAtOpen(new Date());
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
     const spaceBelow = window.innerHeight - rect.bottom;
@@ -254,7 +255,7 @@ export function DateTimePicker({
       {/* Time slot grid */}
       <div className="grid grid-cols-5 gap-1.5">
         {TIME_SLOTS.map(({ label, hour }) => {
-          const slotDisabled = !selectedDate || (isToday && hour <= currentHour);
+          const slotDisabled = !selectedDate || (sameDay(selectedDate, min) && hour <= min.getHours());
           const active = selectedHour === hour;
           return (
             <button
@@ -284,7 +285,7 @@ export function DateTimePicker({
       <button
         ref={triggerRef}
         type="button"
-        onClick={openPopover}
+        onClick={() => { if (open) { setOpen(false); } else { openPopover(); } }}
         className={cn(
           'w-full rounded-xl border bg-paw/[0.03] px-4 py-3',
           'flex items-center justify-between gap-3',
