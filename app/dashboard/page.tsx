@@ -35,6 +35,15 @@ function statusBadge(booking: Booking, now: Date) {
     : { label: 'Completed', className: 'bg-paw/10 text-paw/50' };
 }
 
+function daysAway(datetime: string): string {
+  const diff = Math.ceil(
+    (new Date(datetime).getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+  );
+  if (diff <= 0) return 'Today';
+  if (diff === 1) return 'Tomorrow';
+  return `${diff} days away`;
+}
+
 function DashboardSkeleton() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
@@ -148,7 +157,19 @@ export default function DashboardPage() {
 
   if (loading) return <DashboardSkeleton />;
 
-  const lastService = bookings[0]?.service_name ?? '—';
+  const now = new Date();
+
+  const upcoming = bookings
+    .filter((b) => b.status !== 'cancelled' && new Date(b.datetime) > now)
+    .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
+
+  const past = bookings
+    .filter((b) => b.status === 'cancelled' || new Date(b.datetime) <= now)
+    .sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime());
+
+  const heroBooking = upcoming[0] ?? null;
+  const alsoUpcoming = upcoming.slice(1);
+  const nextUpLabel = heroBooking?.service_name ?? '—';
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
@@ -165,8 +186,8 @@ export default function DashboardPage() {
           <div className="mt-1 font-pawprint text-xs text-paw/40">Total Bookings</div>
         </div>
         <div className="hidden rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:block sm:p-6">
-          <div className="truncate font-elegant text-xl font-black text-doggy">{lastService}</div>
-          <div className="mt-1 font-pawprint text-xs text-paw/40">Last Service</div>
+          <div className="truncate font-elegant text-xl font-black text-doggy">{nextUpLabel}</div>
+          <div className="mt-1 font-pawprint text-xs text-paw/40">Next Up</div>
         </div>
         <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:p-6">
           <div className="font-elegant text-xl font-black text-emerald-400">Active</div>
