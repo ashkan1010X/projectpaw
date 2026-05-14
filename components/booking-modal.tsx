@@ -6,6 +6,7 @@ import { X, Calendar, Dog, FileText, Check, PawPrint, type LucideIcon } from 'lu
 import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
+import { DateTimePicker } from '@/components/date-time-picker';
 
 interface Service {
   id: string;
@@ -69,8 +70,6 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<BookingErrors>({});
   const [countdown, setCountdown] = useState(3);
-
-  const minDatetime = new Date().toISOString().slice(0, 16);
 
   // Esc to close
   useEffect(() => {
@@ -302,24 +301,13 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
               </FieldWrapper>
 
               <FieldWrapper label="Date & Time" htmlFor="datetime" icon={Calendar}>
-                <input
-                  id="datetime"
-                  type="datetime-local"
-                  min={minDatetime}
+                <DateTimePicker
                   value={datetime}
-                  onChange={(e) => {
-                    setDatetime(e.target.value);
+                  onChange={(v) => {
+                    setDatetime(v);
                     setFieldErrors((fe) => ({ ...fe, datetime: undefined }));
                   }}
-                  onBlur={(e) => {
-                    const err = validateBookingField('datetime', e.target.value);
-                    setFieldErrors((fe) => ({ ...fe, datetime: err }));
-                  }}
-                  className={cn(
-                    inputClass,
-                    fieldErrors.datetime && 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/10',
-                  )}
-                  style={{ colorScheme: 'dark' }}
+                  error={!!fieldErrors.datetime}
                 />
                 {fieldErrors.datetime && (
                   <p className="font-pawprint text-xs text-red-400">{fieldErrors.datetime}</p>
