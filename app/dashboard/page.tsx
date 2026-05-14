@@ -202,7 +202,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Empty state */}
+      {/* Empty state — no bookings at all */}
       {!error && bookings.length === 0 && (
         <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] px-8 py-16 text-center">
           <p className="mb-2 font-elegant text-xl text-paw/60">No bookings yet</p>
@@ -218,51 +218,108 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Booking list */}
       {bookings.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="mb-4 font-elegant text-lg font-bold text-paw/70">Recent Bookings</h2>
-          {(() => {
-            return bookings.map((booking) => {
-              const badge = statusBadge(booking, now);
-              const isUpcoming = booking.status !== 'cancelled' && new Date(booking.datetime) > now;
-              const isPastOrCancelled =
-                booking.status === 'cancelled' || new Date(booking.datetime) <= now;
-              const formatted = new Date(booking.datetime).toLocaleString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              });
+        <div className="space-y-8">
 
-              return (
-                <div key={booking.id} className="space-y-1.5">
-                  <div className="flex flex-col gap-3 rounded-xl border border-paw/[0.08] bg-[#1a1612] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+          {/* ── Hero: next upcoming booking ── */}
+          {heroBooking ? (
+            <div>
+              <p className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-doggy/60">
+                Next Appointment
+              </p>
+              <div className="space-y-1.5">
+                <div className="rounded-2xl border border-doggy/[0.2] bg-gradient-to-br from-doggy/[0.1] to-doggy/[0.03] p-5 animate-fade-in">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
-                      <p className="font-pawprint text-sm font-semibold text-paw">
-                        {booking.service_name}
-                        <span className="ml-2 text-paw/40">— {booking.dog_name}</span>
+                      <p className="font-elegant text-xl font-black text-paw leading-tight">
+                        {heroBooking.service_name}
                       </p>
-                      <p className="mt-0.5 font-pawprint text-xs text-paw/40">{formatted}</p>
+                      <p className="mt-0.5 font-pawprint text-sm text-paw/55">
+                        {heroBooking.dog_name}
+                      </p>
+                      <p className="mt-1.5 font-pawprint text-xs text-paw/40">
+                        {new Date(heroBooking.datetime).toLocaleString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
-                      {isPastOrCancelled && (
-                        <button
-                          onClick={() =>
-                            setRebookTarget({
-                              serviceId: booking.service_id,
-                              serviceName: booking.service_name,
-                              dogName: booking.dog_name,
-                            })
-                          }
-                          aria-label={`Rebook ${booking.service_name} for ${booking.dog_name}`}
-                          className="rounded-lg border border-doggy/30 px-3 py-1 font-pawprint text-xs font-semibold text-doggy transition-all duration-200 hover:border-doggy/60 hover:bg-doggy/10"
-                        >
-                          Rebook
-                        </button>
-                      )}
-                      {isUpcoming && (
+                      <span className="font-pawprint text-xs font-semibold text-doggy/70">
+                        {daysAway(heroBooking.datetime)}
+                      </span>
+                      <button
+                        onClick={() => setPendingCancelBooking(heroBooking)}
+                        disabled={cancellingId === heroBooking.id}
+                        aria-label={`Cancel booking for ${heroBooking.service_name}`}
+                        className="flex items-center gap-1.5 rounded-lg border border-red-500/25 px-3 py-1.5 font-pawprint text-xs font-semibold text-red-400 transition-all duration-200 hover:border-red-500/50 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {cancellingId === heroBooking.id ? (
+                          <>
+                            <Loader2 className="size-3 animate-spin" />
+                            Cancelling…
+                          </>
+                        ) : (
+                          'Cancel'
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {cancelErrors[heroBooking.id] && (
+                  <p role="alert" className="px-2 font-pawprint text-xs text-red-400">
+                    {cancelErrors[heroBooking.id]}
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Empty upcoming state — has past bookings but nothing upcoming */
+            <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] px-6 py-8 text-center">
+              <p className="mb-1 font-elegant text-lg text-paw/50">No upcoming bookings</p>
+              <p className="mb-4 font-pawprint text-sm text-paw/30">Ready to book again?</p>
+              <Link
+                href="/services"
+                className="inline-block rounded-lg border border-doggy/30 px-5 py-2 font-pawprint text-sm font-semibold text-doggy transition-all duration-300 hover:border-doggy/60 hover:bg-doggy/10"
+              >
+                Book Again →
+              </Link>
+            </div>
+          )}
+
+          {/* ── Also upcoming (compact) ── */}
+          {alsoUpcoming.length > 0 && (
+            <div>
+              <p className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/35">
+                Also Upcoming
+              </p>
+              <div className="space-y-2">
+                {alsoUpcoming.map((booking) => (
+                  <div key={booking.id} className="space-y-1.5">
+                    <div className="flex flex-col gap-3 rounded-xl border border-paw/[0.08] bg-[#1a1612] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+                      <div className="min-w-0">
+                        <p className="font-pawprint text-sm font-semibold text-paw">
+                          {booking.service_name}
+                          <span className="ml-2 text-paw/40">— {booking.dog_name}</span>
+                        </p>
+                        <p className="mt-0.5 font-pawprint text-xs text-paw/40">
+                          {new Date(booking.datetime).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="font-pawprint text-xs font-semibold text-doggy/60">
+                          {daysAway(booking.datetime)}
+                        </span>
                         <button
                           onClick={() => setPendingCancelBooking(booking)}
                           disabled={cancellingId === booking.id}
@@ -278,26 +335,82 @@ export default function DashboardPage() {
                             'Cancel'
                           )}
                         </button>
-                      )}
-                      <span
-                        className={cn(
-                          'rounded-full px-3 py-1 font-pawprint text-xs font-semibold',
-                          badge.className,
-                        )}
-                      >
-                        {badge.label}
-                      </span>
+                      </div>
                     </div>
+                    {cancelErrors[booking.id] && (
+                      <p role="alert" className="px-2 font-pawprint text-xs text-red-400">
+                        {cancelErrors[booking.id]}
+                      </p>
+                    )}
                   </div>
-                  {cancelErrors[booking.id] && (
-                    <p role="alert" className="px-2 font-pawprint text-xs text-red-400">
-                      {cancelErrors[booking.id]}
-                    </p>
-                  )}
-                </div>
-              );
-            });
-          })()}
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── History (past + cancelled) ── */}
+          {past.length > 0 && (
+            <div>
+              <p className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/25">
+                History
+              </p>
+              <div className="space-y-2">
+                {past.map((booking) => {
+                  const badge = statusBadge(booking, now);
+                  return (
+                    <div key={booking.id} className="space-y-1.5">
+                      <div className="flex flex-col gap-3 rounded-xl border border-paw/[0.05] bg-[#141210] px-5 py-4 opacity-60 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+                        <div className="min-w-0">
+                          <p className="font-pawprint text-sm font-semibold text-paw">
+                            {booking.service_name}
+                            <span className="ml-2 text-paw/40">— {booking.dog_name}</span>
+                          </p>
+                          <p className="mt-0.5 font-pawprint text-xs text-paw/40">
+                            {new Date(booking.datetime).toLocaleString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <button
+                            onClick={() =>
+                              setRebookTarget({
+                                serviceId: booking.service_id,
+                                serviceName: booking.service_name,
+                                dogName: booking.dog_name,
+                              })
+                            }
+                            aria-label={`Rebook ${booking.service_name} for ${booking.dog_name}`}
+                            className="rounded-lg border border-doggy/30 px-3 py-1 font-pawprint text-xs font-semibold text-doggy transition-all duration-200 hover:border-doggy/60 hover:bg-doggy/10"
+                          >
+                            Rebook
+                          </button>
+                          <span
+                            className={cn(
+                              'rounded-full px-3 py-1 font-pawprint text-xs font-semibold',
+                              badge.className,
+                            )}
+                          >
+                            {badge.label}
+                          </span>
+                        </div>
+                      </div>
+                      {cancelErrors[booking.id] && (
+                        <p role="alert" className="px-2 font-pawprint text-xs text-red-400">
+                          {cancelErrors[booking.id]}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
         </div>
       )}
 
