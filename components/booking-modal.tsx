@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Calendar, Dog, FileText, Check, type LucideIcon } from 'lucide-react';
+import { X, Calendar, Dog, FileText, Check, PawPrint, type LucideIcon } from 'lucide-react';
+import Image from 'next/image';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 
@@ -59,6 +60,8 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
   const { token } = useAuth();
   const router = useRouter();
   const [dogName, setDogName] = useState(initialDogName ?? '');
+  const [dogPhotoUrl, setDogPhotoUrl] = useState<string | null>(null);
+  const [dogBreed, setDogBreed] = useState('');
   const [datetime, setDatetime] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
@@ -90,15 +93,17 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     return () => clearTimeout(t);
   }, [success, countdown, onClose, router]);
 
-  // Pre-fill dog name from profile when no initialDogName is provided
+  // Pre-fill dog info from profile when no initialDogName is provided
   useEffect(() => {
-    if (initialDogName || !token) return;
+    if (!token) return;
     fetch('/api/profile', { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.json() as Promise<{ profile: { dog_name?: string | null } | null }>)
+      .then((r) => r.json() as Promise<{ profile: { dog_name?: string | null; dog_photo_url?: string | null; dog_breed?: string | null } | null }>)
       .then(({ profile }) => {
-        if (profile?.dog_name) setDogName(profile.dog_name);
+        if (!initialDogName && profile?.dog_name) setDogName(profile.dog_name);
+        if (profile?.dog_photo_url) setDogPhotoUrl(profile.dog_photo_url);
+        if (profile?.dog_breed) setDogBreed(profile.dog_breed);
       })
-      .catch(() => {}); // silent — auto-fill is best-effort
+      .catch(() => {}); // silent — best-effort
   }, [token, initialDogName]);
 
   if (!token) {
@@ -243,6 +248,35 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+
+              {/* Pet card — shows when we have a photo or name from profile */}
+              {(dogPhotoUrl || dogName) && (
+                <div className="flex items-center gap-3 rounded-xl border border-paw/[0.08] bg-paw/[0.03] px-4 py-3 animate-fade-in">
+                  <div className="relative shrink-0">
+                    {dogPhotoUrl ? (
+                      <Image
+                        src={dogPhotoUrl}
+                        alt={dogName || 'Dog'}
+                        width={44}
+                        height={44}
+                        className="rounded-full object-cover ring-2 ring-doggy/25"
+                      />
+                    ) : (
+                      <div className="flex size-11 items-center justify-center rounded-full border border-doggy/30 bg-doggy/[0.08]">
+                        <PawPrint className="size-5 text-doggy/50" strokeWidth={1.5} />
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/35">Booking for</p>
+                    <p className="font-pawprint text-sm font-semibold text-paw">
+                      {dogName || 'Your dog'}
+                      {dogBreed && <span className="font-normal text-paw/45"> · {dogBreed}</span>}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <FieldWrapper label="Dog's Name" htmlFor="dogName" icon={Dog}>
                 <input
                   id="dogName"
