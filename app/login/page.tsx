@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { PawPrint, Mail, Lock, ArrowRight, Sparkles, Star } from 'lucide-react';
+import { PawPrint, Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, Star } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +18,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -186,19 +187,31 @@ export default function LoginPage() {
                 />
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className={cn(
-                    'w-full rounded-xl border border-paw/[0.1] bg-paw/[0.03] py-3.5 pl-11 pr-4',
+                    'w-full rounded-xl border border-paw/[0.1] bg-paw/[0.03] py-3.5 pl-11 pr-11',
                     'font-pawprint text-sm text-paw placeholder:text-paw/25',
                     'outline-none transition-all duration-300',
                     'focus:border-doggy/60 focus:bg-paw/[0.05] focus:ring-2 focus:ring-doggy/15',
                   )}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-paw/30 outline-none transition-colors duration-200 hover:text-paw/70"
+                >
+                  {showPassword ? (
+                    <EyeOff className="size-4" strokeWidth={1.5} />
+                  ) : (
+                    <Eye className="size-4" strokeWidth={1.5} />
+                  )}
+                </button>
               </div>
             </div>
 
