@@ -190,7 +190,7 @@ export function NavBar() {
                         <Link
                           href={href}
                           onClick={() => setIsOpen(false)}
-                          style={{ animationDelay: `${index * 50}ms` }}
+                          style={{ animationDelay: `${index * 20}ms` }}
                           className={cn(
                             'animate-fade-up flex items-center gap-3 rounded-lg px-4 py-3 font-pawprint text-lg font-semibold transition-colors duration-200',
                             isActive
@@ -275,7 +275,7 @@ export function NavBar() {
                       onClick={() => setIsOpen(false)}
                       className="group relative overflow-hidden rounded-lg bg-doggy px-4 py-3 text-center font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/25 transition-all duration-300 hover:shadow-doggy/50"
                     >
-                      <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                      <span className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                       <span className="relative">Sign Up Free</span>
                     </Link>
                   </div>
