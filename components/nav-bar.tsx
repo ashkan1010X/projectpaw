@@ -128,6 +128,16 @@ export function NavBar() {
             </>
           )}
 
+          {/* Mobile: Log in shortcut — visible only when logged out */}
+          {!user && (
+            <Link
+              href="/login"
+              className="font-pawprint text-sm font-medium text-paw/60 transition-colors duration-300 hover:text-paw md:hidden"
+            >
+              Log in
+            </Link>
+          )}
+
           {/* Mobile hamburger + Sheet */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger
