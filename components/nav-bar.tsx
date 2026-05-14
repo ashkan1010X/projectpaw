@@ -266,9 +266,9 @@ export function NavBar() {
                     <Link
                       href="/login"
                       onClick={() => setIsOpen(false)}
-                      className="rounded-lg px-4 py-3 font-pawprint text-sm font-medium text-paw/60 transition-colors duration-300 hover:text-paw"
+                      className="w-full rounded-lg border border-paw/20 bg-white/[0.03] px-4 py-3 text-center font-pawprint text-sm font-semibold text-paw/70 transition-all duration-300 hover:border-paw/40 hover:bg-white/[0.06] hover:text-paw"
                     >
-                      Login
+                      Log In
                     </Link>
                     <Link
                       href="/signup"
@@ -276,7 +276,7 @@ export function NavBar() {
                       className="group relative overflow-hidden rounded-lg bg-doggy px-4 py-3 text-center font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/25 transition-all duration-300 hover:shadow-doggy/50"
                     >
                       <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                      <span className="relative">Sign Up</span>
+                      <span className="relative">Sign Up Free</span>
                     </Link>
                   </div>
                 )}
