@@ -38,8 +38,8 @@ export default function ProfilePage() {
   const emptyForm: Profile = { phone: '', address: '', dog_name: '', dog_breed: '', dog_age: '', dog_photo_url: null };
 
   const [form, setForm] = useState<Profile>(emptyForm);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [name, setName] = useState(user?.name ?? '');
+  const [email, setEmail] = useState(user?.email ?? '');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
