@@ -177,7 +177,7 @@ export async function POST(req: NextRequest) {
   const confirmationSms = userPhone
     ? sendSms(
         userPhone,
-        `Confirmed! Your ${serviceName} for ${dogName} is booked for ${formattedDate}. Reply CANCEL to cancel or HELP for support. — ProjectPaw 🐾`,
+        `Confirmed! Your ${serviceName} for ${dogName} is booked for ${formattedDate}. Reply CANCEL to cancel, HELP for support, or STOP to opt out. — ProjectPaw 🐾`,
       ).catch((e: unknown) => console.error('Confirmation SMS error:', e))
     : Promise.resolve();
 
