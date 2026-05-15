@@ -169,9 +169,15 @@ export default function DashboardPage() {
     .filter((b) => b.status !== 'cancelled' && new Date(b.datetime) > now)
     .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
 
-  const past = bookings
-    .filter((b) => b.status === 'cancelled' || new Date(b.datetime) <= now)
+  const completed = bookings
+    .filter((b) => b.status !== 'cancelled' && new Date(b.datetime) <= now)
     .sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime());
+
+  const cancelled = bookings
+    .filter((b) => b.status === 'cancelled')
+    .sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime());
+
+  const past = [...completed, ...cancelled];
 
   const heroBooking = upcoming[0] ?? null;
   const alsoUpcoming = upcoming.slice(1);
@@ -341,14 +347,14 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* ── History (past + cancelled) ── */}
-          {past.length > 0 && (
+          {/* ── History: Completed ── */}
+          {completed.length > 0 && (
             <div>
               <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/25">
-                History
+                Completed
               </h2>
               <div className="space-y-2">
-                {past.map((booking) => {
+                {completed.map((booking) => {
                   const badge = statusBadge(booking, now);
                   return (
                     <div key={booking.id} className="space-y-1.5">
@@ -391,6 +397,58 @@ export default function DashboardPage() {
                           {cancelErrors[booking.id]}
                         </p>
                       )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── History: Cancelled ── */}
+          {cancelled.length > 0 && (
+            <div>
+              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/25">
+                Cancelled
+              </h2>
+              <div className="space-y-2">
+                {cancelled.map((booking) => {
+                  const badge = statusBadge(booking, now);
+                  return (
+                    <div key={booking.id} className="space-y-1.5">
+                      <div className="flex flex-col gap-3 rounded-xl border border-paw/[0.05] bg-[#141210] px-5 py-4 opacity-50 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+                        <div className="min-w-0">
+                          <p className="font-pawprint text-sm font-semibold text-paw">
+                            {booking.service_name}
+                            <span className="ml-2 text-paw/40">— {booking.dog_name}</span>
+                          </p>
+                          <p className="mt-0.5 font-pawprint text-xs text-paw/40">
+                            {formatBookingDate(booking.datetime)}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          <button
+                            onClick={() =>
+                              setRebookTarget({
+                                serviceId: booking.service_id,
+                                serviceName: booking.service_name,
+                                dogName: booking.dog_name,
+                              })
+                            }
+                            aria-label={`Rebook ${booking.service_name} for ${booking.dog_name}`}
+                            className="rounded-lg border border-doggy/30 px-3 py-1 font-pawprint text-xs font-semibold text-doggy opacity-100 transition-all duration-200 hover:border-doggy/60 hover:bg-doggy/10"
+                          >
+                            Rebook
+                          </button>
+                          <span
+                            className={cn(
+                              'rounded-full px-3 py-1 font-pawprint text-xs font-semibold',
+                              badge.className,
+                            )}
+                          >
+                            {badge.label}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   );
                 })}
