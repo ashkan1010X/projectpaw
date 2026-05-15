@@ -124,6 +124,17 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     return undefined;
   }
 
+  async function fetchTakenHours(dateStr: string): Promise<number[]> {
+    try {
+      const res = await fetch(`/api/bookings/availability?date=${dateStr}`);
+      if (!res.ok) return [];
+      const data = (await res.json()) as { takenHours: number[] };
+      return data.takenHours ?? [];
+    } catch {
+      return [];
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const errors: BookingErrors = {
@@ -144,6 +155,12 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ serviceId: service.id, serviceName: service.name, dogName, datetime, notes }),
       });
+
+      if (res.status === 409) {
+        const data = (await res.json().catch(() => ({}))) as { message?: string };
+        setFieldErrors((fe) => ({ ...fe, datetime: data.message ?? 'That slot is no longer available. Please pick another time.' }));
+        return;
+      }
 
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { message?: string };
@@ -299,6 +316,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                     setFieldErrors((fe) => ({ ...fe, datetime: undefined }));
                   }}
                   error={!!fieldErrors.datetime}
+                  fetchTakenHours={fetchTakenHours}
                 />
                 {fieldErrors.datetime && (
                   <p className="font-pawprint text-xs text-red-400">{fieldErrors.datetime}</p>

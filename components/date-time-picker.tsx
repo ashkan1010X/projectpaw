@@ -22,6 +22,7 @@ interface DateTimePickerProps {
   onChange: (value: string) => void;
   error?: boolean;
   minDate?: Date;
+  fetchTakenHours?: (dateStr: string) => Promise<number[]>;
 }
 
 function toIsoLocal(date: Date, hour: number): string {
@@ -62,6 +63,7 @@ export function DateTimePicker({
   onChange,
   error,
   minDate,
+  fetchTakenHours,
 }: DateTimePickerProps) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<'date' | 'time'>('date');
@@ -73,6 +75,8 @@ export function DateTimePicker({
   const [viewYear, setViewYear] = useState(() => new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(() => new Date().getMonth());
   const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0, width: 0, maxHeight: 520 });
+  const [takenHours, setTakenHours] = useState<number[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
 
   const now = nowAtOpen;
   const min = minDate ?? nowAtOpen;
@@ -155,7 +159,18 @@ export function DateTimePicker({
     setSelectedDate(date);
     setSelectedHour(null);
     setSelectedLabel('');
+    setTakenHours([]);
     setStep('time');
+    if (fetchTakenHours) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      setSlotsLoading(true);
+      fetchTakenHours(`${y}-${m}-${d}`)
+        .then((hours) => setTakenHours(hours))
+        .catch(() => {})
+        .finally(() => setSlotsLoading(false));
+    }
   }
 
   function handleSlotClick(hour: number, label: string) {
@@ -282,32 +297,51 @@ export function DateTimePicker({
         <p className="mb-2 px-1 font-pawprint text-[9px] font-semibold uppercase tracking-[0.13em] text-paw/30">
           Select a time
         </p>
-        <div className="space-y-1.5">
-          {TIME_SLOTS.map(({ label, hour }) => {
-            const slotDisabled =
-              !selectedDate ||
-              (sameDay(selectedDate, min) && hour <= min.getHours());
-            const active = selectedHour === hour;
-            return (
-              <button
-                key={hour}
-                type="button"
-                disabled={slotDisabled}
-                onClick={() => handleSlotClick(hour, label)}
-                className={cn(
-                  'w-full rounded-xl px-4 py-2.5 text-left font-pawprint text-sm font-medium transition-all duration-150',
-                  active
-                    ? 'bg-doggy text-white shadow-sm shadow-doggy/30'
-                    : slotDisabled
-                      ? 'cursor-not-allowed text-paw/[0.18]'
-                      : 'cursor-pointer border border-paw/[0.1] text-paw/70 hover:border-doggy/40 hover:bg-doggy/[0.07] hover:text-paw',
-                )}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
+        {slotsLoading ? (
+          <div className="space-y-1.5">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-10 animate-pulse rounded-xl bg-paw/[0.06]" />
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-1.5">
+            {TIME_SLOTS.map(({ label, hour }) => {
+              const isTaken = takenHours.includes(hour);
+              const isPast = !selectedDate
+                ? true
+                : sameDay(selectedDate, min) && hour <= min.getHours();
+              const slotDisabled = isTaken || isPast;
+              const active = selectedHour === hour;
+              return (
+                <button
+                  key={hour}
+                  type="button"
+                  disabled={slotDisabled}
+                  onClick={() => handleSlotClick(hour, label)}
+                  className={cn(
+                    'w-full rounded-xl px-4 py-2.5 text-left font-pawprint text-sm font-medium transition-all duration-150',
+                    active
+                      ? 'bg-doggy text-white shadow-sm shadow-doggy/30'
+                      : isTaken
+                        ? 'cursor-not-allowed border border-paw/[0.06] bg-paw/[0.02] text-paw/25'
+                        : isPast
+                          ? 'cursor-not-allowed text-paw/[0.18]'
+                          : 'cursor-pointer border border-paw/[0.1] text-paw/70 hover:border-doggy/40 hover:bg-doggy/[0.07] hover:text-paw',
+                  )}
+                >
+                  {isTaken ? (
+                    <span className="flex items-center justify-between">
+                      <span>{label}</span>
+                      <span className="font-pawprint text-[9px] font-bold uppercase tracking-[0.12em] text-paw/30">
+                        Taken
+                      </span>
+                    </span>
+                  ) : label}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

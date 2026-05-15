@@ -116,6 +116,43 @@ export async function POST(req: NextRequest) {
 
   const customerName = (user.user_metadata?.name as string | undefined) ?? user.email;
 
+  // Conflict guard — fast reject before any emails go out
+  const { data: existing } = await supabaseAdmin
+    .from('bookings')
+    .select('id')
+    .eq('datetime', datetime)
+    .neq('status', 'cancelled')
+    .limit(1);
+
+  if (existing && existing.length > 0) {
+    return NextResponse.json(
+      { message: 'That time slot is already taken. Please choose a different time.' },
+      { status: 409 },
+    );
+  }
+
+  // Insert first — emails only go out after a successful write
+  const { error: insertError } = await supabaseAdmin.from('bookings').insert({
+    user_id: user.id,
+    service_id: serviceId,
+    service_name: serviceName,
+    dog_name: dogName,
+    datetime,
+    notes: notes ?? null,
+  });
+
+  if (insertError) {
+    // 23505 = unique_violation — race condition, another booking just won this slot
+    if ((insertError as { code?: string }).code === '23505') {
+      return NextResponse.json(
+        { message: 'That time slot was just taken. Please choose a different time.' },
+        { status: 409 },
+      );
+    }
+    console.error('Booking insert error:', insertError);
+    return NextResponse.json({ message: 'Failed to save booking. Please try again.' }, { status: 500 });
+  }
+
   const formattedDate = new Date(datetime).toLocaleString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -148,25 +185,11 @@ export async function POST(req: NextRequest) {
 
   if (customerResult.status === 'rejected') {
     console.error('Customer email error:', customerResult.reason);
-    return NextResponse.json({ message: 'Failed to send confirmation email.' }, { status: 500 });
+    return NextResponse.json({ message: 'Booking saved but confirmation email failed.' }, { status: 500 });
   }
 
   if (providerResult.status === 'rejected') {
     console.error('Provider notification error:', providerResult.reason);
-  }
-
-  // Persist booking to DB — non-blocking failure (emails already sent)
-  const { error: insertError } = await supabaseAdmin.from('bookings').insert({
-    user_id: user.id,
-    service_id: serviceId,
-    service_name: serviceName,
-    dog_name: dogName,
-    datetime,
-    notes: notes ?? null,
-  });
-
-  if (insertError) {
-    console.error('Booking insert error:', insertError);
   }
 
   return NextResponse.json({ success: true });
