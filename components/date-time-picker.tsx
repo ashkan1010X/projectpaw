@@ -11,26 +11,32 @@ const MONTH_NAMES = [
 ];
 const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-const TIME_SLOTS = Array.from({ length: 24 }, (_, hour) => {
+const TIME_SLOTS = Array.from({ length: 48 }, (_, i) => {
+  const hour = Math.floor(i / 2);
+  const minute = i % 2 === 0 ? 0 : 30;
   const period = hour < 12 ? 'AM' : 'PM';
-  const display = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-  return { label: `${display}:00 ${period}`, hour };
+  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  const displayMinute = minute === 0 ? '00' : '30';
+  return { label: `${displayHour}:${displayMinute} ${period}`, hour, minute };
 });
+
+interface TakenSlot { hour: number; minute: number }
 
 interface DateTimePickerProps {
   value: string;
   onChange: (value: string) => void;
   error?: boolean;
   minDate?: Date;
-  fetchTakenHours?: (dateStr: string) => Promise<number[]>;
+  fetchTakenSlots?: (dateStr: string) => Promise<TakenSlot[]>;
 }
 
-function toIsoLocal(date: Date, hour: number): string {
+function toIsoLocal(date: Date, hour: number, minute: number): string {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
   const d = String(date.getDate()).padStart(2, '0');
   const h = String(hour).padStart(2, '0');
-  return `${y}-${m}-${d}T${h}:00`;
+  const min = String(minute).padStart(2, '0');
+  return `${y}-${m}-${d}T${h}:${min}`;
 }
 
 function sameDay(a: Date, b: Date): boolean {
@@ -63,7 +69,7 @@ export function DateTimePicker({
   onChange,
   error,
   minDate,
-  fetchTakenHours,
+  fetchTakenSlots,
 }: DateTimePickerProps) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<'date' | 'time'>('date');
@@ -71,11 +77,12 @@ export function DateTimePicker({
   const [mounted, setMounted] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedHour, setSelectedHour] = useState<number | null>(null);
+  const [selectedMinute, setSelectedMinute] = useState<number | null>(null);
   const [selectedLabel, setSelectedLabel] = useState('');
   const [viewYear, setViewYear] = useState(() => new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(() => new Date().getMonth());
   const [popoverPos, setPopoverPos] = useState({ top: 0, left: 0, width: 0, maxHeight: 520 });
-  const [takenHours, setTakenHours] = useState<number[]>([]);
+  const [takenSlots, setTakenSlots] = useState<TakenSlot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
 
   const now = nowAtOpen;
@@ -158,37 +165,40 @@ export function DateTimePicker({
     if (isBeforeDay(date, min)) return;
     setSelectedDate(date);
     setSelectedHour(null);
+    setSelectedMinute(null);
     setSelectedLabel('');
-    setTakenHours([]);
+    setTakenSlots([]);
     setStep('time');
-    if (fetchTakenHours) {
+    if (fetchTakenSlots) {
       const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const mo = String(date.getMonth() + 1).padStart(2, '0');
       const d = String(date.getDate()).padStart(2, '0');
       setSlotsLoading(true);
-      fetchTakenHours(`${y}-${m}-${d}`)
-        .then((hours) => setTakenHours(hours))
+      fetchTakenSlots(`${y}-${mo}-${d}`)
+        .then((slots) => setTakenSlots(slots))
         .catch(() => {})
         .finally(() => setSlotsLoading(false));
     }
   }
 
-  function handleSlotClick(hour: number, label: string) {
+  function handleSlotClick(hour: number, minute: number, label: string) {
     if (!selectedDate) return;
     setSelectedHour(hour);
+    setSelectedMinute(minute);
     setSelectedLabel(label);
-    onChange(toIsoLocal(selectedDate, hour));
+    onChange(toIsoLocal(selectedDate, hour, minute));
     setOpen(false);
   }
 
   function handleBack() {
     setStep('date');
     setSelectedHour(null);
+    setSelectedMinute(null);
     setSelectedLabel('');
   }
 
   const triggerText = (() => {
-    if (!selectedDate || selectedHour === null) return null;
+    if (!selectedDate || selectedHour === null || selectedMinute === null) return null;
     const wd = selectedDate.toLocaleDateString('en-US', { weekday: 'short' });
     const mo = selectedDate.toLocaleDateString('en-US', { month: 'short' });
     return `${wd}, ${mo} ${selectedDate.getDate()} · ${selectedLabel}`;
@@ -305,19 +315,23 @@ export function DateTimePicker({
           </div>
         ) : (
           <div className="space-y-1.5">
-            {TIME_SLOTS.map(({ label, hour }) => {
-              const isTaken = takenHours.includes(hour);
+            {TIME_SLOTS.map(({ label, hour, minute }) => {
+              const isTaken = takenSlots.some(
+                (s) => s.hour === hour && s.minute === minute,
+              );
               const isPast = !selectedDate
                 ? true
-                : sameDay(selectedDate, min) && hour <= min.getHours();
+                : sameDay(selectedDate, min) &&
+                  (hour < min.getHours() ||
+                    (hour === min.getHours() && minute <= min.getMinutes()));
               const slotDisabled = isTaken || isPast;
-              const active = selectedHour === hour;
+              const active = selectedHour === hour && selectedMinute === minute;
               return (
                 <button
-                  key={hour}
+                  key={`${hour}-${minute}`}
                   type="button"
                   disabled={slotDisabled}
-                  onClick={() => handleSlotClick(hour, label)}
+                  onClick={() => handleSlotClick(hour, minute, label)}
                   className={cn(
                     'w-full rounded-xl px-4 py-2.5 text-left font-pawprint text-sm font-medium transition-all duration-150',
                     active

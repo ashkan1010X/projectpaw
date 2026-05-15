@@ -124,13 +124,15 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     return undefined;
   }
 
-  async function fetchTakenHours(dateStr: string): Promise<number[]> {
+  async function fetchTakenSlots(dateStr: string): Promise<{ hour: number; minute: number }[]> {
     try {
       const res = await fetch(`/api/bookings/availability?date=${dateStr}`);
       if (!res.ok) return [];
       const data = (await res.json()) as { takenDatetimes: string[] };
-      // Convert to local hours so the picker matches what the user's clock shows
-      return (data.takenDatetimes ?? []).map((dt) => new Date(dt).getHours());
+      return (data.takenDatetimes ?? []).map((dt) => {
+        const d = new Date(dt);
+        return { hour: d.getHours(), minute: d.getMinutes() };
+      });
     } catch {
       return [];
     }
@@ -317,7 +319,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                     setFieldErrors((fe) => ({ ...fe, datetime: undefined }));
                   }}
                   error={!!fieldErrors.datetime}
-                  fetchTakenHours={fetchTakenHours}
+                  fetchTakenSlots={fetchTakenSlots}
                 />
                 {fieldErrors.datetime && (
                   <p className="font-pawprint text-xs text-red-400">{fieldErrors.datetime}</p>
