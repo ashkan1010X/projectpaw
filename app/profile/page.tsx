@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { DogPhotoUpload } from '@/components/dog-photo-upload';
+import { PhoneInput } from '@/components/phone-input';
 import { Toast } from '@/components/toast';
 import { cn } from '@/lib/utils';
 
@@ -137,8 +138,15 @@ export default function ProfilePage() {
                 <div className={lockedClass}>{email}</div>
               </div>
               <div>
-                <label htmlFor="phone" className="mb-1.5 block font-pawprint text-xs text-paw/50">Phone</label>
-                <input id="phone" type="tel" value={form.phone} onChange={set('phone')} placeholder="e.g. +1 (416) 555-0100" className={inputClass} />
+                <label htmlFor="phone" className="mb-1.5 block font-pawprint text-xs text-paw/50">
+                  Phone
+                  <span className="ml-2 font-pawprint text-[10px] text-paw/30">for SMS reminders</span>
+                </label>
+                <PhoneInput
+                  id="phone"
+                  value={form.phone}
+                  onChange={(e164) => setForm((f) => ({ ...f, phone: e164 }))}
+                />
               </div>
               <div>
                 <label htmlFor="address" className="mb-1.5 block font-pawprint text-xs text-paw/50">Address</label>

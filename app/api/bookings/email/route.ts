@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { sendSms } from '@/lib/twilio';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -162,8 +163,23 @@ export async function POST(req: NextRequest) {
     minute: '2-digit',
   });
 
+  // Fetch phone for SMS (best-effort)
+  const { data: profileRow } = await supabaseAdmin
+    .from('profiles')
+    .select('phone')
+    .eq('user_id', user.id)
+    .maybeSingle();
+  const userPhone = (profileRow as { phone?: string | null } | null)?.phone ?? null;
+
   const customerHtml = buildCustomerHtml(dogName, serviceName, formattedDate, notes);
   const providerHtml = buildProviderHtml(customerName, user.email, dogName, serviceName, formattedDate, notes);
+
+  const confirmationSms = userPhone
+    ? sendSms(
+        userPhone,
+        `Confirmed! Your ${serviceName} for ${dogName} is booked for ${formattedDate}. Reply CANCEL to cancel or HELP for support. — ProjectPaw 🐾`,
+      ).catch((e: unknown) => console.error('Confirmation SMS error:', e))
+    : Promise.resolve();
 
   const [customerResult, providerResult] = await Promise.allSettled([
     transporter.sendMail({
@@ -181,6 +197,7 @@ export async function POST(req: NextRequest) {
           html: providerHtml,
         })
       : Promise.resolve(),
+    confirmationSms,
   ]);
 
   if (customerResult.status === 'rejected') {
