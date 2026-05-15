@@ -119,8 +119,8 @@ export default function ProfilePage() {
       <form onSubmit={(e) => void handleSave(e)}>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
 
-          {/* Left: Personal Info */}
-          <div className="rounded-2xl border border-paw/[0.08] bg-[#1a1612] p-6">
+          {/* Left: Personal Info (shown second on mobile, first on desktop) */}
+          <div className="order-2 md:order-1 rounded-2xl border border-paw/[0.08] bg-[#1a1612] p-6">
             <p className="mb-5 font-pawprint text-[10px] font-bold uppercase tracking-[0.14em] text-paw/35">
               Personal Info
             </p>
@@ -147,8 +147,8 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Right: Dog card */}
-          <div className="rounded-2xl border border-doggy/[0.15] bg-gradient-to-b from-doggy/[0.07] to-paw/[0.03] p-6" style={{ boxShadow: 'inset 0 1px 0 rgba(178,164,255,0.08)' }}>
+          {/* Right: Dog card (shown first on mobile, second on desktop) */}
+          <div className="order-1 md:order-2 rounded-2xl border border-doggy/[0.15] bg-gradient-to-b from-doggy/[0.07] to-paw/[0.03] p-6" style={{ boxShadow: 'inset 0 1px 0 rgba(178,164,255,0.08)' }}>
             <p className="mb-5 font-pawprint text-[10px] font-bold uppercase tracking-[0.14em] text-paw/35">
               🐾 My Dog
             </p>
