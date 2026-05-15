@@ -104,7 +104,7 @@ function DashboardSkeleton() {
 }
 
 export default function DashboardPage() {
-  const { user, token, initialized } = useAuth();
+  const { user, token, initialized, fetchWithAuth } = useAuth();
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -121,9 +121,7 @@ export default function DashboardPage() {
       return;
     }
 
-    fetch('/api/bookings', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    fetchWithAuth('/api/bookings')
       .then((res) => {
         if (!res.ok) throw new Error('Failed to load bookings');
         return res.json() as Promise<{ bookings: Booking[] }>;
@@ -133,7 +131,7 @@ export default function DashboardPage() {
         setError(err instanceof Error ? err.message : 'Something went wrong');
       })
       .finally(() => setLoading(false));
-  }, [initialized, user, token, router]);
+  }, [initialized, user, token, router, fetchWithAuth]);
 
   async function handleCancel(booking: Booking) {
     if (!token) return;
@@ -145,10 +143,7 @@ export default function DashboardPage() {
     });
 
     try {
-      const res = await fetch(`/api/bookings/${booking.id}/cancel`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetchWithAuth(`/api/bookings/${booking.id}/cancel`, { method: 'POST' });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { message?: string };
         throw new Error(data.message ?? 'Failed to cancel booking');

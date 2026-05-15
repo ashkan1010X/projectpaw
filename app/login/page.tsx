@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 interface LoginResponse {
   user: { name: string; email?: string };
   token: string;
+  refreshToken: string;
   message?: string;
 }
 
@@ -40,11 +41,11 @@ export default function LoginPage() {
         throw new Error(data.message ?? 'Login failed. Please check your credentials.');
       }
 
-      if (!data.user || typeof data.token !== 'string') {
+      if (!data.user || typeof data.token !== 'string' || typeof data.refreshToken !== 'string') {
         throw new Error('Unexpected response from server. Please try again.');
       }
 
-      login(data.user, data.token);
+      login(data.user, data.token, data.refreshToken);
       router.push('/services');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.');

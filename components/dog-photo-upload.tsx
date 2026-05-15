@@ -4,10 +4,10 @@ import { useRef, useState } from 'react';
 import { Camera, PawPrint, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/auth-context';
 
 interface DogPhotoUploadProps {
   currentUrl: string | null;
-  token: string;
   onUpload: (url: string) => void;
   onError: (msg: string) => void;
 }
@@ -15,7 +15,8 @@ interface DogPhotoUploadProps {
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
 
-export function DogPhotoUpload({ currentUrl, token, onUpload, onError }: DogPhotoUploadProps) {
+export function DogPhotoUpload({ currentUrl, onUpload, onError }: DogPhotoUploadProps) {
+  const { fetchWithAuth } = useAuth();
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(currentUrl);
   const [uploading, setUploading] = useState(false);
@@ -30,7 +31,6 @@ export function DogPhotoUpload({ currentUrl, token, onUpload, onError }: DogPhot
       return;
     }
 
-    // Instant local preview
     const reader = new FileReader();
     reader.onload = (e) => setPreview(e.target?.result as string);
     reader.readAsDataURL(file);
@@ -39,17 +39,13 @@ export function DogPhotoUpload({ currentUrl, token, onUpload, onError }: DogPhot
     try {
       const form = new FormData();
       form.append('file', file);
-      const res = await fetch('/api/profile/photo', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: form,
-      });
+      const res = await fetchWithAuth('/api/profile/photo', { method: 'POST', body: form });
       const data = (await res.json()) as { url?: string; message?: string };
       if (!res.ok) throw new Error(data.message ?? 'Upload failed');
       onUpload(data.url!);
     } catch (err) {
       onError(err instanceof Error ? err.message : 'Upload failed');
-      setPreview(currentUrl); // revert preview on failure
+      setPreview(currentUrl);
     } finally {
       setUploading(false);
     }
@@ -67,22 +63,14 @@ export function DogPhotoUpload({ currentUrl, token, onUpload, onError }: DogPhot
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-doggy/60',
         )}
       >
-        {/* Photo or placeholder */}
         {preview ? (
-          <Image
-            src={preview}
-            alt="Dog photo"
-            fill
-            className="rounded-full object-cover"
-            sizes="108px"
-          />
+          <Image src={preview} alt="Dog photo" fill className="rounded-full object-cover" sizes="108px" />
         ) : (
           <div className="flex size-full items-center justify-center rounded-full border-2 border-dashed border-doggy/30 bg-doggy/[0.08]" style={{ boxShadow: '0 0 28px rgba(178,164,255,0.10)' }}>
             <PawPrint className="size-10 text-doggy/40" strokeWidth={1.5} />
           </div>
         )}
 
-        {/* Hover overlay with camera icon */}
         <div className={cn(
           'absolute inset-0 flex items-center justify-center rounded-full bg-black/50 transition-opacity duration-200',
           uploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
@@ -94,7 +82,6 @@ export function DogPhotoUpload({ currentUrl, token, onUpload, onError }: DogPhot
           )}
         </div>
 
-        {/* Camera badge */}
         {!uploading && (
           <div className="absolute bottom-1 right-1 flex size-7 items-center justify-center rounded-full border-2 border-[#0f0d09] bg-doggy shadow-lg shadow-doggy/30">
             <Camera className="size-3.5 text-white" strokeWidth={2} />

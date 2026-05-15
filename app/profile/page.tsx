@@ -32,7 +32,7 @@ const lockedClass = cn(
 );
 
 export default function ProfilePage() {
-  const { user, token, initialized, updateName } = useAuth();
+  const { user, token, initialized, updateName, fetchWithAuth } = useAuth();
   const router = useRouter();
 
   const emptyForm: Profile = { phone: '', address: '', dog_name: '', dog_breed: '', dog_age: '', dog_photo_url: null };
@@ -49,7 +49,7 @@ export default function ProfilePage() {
     if (!initialized) return;
     if (!user || !token) { router.replace('/login'); return; }
 
-    fetch('/api/profile', { headers: { Authorization: `Bearer ${token}` } })
+    fetchWithAuth('/api/profile')
       .then((r) => r.json() as Promise<{ profile: Profile | null; name: string; email: string }>)
       .then(({ profile, name: n, email: e }) => {
         const loaded: Profile = {
@@ -67,7 +67,7 @@ export default function ProfilePage() {
       })
       .catch(() => setToast({ message: 'Failed to load profile', variant: 'error' }))
       .finally(() => setLoading(false));
-  }, [initialized, user, token, router]);
+  }, [initialized, user, token, router, fetchWithAuth]);
 
   function set(field: keyof Profile) {
     return (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -79,9 +79,9 @@ export default function ProfilePage() {
     if (!token) return;
     setSaving(true);
     try {
-      const res = await fetch('/api/profile', {
+      const res = await fetchWithAuth('/api/profile', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, ...form }),
       });
       if (!res.ok) {
@@ -157,7 +157,6 @@ export default function ProfilePage() {
             <div className="mb-5 flex justify-center">
               <DogPhotoUpload
                 currentUrl={form.dog_photo_url}
-                token={token!}
                 onUpload={(url) => setForm((f) => ({ ...f, dog_photo_url: url }))}
                 onError={(msg) => setToast({ message: msg, variant: 'error' })}
               />

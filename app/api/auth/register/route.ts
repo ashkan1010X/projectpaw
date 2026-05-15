@@ -34,5 +34,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     user: { name, email: data.user.email },
     token: data.session.access_token,
+    refreshToken: data.session.refresh_token,
   });
 }

@@ -70,7 +70,7 @@ function serviceToForm(s: ServiceRow): FormData {
 }
 
 export default function AdminPage() {
-  const { user, token, initialized } = useAuth();
+  const { user, token, initialized, fetchWithAuth } = useAuth();
   const router = useRouter();
 
   const [services, setServices] = useState<ServiceRow[]>([]);
@@ -173,9 +173,9 @@ export default function AdminPage() {
 
     try {
       if (editingId) {
-        const res = await fetch(`/api/services/${editingId}`, {
+        const res = await fetchWithAuth(`/api/services/${editingId}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
         if (!res.ok) {
@@ -190,9 +190,9 @@ export default function AdminPage() {
         const { service } = (await res.json()) as { service: ServiceRow };
         setServices((prev) => prev.map((s) => (s.id === editingId ? service : s)));
       } else {
-        const res = await fetch('/api/services', {
+        const res = await fetchWithAuth('/api/services', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
         if (!res.ok) {
@@ -225,10 +225,7 @@ export default function AdminPage() {
     setPendingDeleteId(null);
     setDeleteError(null);
     try {
-      const res = await fetch(`/api/services/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetchWithAuth(`/api/services/${id}`, { method: 'DELETE' });
       if (res.ok) {
         setServices((prev) => prev.filter((s) => s.id !== id));
         if (editingId === id) closeDrawer();

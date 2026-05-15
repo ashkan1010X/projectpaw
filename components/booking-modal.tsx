@@ -58,7 +58,7 @@ const inputClass = cn(
 export function BookingModal({ service, onClose, initialDogName }: BookingModalProps) {
   type BookingErrors = { dogName?: string; datetime?: string };
 
-  const { token } = useAuth();
+  const { token, fetchWithAuth } = useAuth();
   const router = useRouter();
   const [dogName, setDogName] = useState(initialDogName ?? '');
   const [dogPhotoUrl, setDogPhotoUrl] = useState<string | null>(null);
@@ -95,7 +95,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
   // Pre-fill dog info from profile when no initialDogName is provided
   useEffect(() => {
     if (!token) return;
-    fetch('/api/profile', { headers: { Authorization: `Bearer ${token}` } })
+    fetchWithAuth('/api/profile')
       .then((r) => r.json() as Promise<{ profile: { dog_name?: string | null; dog_photo_url?: string | null; dog_breed?: string | null } | null }>)
       .then(({ profile }) => {
         if (!initialDogName && profile?.dog_name) setDogName(profile.dog_name);
@@ -103,7 +103,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
         if (profile?.dog_breed) setDogBreed(profile.dog_breed);
       })
       .catch(() => {}); // silent — best-effort
-  }, [token, initialDogName]);
+  }, [token, initialDogName, fetchWithAuth]);
 
   if (!token) {
     return (
@@ -139,19 +139,10 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     setError(null);
 
     try {
-      const res = await fetch('/api/bookings/email', {
+      const res = await fetchWithAuth('/api/bookings/email', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          serviceId: service.id,
-          serviceName: service.name,
-          dogName,
-          datetime,
-          notes,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ serviceId: service.id, serviceName: service.name, dogName, datetime, notes }),
       });
 
       if (!res.ok) {

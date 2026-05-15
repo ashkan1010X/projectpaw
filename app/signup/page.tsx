@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 interface RegisterResponse {
   user: { name: string; email?: string };
   token: string;
+  refreshToken: string;
   message?: string;
 }
 
@@ -68,11 +69,11 @@ export default function SignupPage() {
         throw new Error(data.message ?? 'Registration failed. Please try again.');
       }
 
-      if (!data.user || typeof data.token !== 'string') {
+      if (!data.user || typeof data.token !== 'string' || typeof data.refreshToken !== 'string') {
         throw new Error('Unexpected response from server. Please try again.');
       }
 
-      login(data.user, data.token);
+      login(data.user, data.token, data.refreshToken);
       router.push('/services');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.');
