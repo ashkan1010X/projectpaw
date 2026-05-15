@@ -11,18 +11,11 @@ const MONTH_NAMES = [
 ];
 const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-const TIME_SLOTS = [
-  { label: '9:00 AM',  hour: 9  },
-  { label: '10:00 AM', hour: 10 },
-  { label: '11:00 AM', hour: 11 },
-  { label: '12:00 PM', hour: 12 },
-  { label: '1:00 PM',  hour: 13 },
-  { label: '2:00 PM',  hour: 14 },
-  { label: '3:00 PM',  hour: 15 },
-  { label: '4:00 PM',  hour: 16 },
-  { label: '5:00 PM',  hour: 17 },
-  { label: '6:00 PM',  hour: 18 },
-];
+const TIME_SLOTS = Array.from({ length: 24 }, (_, hour) => {
+  const period = hour < 12 ? 'AM' : 'PM';
+  const display = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return { label: `${display}:00 ${period}`, hour };
+});
 
 interface DateTimePickerProps {
   value: string;
