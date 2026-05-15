@@ -18,9 +18,7 @@ export async function GET(req: NextRequest) {
     .lt('datetime', `${nextDate}T00:00`)
     .neq('status', 'cancelled');
 
-  const takenHours = (data ?? []).map((b) =>
-    new Date(b.datetime as string).getUTCHours(),
-  );
+  const takenDatetimes = (data ?? []).map((b) => b.datetime as string);
 
-  return NextResponse.json({ takenHours });
+  return NextResponse.json({ takenDatetimes });
 }

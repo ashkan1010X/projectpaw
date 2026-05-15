@@ -128,8 +128,9 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     try {
       const res = await fetch(`/api/bookings/availability?date=${dateStr}`);
       if (!res.ok) return [];
-      const data = (await res.json()) as { takenHours: number[] };
-      return data.takenHours ?? [];
+      const data = (await res.json()) as { takenDatetimes: string[] };
+      // Convert to local hours so the picker matches what the user's clock shows
+      return (data.takenDatetimes ?? []).map((dt) => new Date(dt).getHours());
     } catch {
       return [];
     }
