@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
       try {
         await sendSms(
           phone,
-          `Reminder: ${booking.service_name} for ${booking.dog_name} is tomorrow at ${apptTime}. Reply CANCEL to cancel, HELP for support, or STOP to opt out. — ProjectPaw 🐾`,
+          `Reminder: ${booking.service_name} for ${booking.dog_name} is tomorrow at ${apptTime}. Reply NO to cancel, HELP for support, or STOP to opt out. — ProjectPaw 🐾`,
         );
         sent++;
       } catch (e) {

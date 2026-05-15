@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     .eq('phone', from)
     .maybeSingle();
 
-  if (body === 'CANCEL') {
+  if (body === 'NO') {
     if (!profile) {
       return twimlResponse(
         `We couldn't find an account linked to this number. Need help? Email ${SUPPORT_EMAIL} — ProjectPaw 🐾`,
@@ -91,6 +91,6 @@ export async function POST(req: NextRequest) {
 
   // Any other message — gentle prompt
   return twimlResponse(
-    `Hi! Reply CANCEL to cancel your next booking, HELP for support, or STOP to unsubscribe. — ProjectPaw 🐾`,
+    `Hi! Reply NO to cancel your next booking, HELP for support, or STOP to unsubscribe. — ProjectPaw 🐾`,
   );
 }
