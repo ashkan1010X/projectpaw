@@ -285,7 +285,7 @@ export default function DashboardPage() {
                 href="/services"
                 className="inline-block rounded-lg border border-doggy/30 px-5 py-2 font-pawprint text-sm font-semibold text-doggy transition-all duration-300 hover:border-doggy/60 hover:bg-doggy/10"
               >
-                Book Again →
+                Browse Services →
               </Link>
             </div>
           )}
