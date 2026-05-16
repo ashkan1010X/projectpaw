@@ -3,10 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, PawPrint, Sparkles, Clock, Bell, Heart } from 'lucide-react';
+import { Loader2, PawPrint, Sparkles, Clock, Bell, Heart, CalendarClock } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { BookingModal } from '@/components/booking-modal';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { RescheduleDialog } from '@/components/reschedule-dialog';
+import { AddToCalendar } from '@/components/add-to-calendar';
 import { cn } from '@/lib/utils';
 
 type Booking = {
@@ -139,6 +141,7 @@ export default function DashboardPage() {
   const [cancelErrors, setCancelErrors] = useState<Record<string, string>>({});
   const [rebookTarget, setRebookTarget] = useState<RebookTarget | null>(null);
   const [pendingCancelBooking, setPendingCancelBooking] = useState<Booking | null>(null);
+  const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     if (!initialized) return;
@@ -194,6 +197,23 @@ export default function DashboardPage() {
     }
   }
 
+  async function handleReschedule(bookingId: string, newDatetime: string) {
+    const res = await fetchWithAuth(`/api/bookings/${bookingId}/reschedule`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ datetime: new Date(newDatetime).toISOString() }),
+    });
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { message?: string };
+      throw new Error(data.message ?? 'Failed to reschedule');
+    }
+    const isoDatetime = new Date(newDatetime).toISOString();
+    setBookings((prev) =>
+      prev.map((b) => (b.id === bookingId ? { ...b, datetime: isoDatetime } : b)),
+    );
+    setRescheduleBooking(null);
+  }
+
   if (loading) return <DashboardSkeleton />;
 
   const now = new Date();
@@ -220,6 +240,21 @@ export default function DashboardPage() {
   const favoriteName = usual[0]?.name ?? null;
   const hasPhone = Boolean(profile?.phone);
   const dogName = profile?.dog_name || 'Your Pup';
+
+  // Smart re-engagement: when favorite service hasn't been booked in 28+ days
+  // and there's nothing upcoming for it, prompt the user to rebook.
+  const favorite = usual[0];
+  const hasUpcomingFavorite = favorite
+    ? upcoming.some((b) => b.service_id === favorite.id)
+    : false;
+  const lastFavoriteCompleted = favorite
+    ? completed.find((b) => b.service_id === favorite.id)
+    : undefined;
+  const daysSinceFavorite = lastFavoriteCompleted
+    ? daysSince(lastFavoriteCompleted.datetime, now)
+    : null;
+  const showReengagement =
+    favorite && !hasUpcomingFavorite && daysSinceFavorite !== null && daysSinceFavorite >= 28;
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-10 sm:py-12">
@@ -326,6 +361,37 @@ export default function DashboardPage() {
 
       {bookings.length > 0 && (
         <div className="space-y-8">
+          {/* ──── Smart re-engagement banner ──── */}
+          {showReengagement && favorite && (
+            <button
+              onClick={() =>
+                setRebookTarget({
+                  serviceId: favorite.id,
+                  serviceName: favorite.name,
+                  dogName: profile?.dog_name ?? '',
+                })
+              }
+              className="group flex w-full items-center gap-4 rounded-2xl border border-accent/25 bg-gradient-to-r from-accent/[0.08] via-accent/[0.04] to-transparent p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/45 hover:shadow-lg hover:shadow-accent/10"
+            >
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-accent/15 ring-1 ring-accent/30">
+                <Sparkles className="size-5 text-accent" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-accent/80">
+                  Time to rebook
+                </p>
+                <p className="mt-0.5 font-pawprint text-sm text-paw">
+                  {dogName}&apos;s last {favorite.name.toLowerCase()} was{' '}
+                  <span className="font-bold text-paw">{daysSinceFavorite}</span> days ago — most
+                  pups are due around now.
+                </p>
+              </div>
+              <span className="hidden font-pawprint text-xs font-bold text-accent opacity-0 transition-opacity group-hover:opacity-100 sm:inline">
+                Book →
+              </span>
+            </button>
+          )}
+
           {/* ──── Hero: next upcoming booking ──── */}
           {heroBooking ? (
             <div>
@@ -352,30 +418,49 @@ export default function DashboardPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <span className="font-pawprint text-xs font-semibold text-doggy/75">
+                    <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
+                      <span className="font-pawprint text-xs font-semibold text-doggy/75 sm:text-right">
                         {daysAway(heroBooking.datetime, now)}
                       </span>
-                      <button
-                        onClick={() => setPendingCancelBooking(heroBooking)}
-                        disabled={cancellingId === heroBooking.id}
-                        aria-label={`Cancel booking for ${heroBooking.service_name}`}
-                        className="flex items-center gap-1.5 rounded-lg border border-red-500/25 px-3 py-1.5 font-pawprint text-xs font-semibold text-red-400 transition-all duration-200 hover:border-red-500/50 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {cancellingId === heroBooking.id ? (
-                          <>
-                            <Loader2 className="size-3 animate-spin" />
-                            Cancelling…
-                          </>
-                        ) : (
-                          'Cancel'
-                        )}
-                      </button>
                     </div>
                   </div>
+
+                  {/* Action row */}
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <AddToCalendar
+                      bookingId={heroBooking.id}
+                      serviceName={heroBooking.service_name}
+                      dogName={heroBooking.dog_name}
+                      datetime={heroBooking.datetime}
+                    />
+                    <button
+                      onClick={() => setRescheduleBooking(heroBooking)}
+                      aria-label={`Reschedule booking for ${heroBooking.service_name}`}
+                      className="flex items-center gap-1.5 rounded-lg border border-paw/15 bg-paw/[0.03] px-3 py-1.5 font-pawprint text-xs font-semibold text-paw/75 transition-all duration-200 hover:border-paw/30 hover:bg-paw/[0.07] hover:text-paw"
+                    >
+                      <CalendarClock className="size-3.5" />
+                      Reschedule
+                    </button>
+                    <button
+                      onClick={() => setPendingCancelBooking(heroBooking)}
+                      disabled={cancellingId === heroBooking.id}
+                      aria-label={`Cancel booking for ${heroBooking.service_name}`}
+                      className="ml-auto flex items-center gap-1.5 rounded-lg border border-red-500/25 px-3 py-1.5 font-pawprint text-xs font-semibold text-red-400 transition-all duration-200 hover:border-red-500/50 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {cancellingId === heroBooking.id ? (
+                        <>
+                          <Loader2 className="size-3 animate-spin" />
+                          Cancelling…
+                        </>
+                      ) : (
+                        'Cancel'
+                      )}
+                    </button>
+                  </div>
+
                   {/* Reassurance pill */}
                   {hasPhone && (
-                    <div className="mt-4 flex items-center gap-2 rounded-lg border border-paw/[0.06] bg-paw/[0.03] px-3 py-2">
+                    <div className="mt-3 flex items-center gap-2 rounded-lg border border-paw/[0.06] bg-paw/[0.03] px-3 py-2">
                       <Bell className="size-3.5 text-doggy/70" />
                       <span className="font-pawprint text-xs text-paw/60">
                         We&apos;ll text you a reminder the day before. Reply X to cancel.
@@ -476,6 +561,13 @@ export default function DashboardPage() {
                         <span className="font-pawprint text-xs font-semibold text-doggy/65">
                           {daysAway(booking.datetime, now)}
                         </span>
+                        <button
+                          onClick={() => setRescheduleBooking(booking)}
+                          aria-label={`Reschedule booking for ${booking.service_name}`}
+                          className="rounded-lg border border-paw/15 px-3 py-1 font-pawprint text-xs font-semibold text-paw/70 transition-all duration-200 hover:border-paw/30 hover:bg-paw/[0.05] hover:text-paw"
+                        >
+                          Reschedule
+                        </button>
                         <button
                           onClick={() => setPendingCancelBooking(booking)}
                           disabled={cancellingId === booking.id}
@@ -645,6 +737,18 @@ export default function DashboardPage() {
             setPendingCancelBooking(null);
           }}
           onCancel={() => setPendingCancelBooking(null)}
+        />
+      )}
+
+      {/* Reschedule modal */}
+      {rescheduleBooking && (
+        <RescheduleDialog
+          isOpen
+          serviceName={rescheduleBooking.service_name}
+          dogName={rescheduleBooking.dog_name}
+          currentDatetime={rescheduleBooking.datetime}
+          onCancel={() => setRescheduleBooking(null)}
+          onConfirm={(newDatetime) => handleReschedule(rescheduleBooking.id, newDatetime)}
         />
       )}
 
