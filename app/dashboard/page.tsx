@@ -224,25 +224,25 @@ export default function DashboardPage() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-10 sm:py-12">
       {/* ════════════════════  PET HERO  ════════════════════ */}
-      <div className="mb-8 overflow-hidden rounded-2xl border border-doggy/15 bg-gradient-to-br from-doggy/[0.10] via-paw/[0.03] to-transparent p-6 sm:p-7 animate-fade-in">
-        <div className="flex items-center gap-5 sm:gap-6">
+      <div className="mb-8 overflow-hidden rounded-2xl border border-doggy/15 bg-gradient-to-br from-doggy/[0.10] via-paw/[0.03] to-transparent p-5 sm:p-7 animate-fade-in">
+        <div className="flex items-center gap-4 sm:gap-6">
           {profile?.dog_photo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={profile.dog_photo_url}
               alt={dogName}
-              className="size-20 shrink-0 rounded-full object-cover ring-2 ring-doggy/30 sm:size-24"
+              className="size-16 shrink-0 rounded-full object-cover ring-2 ring-doggy/30 sm:size-24"
             />
           ) : (
-            <div className="flex size-20 shrink-0 items-center justify-center rounded-full bg-doggy/15 ring-2 ring-doggy/20 sm:size-24">
-              <PawPrint className="size-8 text-doggy/60 sm:size-10" />
+            <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-doggy/15 ring-2 ring-doggy/20 sm:size-24">
+              <PawPrint className="size-7 text-doggy/60 sm:size-10" />
             </div>
           )}
           <div className="min-w-0 flex-1">
             <p className="font-pawprint text-[10px] font-bold uppercase tracking-[0.18em] text-paw/45 sm:text-xs">
               Hi, {user?.name} 👋
             </p>
-            <h1 className="mt-1 truncate font-elegant text-2xl font-black leading-tight text-paw sm:text-4xl">
+            <h1 className="mt-1 break-words font-elegant text-xl font-black leading-tight text-paw sm:text-4xl">
               {dogName}&apos;s Dashboard
             </h1>
             {(profile?.dog_breed || profile?.dog_age) && (
