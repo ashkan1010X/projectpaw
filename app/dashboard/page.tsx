@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2 } from 'lucide-react';
+import { Loader2, PawPrint, Sparkles, Clock, Bell, Heart } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { BookingModal } from '@/components/booking-modal';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -18,6 +18,14 @@ type Booking = {
   notes: string | null;
   status: string;
 };
+
+type Profile = {
+  dog_name?: string | null;
+  dog_breed?: string | null;
+  dog_age?: string | null;
+  dog_photo_url?: string | null;
+  phone?: string | null;
+} | null;
 
 type RebookTarget = {
   serviceId: string;
@@ -44,6 +52,13 @@ function daysAway(datetime: string, now: Date): string {
   return `${diff} days away`;
 }
 
+function daysSince(datetime: string, now: Date): number {
+  return Math.max(
+    0,
+    Math.floor((now.getTime() - new Date(datetime).getTime()) / (1000 * 60 * 60 * 24)),
+  );
+}
+
 function formatBookingDate(datetime: string): { date: string; time: string } {
   const d = new Date(datetime);
   return {
@@ -52,35 +67,48 @@ function formatBookingDate(datetime: string): { date: string; time: string } {
   };
 }
 
+function topServices(
+  bookings: Booking[],
+): { id: string; name: string; count: number }[] {
+  const counts = new Map<string, { id: string; name: string; count: number }>();
+  for (const b of bookings) {
+    if (b.status === 'cancelled') continue;
+    const existing = counts.get(b.service_id);
+    if (existing) existing.count++;
+    else counts.set(b.service_id, { id: b.service_id, name: b.service_name, count: 1 });
+  }
+  return [...counts.values()].sort((a, b) => b.count - a.count).slice(0, 2);
+}
+
 function DashboardSkeleton() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">
-      {/* Header */}
-      <div className="mb-10">
-        <div className="h-9 w-52 animate-pulse rounded-lg bg-paw/[0.08]" />
-        <div className="mt-2 h-4 w-36 animate-pulse rounded bg-paw/[0.05]" />
-      </div>
-
-      {/* Stats row */}
-      <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:p-6">
-          <div className="mx-auto h-8 w-10 animate-pulse rounded bg-paw/[0.08]" />
-          <div className="mx-auto mt-2 h-3 w-20 animate-pulse rounded bg-paw/[0.05]" />
-        </div>
-        <div className="hidden rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:block sm:p-6">
-          <div className="mx-auto h-6 w-28 animate-pulse rounded bg-paw/[0.08]" />
-          <div className="mx-auto mt-2 h-3 w-20 animate-pulse rounded bg-paw/[0.05]" />
-        </div>
-        <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:p-6">
-          <div className="mx-auto h-6 w-16 animate-pulse rounded bg-paw/[0.08]" />
-          <div className="mx-auto mt-2 h-3 w-14 animate-pulse rounded bg-paw/[0.05]" />
+      {/* Pet hero skeleton */}
+      <div className="mb-8 rounded-2xl border border-paw/[0.08] bg-[#1a1612] p-6 sm:p-7">
+        <div className="flex items-center gap-5">
+          <div className="size-20 animate-pulse rounded-full bg-paw/[0.08] sm:size-24" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <div className="h-3 w-20 animate-pulse rounded bg-paw/[0.05]" />
+            <div className="h-8 w-48 animate-pulse rounded-lg bg-paw/[0.08]" />
+            <div className="h-3 w-32 animate-pulse rounded bg-paw/[0.05]" />
+          </div>
         </div>
       </div>
 
-      {/* Booking list */}
+      {/* Stats skeleton */}
+      <div className="mb-8 grid grid-cols-3 gap-3 sm:gap-4">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-4 sm:p-5">
+            <div className="mb-2 h-3 w-16 animate-pulse rounded bg-paw/[0.05]" />
+            <div className="h-7 w-12 animate-pulse rounded bg-paw/[0.08]" />
+          </div>
+        ))}
+      </div>
+
+      {/* Booking list skeleton */}
       <div className="space-y-3">
         <div className="mb-4 h-5 w-36 animate-pulse rounded bg-paw/[0.08]" />
-        {[0, 1, 2].map((i) => (
+        {[0, 1].map((i) => (
           <div
             key={i}
             className="flex flex-col gap-3 rounded-xl border border-paw/[0.08] bg-[#1a1612] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0"
@@ -104,6 +132,7 @@ export default function DashboardPage() {
   const { user, token, initialized, fetchWithAuth } = useAuth();
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [profile, setProfile] = useState<Profile>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -118,12 +147,19 @@ export default function DashboardPage() {
       return;
     }
 
-    fetchWithAuth('/api/bookings')
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to load bookings');
-        return res.json() as Promise<{ bookings: Booking[] }>;
+    Promise.all([
+      fetchWithAuth('/api/bookings').then((r) => {
+        if (!r.ok) throw new Error('Failed to load bookings');
+        return r.json() as Promise<{ bookings: Booking[] }>;
+      }),
+      fetchWithAuth('/api/profile')
+        .then((r) => (r.ok ? (r.json() as Promise<{ profile: Profile }>) : { profile: null }))
+        .catch(() => ({ profile: null })),
+    ])
+      .then(([b, p]) => {
+        setBookings(b.bookings);
+        setProfile(p.profile);
       })
-      .then(({ bookings }) => setBookings(bookings))
       .catch((err: unknown) => {
         setError(err instanceof Error ? err.message : 'Something went wrong');
       })
@@ -174,33 +210,92 @@ export default function DashboardPage() {
     .filter((b) => b.status === 'cancelled')
     .sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime());
 
-  const past = [...completed, ...cancelled];
-
   const heroBooking = upcoming[0] ?? null;
   const alsoUpcoming = upcoming.slice(1);
-  const nextUpLabel = heroBooking?.service_name ?? '—';
+
+  // ── Derived insights ──
+  const lastCompleted = completed[0] ?? null;
+  const daysSinceLast = lastCompleted ? daysSince(lastCompleted.datetime, now) : null;
+  const usual = topServices(bookings);
+  const favoriteName = usual[0]?.name ?? null;
+  const hasPhone = Boolean(profile?.phone);
+  const dogName = profile?.dog_name || 'Your Pup';
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12">
-      {/* Header */}
-      <div className="mb-10">
-        <h1 className="font-elegant text-3xl font-black text-paw">Hi, {user?.name} 👋</h1>
-        <p className="mt-1 font-pawprint text-sm text-paw/50">Your appointments</p>
+    <main className="mx-auto max-w-4xl px-6 py-10 sm:py-12">
+      {/* ════════════════════  PET HERO  ════════════════════ */}
+      <div className="mb-8 overflow-hidden rounded-2xl border border-doggy/15 bg-gradient-to-br from-doggy/[0.10] via-paw/[0.03] to-transparent p-6 sm:p-7 animate-fade-in">
+        <div className="flex items-center gap-5 sm:gap-6">
+          {profile?.dog_photo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile.dog_photo_url}
+              alt={dogName}
+              className="size-20 shrink-0 rounded-full object-cover ring-2 ring-doggy/30 sm:size-24"
+            />
+          ) : (
+            <div className="flex size-20 shrink-0 items-center justify-center rounded-full bg-doggy/15 ring-2 ring-doggy/20 sm:size-24">
+              <PawPrint className="size-8 text-doggy/60 sm:size-10" />
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="font-pawprint text-[10px] font-bold uppercase tracking-[0.18em] text-paw/45 sm:text-xs">
+              Hi, {user?.name} 👋
+            </p>
+            <h1 className="mt-1 truncate font-elegant text-2xl font-black leading-tight text-paw sm:text-4xl">
+              {dogName}&apos;s Dashboard
+            </h1>
+            {(profile?.dog_breed || profile?.dog_age) && (
+              <p className="mt-1 font-pawprint text-xs text-paw/55 sm:text-sm">
+                {profile?.dog_breed}
+                {profile?.dog_breed && profile?.dog_age && ' · '}
+                {profile?.dog_age}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Stats row */}
-      <div className="mb-10 grid grid-cols-3 gap-4">
-        <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:p-6">
-          <div className="font-elegant text-3xl font-black text-accent">{bookings.length}</div>
-          <div className="mt-1 font-pawprint text-xs text-paw/40">Total Bookings</div>
+      {/* ════════════════════  INSIGHT STATS  ════════════════════ */}
+      <div className="mb-8 grid grid-cols-3 gap-3 sm:gap-4">
+        <div className="rounded-xl border border-doggy/20 bg-doggy/[0.05] p-4 sm:p-5">
+          <div className="mb-1.5 flex items-center gap-1.5">
+            <Sparkles className="size-3.5 text-doggy/70" />
+            <span className="font-pawprint text-[10px] font-bold uppercase tracking-wider text-doggy/65">
+              Upcoming
+            </span>
+          </div>
+          <div className="font-elegant text-2xl font-black text-doggy sm:text-3xl">
+            {upcoming.length}
+          </div>
         </div>
-        <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:p-6">
-          <div className="font-elegant text-3xl font-black text-doggy">{upcoming.length}</div>
-          <div className="mt-1 font-pawprint text-xs text-paw/40">Upcoming</div>
+        <div className="rounded-xl border border-paw/10 bg-[#1a1612] p-4 sm:p-5">
+          <div className="mb-1.5 flex items-center gap-1.5">
+            <Clock className="size-3.5 text-paw/55" />
+            <span className="font-pawprint text-[10px] font-bold uppercase tracking-wider text-paw/55">
+              Last Service
+            </span>
+          </div>
+          <div className="font-elegant text-base font-bold text-paw sm:text-lg">
+            {daysSinceLast === null
+              ? 'None yet'
+              : daysSinceLast === 0
+              ? 'Today'
+              : daysSinceLast === 1
+              ? '1d ago'
+              : `${daysSinceLast}d ago`}
+          </div>
         </div>
-        <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:p-6">
-          <div className="font-elegant text-3xl font-black text-emerald-400">{completed.length}</div>
-          <div className="mt-1 font-pawprint text-xs text-paw/40">Completed</div>
+        <div className="rounded-xl border border-paw/10 bg-[#1a1612] p-4 sm:p-5">
+          <div className="mb-1.5 flex items-center gap-1.5">
+            <Heart className="size-3.5 text-accent/70" />
+            <span className="font-pawprint text-[10px] font-bold uppercase tracking-wider text-accent/70">
+              Favorite
+            </span>
+          </div>
+          <div className="truncate font-elegant text-base font-bold text-paw sm:text-lg">
+            {favoriteName ?? '—'}
+          </div>
         </div>
       </div>
 
@@ -214,50 +309,51 @@ export default function DashboardPage() {
       {/* Empty state — no bookings at all */}
       {!error && bookings.length === 0 && (
         <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] px-8 py-16 text-center">
-          <p className="mb-2 font-elegant text-xl text-paw/60">No bookings yet</p>
+          <p className="mb-2 font-elegant text-xl text-paw/60">
+            Let&apos;s book {dogName}&apos;s first appointment
+          </p>
           <p className="mb-6 font-pawprint text-sm text-paw/40">
-            Book your first service and it will appear here.
+            Pick a service and we&apos;ll handle the rest.
           </p>
           <Link
             href="/services"
             className="inline-block rounded-lg bg-doggy px-6 py-2.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-doggy/50"
           >
-            Book Your First Service
+            Book a Service
           </Link>
         </div>
       )}
 
       {bookings.length > 0 && (
         <div className="space-y-8">
-
-          {/* ── Hero: next upcoming booking ── */}
+          {/* ──── Hero: next upcoming booking ──── */}
           {heroBooking ? (
             <div>
-              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-doggy/60">
+              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-doggy/65">
                 Next Appointment
               </h2>
               <div className="space-y-1.5">
-                <div className="rounded-2xl border border-doggy/[0.2] bg-gradient-to-br from-doggy/[0.1] to-doggy/[0.03] p-5 animate-fade-in">
+                <div className="animate-fade-in rounded-2xl border border-doggy/25 bg-gradient-to-br from-doggy/[0.12] to-doggy/[0.03] p-5">
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
-                      <p className="font-elegant text-xl font-black text-paw leading-tight">
+                      <p className="font-elegant text-xl font-black leading-tight text-paw">
                         {heroBooking.service_name}
                       </p>
-                      <p className="mt-0.5 font-pawprint text-sm text-paw/55">
-                        {heroBooking.dog_name}
+                      <p className="mt-0.5 font-pawprint text-sm text-paw/65">
+                        for {heroBooking.dog_name}
                       </p>
                       <div className="mt-1.5 flex items-center gap-2">
-                        <p className="font-pawprint text-xs font-semibold text-paw/50">
+                        <p className="font-pawprint text-xs font-semibold text-paw/55">
                           {formatBookingDate(heroBooking.datetime).date}
                         </p>
-                        <span className="text-paw/20">·</span>
-                        <p className="font-pawprint text-xs text-paw/35">
+                        <span className="text-paw/25">·</span>
+                        <p className="font-pawprint text-xs text-paw/45">
                           {formatBookingDate(heroBooking.datetime).time}
                         </p>
                       </div>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
-                      <span className="font-pawprint text-xs font-semibold text-doggy/70">
+                      <span className="font-pawprint text-xs font-semibold text-doggy/75">
                         {daysAway(heroBooking.datetime, now)}
                       </span>
                       <button
@@ -277,6 +373,15 @@ export default function DashboardPage() {
                       </button>
                     </div>
                   </div>
+                  {/* Reassurance pill */}
+                  {hasPhone && (
+                    <div className="mt-4 flex items-center gap-2 rounded-lg border border-paw/[0.06] bg-paw/[0.03] px-3 py-2">
+                      <Bell className="size-3.5 text-doggy/70" />
+                      <span className="font-pawprint text-xs text-paw/60">
+                        We&apos;ll text you a reminder the day before. Reply X to cancel.
+                      </span>
+                    </div>
+                  )}
                 </div>
                 {cancelErrors[heroBooking.id] && (
                   <p role="alert" className="px-2 font-pawprint text-xs text-red-400">
@@ -287,9 +392,13 @@ export default function DashboardPage() {
             </div>
           ) : (
             /* Empty upcoming state — has past bookings but nothing upcoming */
-            <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] px-6 py-10 text-center">
-              <p className="mb-1 font-elegant text-2xl text-paw/70">You&apos;re all clear 🐾</p>
-              <p className="mb-5 font-pawprint text-sm text-paw/35">Nothing on the schedule — time to treat your pup!</p>
+            <div className="rounded-2xl border border-paw/[0.08] bg-gradient-to-br from-paw/[0.04] to-transparent px-6 py-10 text-center">
+              <p className="mb-1 font-elegant text-2xl text-paw/75">
+                You&apos;re all clear 🐾
+              </p>
+              <p className="mb-6 font-pawprint text-sm text-paw/45">
+                Nothing on the schedule — time to treat {dogName}!
+              </p>
               <Link
                 href="/services"
                 className="inline-block rounded-lg bg-doggy px-6 py-2.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-doggy/40"
@@ -299,29 +408,72 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* ── Also upcoming (compact) ── */}
+          {/* ──── Your Usual · 1-Tap Rebook ──── */}
+          {usual.length > 0 && (
+            <div>
+              <h2 className="mb-3 flex items-center gap-2 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-accent/70">
+                <Sparkles className="size-3 text-accent/70" />
+                Your Usual · One-Tap Rebook
+              </h2>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {usual.map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={() =>
+                      setRebookTarget({
+                        serviceId: s.id,
+                        serviceName: s.name,
+                        dogName: profile?.dog_name ?? '',
+                      })
+                    }
+                    className="group flex items-center justify-between rounded-xl border border-paw/[0.1] bg-[#1a1612] px-5 py-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-doggy/45 hover:bg-doggy/[0.06] hover:shadow-lg hover:shadow-doggy/10"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-pawprint text-sm font-bold text-paw transition-colors group-hover:text-doggy">
+                        {s.name}
+                      </p>
+                      <p className="mt-0.5 font-pawprint text-xs text-paw/45">
+                        Booked {s.count}× before
+                      </p>
+                    </div>
+                    <span className="shrink-0 font-pawprint text-xs font-bold text-doggy/0 transition-all duration-200 group-hover:text-doggy">
+                      Rebook →
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ──── Also upcoming (compact) ──── */}
           {alsoUpcoming.length > 0 && (
             <div>
-              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/35">
+              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/45">
                 Also Upcoming
               </h2>
               <div className="space-y-2">
                 {alsoUpcoming.map((booking) => (
                   <div key={booking.id} className="space-y-1.5">
-                    <div className="flex flex-col gap-3 rounded-xl border border-paw/[0.08] bg-[#1a1612] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+                    <div className="flex flex-col gap-3 rounded-xl border border-paw/10 bg-[#1a1612] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
                       <div className="min-w-0">
                         <p className="font-pawprint text-sm font-semibold text-paw">
                           {booking.service_name}
-                          <span className="ml-2 text-paw/40">— {booking.dog_name}</span>
+                          <span className="ml-2 font-normal text-paw/55">
+                            — {booking.dog_name}
+                          </span>
                         </p>
                         <div className="mt-0.5 flex items-center gap-1.5">
-                          <p className="font-pawprint text-xs font-medium text-paw/45">{formatBookingDate(booking.datetime).date}</p>
-                          <span className="text-paw/20">·</span>
-                          <p className="font-pawprint text-xs text-paw/30">{formatBookingDate(booking.datetime).time}</p>
+                          <p className="font-pawprint text-xs font-medium text-paw/55">
+                            {formatBookingDate(booking.datetime).date}
+                          </p>
+                          <span className="text-paw/30">·</span>
+                          <p className="font-pawprint text-xs text-paw/40">
+                            {formatBookingDate(booking.datetime).time}
+                          </p>
                         </div>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
-                        <span className="font-pawprint text-xs font-semibold text-doggy/60">
+                        <span className="font-pawprint text-xs font-semibold text-doggy/65">
                           {daysAway(booking.datetime, now)}
                         </span>
                         <button
@@ -352,10 +504,10 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* ── History: Completed ── */}
+          {/* ──── History: Completed ──── */}
           {completed.length > 0 && (
             <div>
-              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/40">
+              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/45">
                 Completed
               </h2>
               <div className="space-y-2">
@@ -367,12 +519,18 @@ export default function DashboardPage() {
                         <div className="min-w-0">
                           <p className="font-pawprint text-sm font-semibold text-paw/80">
                             {booking.service_name}
-                            <span className="ml-2 font-normal text-paw/50">— {booking.dog_name}</span>
+                            <span className="ml-2 font-normal text-paw/55">
+                              — {booking.dog_name}
+                            </span>
                           </p>
                           <div className="mt-0.5 flex items-center gap-1.5">
-                            <p className="font-pawprint text-xs font-medium text-paw/55">{formatBookingDate(booking.datetime).date}</p>
+                            <p className="font-pawprint text-xs font-medium text-paw/55">
+                              {formatBookingDate(booking.datetime).date}
+                            </p>
                             <span className="text-paw/30">·</span>
-                            <p className="font-pawprint text-xs text-paw/40">{formatBookingDate(booking.datetime).time}</p>
+                            <p className="font-pawprint text-xs text-paw/40">
+                              {formatBookingDate(booking.datetime).time}
+                            </p>
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
@@ -411,10 +569,10 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* ── History: Cancelled ── */}
+          {/* ──── History: Cancelled ──── */}
           {cancelled.length > 0 && (
             <div>
-              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/40">
+              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/45">
                 Cancelled
               </h2>
               <div className="space-y-2">
@@ -426,12 +584,18 @@ export default function DashboardPage() {
                         <div className="min-w-0">
                           <p className="font-pawprint text-sm font-semibold text-paw/70">
                             {booking.service_name}
-                            <span className="ml-2 font-normal text-paw/45">— {booking.dog_name}</span>
+                            <span className="ml-2 font-normal text-paw/45">
+                              — {booking.dog_name}
+                            </span>
                           </p>
                           <div className="mt-0.5 flex items-center gap-1.5">
-                            <p className="font-pawprint text-xs font-medium text-paw/45">{formatBookingDate(booking.datetime).date}</p>
+                            <p className="font-pawprint text-xs font-medium text-paw/45">
+                              {formatBookingDate(booking.datetime).date}
+                            </p>
                             <span className="text-paw/25">·</span>
-                            <p className="font-pawprint text-xs text-paw/35">{formatBookingDate(booking.datetime).time}</p>
+                            <p className="font-pawprint text-xs text-paw/35">
+                              {formatBookingDate(booking.datetime).time}
+                            </p>
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
@@ -464,7 +628,6 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
-
         </div>
       )}
 
