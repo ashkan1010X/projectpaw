@@ -355,7 +355,7 @@ export default function DashboardPage() {
           {/* ── History: Completed ── */}
           {completed.length > 0 && (
             <div>
-              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/25">
+              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/40">
                 Completed
               </h2>
               <div className="space-y-2">
@@ -363,16 +363,16 @@ export default function DashboardPage() {
                   const badge = statusBadge(booking, now);
                   return (
                     <div key={booking.id} className="space-y-1.5">
-                      <div className="flex flex-col gap-3 rounded-xl border border-paw/[0.05] bg-[#141210] px-5 py-4 opacity-60 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+                      <div className="flex flex-col gap-3 rounded-xl border border-paw/[0.08] bg-[#141210] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
                         <div className="min-w-0">
-                          <p className="font-pawprint text-sm font-semibold text-paw">
+                          <p className="font-pawprint text-sm font-semibold text-paw/80">
                             {booking.service_name}
-                            <span className="ml-2 text-paw/40">— {booking.dog_name}</span>
+                            <span className="ml-2 font-normal text-paw/50">— {booking.dog_name}</span>
                           </p>
                           <div className="mt-0.5 flex items-center gap-1.5">
-                            <p className="font-pawprint text-xs font-medium text-paw/40">{formatBookingDate(booking.datetime).date}</p>
-                            <span className="text-paw/20">·</span>
-                            <p className="font-pawprint text-xs text-paw/25">{formatBookingDate(booking.datetime).time}</p>
+                            <p className="font-pawprint text-xs font-medium text-paw/55">{formatBookingDate(booking.datetime).date}</p>
+                            <span className="text-paw/30">·</span>
+                            <p className="font-pawprint text-xs text-paw/40">{formatBookingDate(booking.datetime).time}</p>
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
@@ -385,7 +385,7 @@ export default function DashboardPage() {
                               })
                             }
                             aria-label={`Rebook ${booking.service_name} for ${booking.dog_name}`}
-                            className="rounded-lg border border-doggy/30 px-3 py-1 font-pawprint text-xs font-semibold text-doggy opacity-100 transition-all duration-200 hover:border-doggy/60 hover:bg-doggy/10"
+                            className="rounded-lg border border-doggy/30 px-3 py-1 font-pawprint text-xs font-semibold text-doggy transition-all duration-200 hover:border-doggy/60 hover:bg-doggy/10"
                           >
                             Rebook
                           </button>
@@ -414,7 +414,7 @@ export default function DashboardPage() {
           {/* ── History: Cancelled ── */}
           {cancelled.length > 0 && (
             <div>
-              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/25">
+              <h2 className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/40">
                 Cancelled
               </h2>
               <div className="space-y-2">
@@ -422,16 +422,16 @@ export default function DashboardPage() {
                   const badge = statusBadge(booking, now);
                   return (
                     <div key={booking.id} className="space-y-1.5">
-                      <div className="flex flex-col gap-3 rounded-xl border border-paw/[0.05] bg-[#141210] px-5 py-4 opacity-50 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
+                      <div className="flex flex-col gap-3 rounded-xl border border-red-500/[0.08] bg-[#141210] px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-0">
                         <div className="min-w-0">
-                          <p className="font-pawprint text-sm font-semibold text-paw">
+                          <p className="font-pawprint text-sm font-semibold text-paw/70">
                             {booking.service_name}
-                            <span className="ml-2 text-paw/40">— {booking.dog_name}</span>
+                            <span className="ml-2 font-normal text-paw/45">— {booking.dog_name}</span>
                           </p>
                           <div className="mt-0.5 flex items-center gap-1.5">
-                            <p className="font-pawprint text-xs font-medium text-paw/40">{formatBookingDate(booking.datetime).date}</p>
-                            <span className="text-paw/20">·</span>
-                            <p className="font-pawprint text-xs text-paw/25">{formatBookingDate(booking.datetime).time}</p>
+                            <p className="font-pawprint text-xs font-medium text-paw/45">{formatBookingDate(booking.datetime).date}</p>
+                            <span className="text-paw/25">·</span>
+                            <p className="font-pawprint text-xs text-paw/35">{formatBookingDate(booking.datetime).time}</p>
                           </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
@@ -444,7 +444,7 @@ export default function DashboardPage() {
                               })
                             }
                             aria-label={`Rebook ${booking.service_name} for ${booking.dog_name}`}
-                            className="rounded-lg border border-doggy/30 px-3 py-1 font-pawprint text-xs font-semibold text-doggy opacity-100 transition-all duration-200 hover:border-doggy/60 hover:bg-doggy/10"
+                            className="rounded-lg border border-doggy/30 px-3 py-1 font-pawprint text-xs font-semibold text-doggy transition-all duration-200 hover:border-doggy/60 hover:bg-doggy/10"
                           >
                             Rebook
                           </button>
