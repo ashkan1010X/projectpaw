@@ -144,6 +144,7 @@ export default function DashboardPage() {
   const [pendingCancelBooking, setPendingCancelBooking] = useState<Booking | null>(null);
   const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
   const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null);
+  const [photoError, setPhotoError] = useState(false);
 
   useEffect(() => {
     if (!initialized) return;
@@ -272,11 +273,12 @@ export default function DashboardPage() {
       {/* ════════════════════  PET HERO  ════════════════════ */}
       <div className="mb-8 overflow-hidden rounded-2xl border border-doggy/15 bg-gradient-to-br from-doggy/[0.10] via-paw/[0.03] to-transparent p-5 sm:p-7 animate-fade-in">
         <div className="flex items-center gap-4 sm:gap-6">
-          {profile?.dog_photo_url ? (
+          {profile?.dog_photo_url && !photoError ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={profile.dog_photo_url}
               alt={dogName}
+              onError={() => setPhotoError(true)}
               className="size-16 shrink-0 rounded-full object-cover ring-2 ring-doggy/30 sm:size-24"
             />
           ) : (
@@ -468,6 +470,18 @@ export default function DashboardPage() {
                       )}
                     </button>
                   </div>
+
+                  {/* Notes (if any) */}
+                  {heroBooking.notes && heroBooking.notes.trim() && (
+                    <div className="mt-3 rounded-lg border border-paw/[0.06] bg-paw/[0.02] px-3 py-2">
+                      <p className="mb-0.5 font-pawprint text-[10px] font-bold uppercase tracking-[0.14em] text-paw/40">
+                        Notes
+                      </p>
+                      <p className="font-pawprint text-xs italic text-paw/70">
+                        &ldquo;{heroBooking.notes}&rdquo;
+                      </p>
+                    </div>
+                  )}
 
                   {/* Reassurance pill */}
                   {hasPhone && (

@@ -117,7 +117,7 @@ export function AddToCalendar({
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-40 mt-2 w-52 overflow-hidden rounded-xl border border-paw/15 bg-[#1a1612] shadow-2xl ring-1 ring-black/20"
+          className="absolute left-0 top-full z-40 mt-2 w-52 overflow-hidden rounded-xl border border-paw/15 bg-[#1a1612] shadow-2xl ring-1 ring-black/20"
         >
           <a
             href={buildGoogleUrl(title, details, start, end)}
