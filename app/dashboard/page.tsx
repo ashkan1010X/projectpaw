@@ -44,15 +44,12 @@ function daysAway(datetime: string, now: Date): string {
   return `${diff} days away`;
 }
 
-function formatBookingDate(datetime: string, includeWeekday = false): string {
-  return new Date(datetime).toLocaleString('en-US', {
-    ...(includeWeekday ? { weekday: 'short' } : {}),
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+function formatBookingDate(datetime: string): { date: string; time: string } {
+  const d = new Date(datetime);
+  return {
+    date: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+    time: d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+  };
 }
 
 function DashboardSkeleton() {
@@ -188,22 +185,22 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="mb-10">
         <h1 className="font-elegant text-3xl font-black text-paw">Hi, {user?.name} 👋</h1>
-        <p className="mt-1 font-pawprint text-sm text-paw/50">Your booking history</p>
+        <p className="mt-1 font-pawprint text-sm text-paw/50">Your appointments</p>
       </div>
 
       {/* Stats row */}
-      <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <div className="mb-10 grid grid-cols-3 gap-4">
         <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:p-6">
           <div className="font-elegant text-3xl font-black text-accent">{bookings.length}</div>
           <div className="mt-1 font-pawprint text-xs text-paw/40">Total Bookings</div>
         </div>
-        <div className="hidden rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:block sm:p-6">
-          <div className="truncate font-elegant text-xl font-black text-doggy">{nextUpLabel}</div>
-          <div className="mt-1 font-pawprint text-xs text-paw/40">Next Up</div>
+        <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:p-6">
+          <div className="font-elegant text-3xl font-black text-doggy">{upcoming.length}</div>
+          <div className="mt-1 font-pawprint text-xs text-paw/40">Upcoming</div>
         </div>
         <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] p-5 text-center sm:p-6">
-          <div className="font-elegant text-xl font-black text-emerald-400">Active</div>
-          <div className="mt-1 font-pawprint text-xs text-paw/40">Status</div>
+          <div className="font-elegant text-3xl font-black text-emerald-400">{completed.length}</div>
+          <div className="mt-1 font-pawprint text-xs text-paw/40">Completed</div>
         </div>
       </div>
 
@@ -249,9 +246,15 @@ export default function DashboardPage() {
                       <p className="mt-0.5 font-pawprint text-sm text-paw/55">
                         {heroBooking.dog_name}
                       </p>
-                      <p className="mt-1.5 font-pawprint text-xs text-paw/40">
-                        {formatBookingDate(heroBooking.datetime, true)}
-                      </p>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <p className="font-pawprint text-xs font-semibold text-paw/50">
+                          {formatBookingDate(heroBooking.datetime).date}
+                        </p>
+                        <span className="text-paw/20">·</span>
+                        <p className="font-pawprint text-xs text-paw/35">
+                          {formatBookingDate(heroBooking.datetime).time}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <span className="font-pawprint text-xs font-semibold text-doggy/70">
@@ -284,14 +287,14 @@ export default function DashboardPage() {
             </div>
           ) : (
             /* Empty upcoming state — has past bookings but nothing upcoming */
-            <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] px-6 py-8 text-center">
-              <p className="mb-1 font-elegant text-lg text-paw/50">No upcoming bookings</p>
-              <p className="mb-4 font-pawprint text-sm text-paw/30">Ready to book again?</p>
+            <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] px-6 py-10 text-center">
+              <p className="mb-1 font-elegant text-2xl text-paw/70">You&apos;re all clear 🐾</p>
+              <p className="mb-5 font-pawprint text-sm text-paw/35">Nothing on the schedule — time to treat your pup!</p>
               <Link
                 href="/services"
-                className="inline-block rounded-lg border border-doggy/30 px-5 py-2 font-pawprint text-sm font-semibold text-doggy transition-all duration-300 hover:border-doggy/60 hover:bg-doggy/10"
+                className="inline-block rounded-lg bg-doggy px-6 py-2.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-doggy/40"
               >
-                Browse Services →
+                Book a Service →
               </Link>
             </div>
           )}
@@ -311,9 +314,11 @@ export default function DashboardPage() {
                           {booking.service_name}
                           <span className="ml-2 text-paw/40">— {booking.dog_name}</span>
                         </p>
-                        <p className="mt-0.5 font-pawprint text-xs text-paw/40">
-                          {formatBookingDate(booking.datetime)}
-                        </p>
+                        <div className="mt-0.5 flex items-center gap-1.5">
+                          <p className="font-pawprint text-xs font-medium text-paw/45">{formatBookingDate(booking.datetime).date}</p>
+                          <span className="text-paw/20">·</span>
+                          <p className="font-pawprint text-xs text-paw/30">{formatBookingDate(booking.datetime).time}</p>
+                        </div>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         <span className="font-pawprint text-xs font-semibold text-doggy/60">
@@ -364,9 +369,11 @@ export default function DashboardPage() {
                             {booking.service_name}
                             <span className="ml-2 text-paw/40">— {booking.dog_name}</span>
                           </p>
-                          <p className="mt-0.5 font-pawprint text-xs text-paw/40">
-                            {formatBookingDate(booking.datetime)}
-                          </p>
+                          <div className="mt-0.5 flex items-center gap-1.5">
+                            <p className="font-pawprint text-xs font-medium text-paw/40">{formatBookingDate(booking.datetime).date}</p>
+                            <span className="text-paw/20">·</span>
+                            <p className="font-pawprint text-xs text-paw/25">{formatBookingDate(booking.datetime).time}</p>
+                          </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
                           <button
@@ -421,9 +428,11 @@ export default function DashboardPage() {
                             {booking.service_name}
                             <span className="ml-2 text-paw/40">— {booking.dog_name}</span>
                           </p>
-                          <p className="mt-0.5 font-pawprint text-xs text-paw/40">
-                            {formatBookingDate(booking.datetime)}
-                          </p>
+                          <div className="mt-0.5 flex items-center gap-1.5">
+                            <p className="font-pawprint text-xs font-medium text-paw/40">{formatBookingDate(booking.datetime).date}</p>
+                            <span className="text-paw/20">·</span>
+                            <p className="font-pawprint text-xs text-paw/25">{formatBookingDate(booking.datetime).time}</p>
+                          </div>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
                           <button
