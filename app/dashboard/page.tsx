@@ -9,6 +9,7 @@ import { BookingModal } from '@/components/booking-modal';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { RescheduleDialog } from '@/components/reschedule-dialog';
 import { AddToCalendar } from '@/components/add-to-calendar';
+import { Toast } from '@/components/toast';
 import { cn } from '@/lib/utils';
 
 type Booking = {
@@ -142,6 +143,7 @@ export default function DashboardPage() {
   const [rebookTarget, setRebookTarget] = useState<RebookTarget | null>(null);
   const [pendingCancelBooking, setPendingCancelBooking] = useState<Booking | null>(null);
   const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
+  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
     if (!initialized) return;
@@ -187,6 +189,7 @@ export default function DashboardPage() {
       setBookings((prev) =>
         prev.map((b) => (b.id === booking.id ? { ...b, status: 'cancelled' } : b)),
       );
+      setToast({ message: 'Booking cancelled', variant: 'success' });
     } catch (err) {
       setCancelErrors((prev) => ({
         ...prev,
@@ -211,6 +214,14 @@ export default function DashboardPage() {
     setBookings((prev) =>
       prev.map((b) => (b.id === bookingId ? { ...b, datetime: isoDatetime } : b)),
     );
+    const friendlyTime = new Date(newDatetime).toLocaleString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+    setToast({ message: `Rescheduled to ${friendlyTime}`, variant: 'success' });
     setRescheduleBooking(null);
   }
 
@@ -737,6 +748,15 @@ export default function DashboardPage() {
             setPendingCancelBooking(null);
           }}
           onCancel={() => setPendingCancelBooking(null)}
+        />
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          variant={toast.variant}
+          onDismiss={() => setToast(null)}
         />
       )}
 
