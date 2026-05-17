@@ -421,7 +421,11 @@ export function NavBar() {
                 <div className="border-t border-paw/[0.08] px-3 py-3">
                   {user ? (
                     <button
-                      onClick={() => setConfirmLogout(true)}
+                      onClick={() => {
+                        setIsOpen(false);
+                        // Wait for drawer close animation so confirm dialog is clickable
+                        setTimeout(() => setConfirmLogout(true), 220);
+                      }}
                       className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-paw/15 px-4 py-3 font-pawprint text-sm font-semibold text-paw/75 transition-all duration-300 hover:border-paw/35 hover:bg-paw/[0.04] hover:text-paw"
                     >
                       <LogOut size={15} />
