@@ -81,10 +81,10 @@ export function ServicesClient({ services }: { services: ServiceRow[] }) {
                 key={value}
                 onClick={() => setTypeFilter(value)}
                 className={cn(
-                  'cursor-pointer rounded-full px-4 py-1.5 font-pawprint text-xs font-semibold transition-all duration-300',
+                  'min-h-9 cursor-pointer rounded-full px-4 py-2 font-pawprint text-xs font-semibold transition-all duration-300',
                   typeFilter === value
                     ? 'bg-doggy text-white shadow-md shadow-doggy/30'
-                    : 'border border-paw/[0.1] text-paw/50 hover:border-paw/30 hover:text-paw',
+                    : 'border border-paw/[0.1] text-paw/65 hover:border-paw/30 hover:text-paw',
                 )}
               >
                 {label}

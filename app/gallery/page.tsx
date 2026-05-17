@@ -28,7 +28,7 @@ const DOG_IMAGES = [
     height: 'h-64',
   },
   {
-    src: 'https://images.unsplash.com/photo-1534361960057-19f4434a5fbc?w=900',
+    src: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=900',
     alt: 'Dog exploring nature on a trail',
     label: 'Adventure',
     service: 'Walking',

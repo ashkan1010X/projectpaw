@@ -108,7 +108,7 @@ export function AddToCalendar({
         aria-label="Add to calendar"
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex items-center gap-1.5 rounded-lg border border-doggy/25 bg-doggy/[0.05] px-3 py-1.5 font-pawprint text-xs font-semibold text-doggy/85 transition-all duration-200 hover:border-doggy/50 hover:bg-doggy/10"
+        className="flex min-h-9 items-center gap-1.5 rounded-lg border border-doggy/25 bg-doggy/[0.05] px-3 py-2 font-pawprint text-xs font-semibold text-doggy/85 transition-all duration-200 hover:border-doggy/50 hover:bg-doggy/10 focus:outline-none focus:ring-2 focus:ring-doggy/40"
       >
         <CalendarPlus className="size-3.5" />
         Add to Calendar

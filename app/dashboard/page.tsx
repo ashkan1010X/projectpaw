@@ -449,7 +449,7 @@ export default function DashboardPage() {
                     <button
                       onClick={() => setRescheduleBooking(heroBooking)}
                       aria-label={`Reschedule booking for ${heroBooking.service_name}`}
-                      className="flex items-center gap-1.5 rounded-lg border border-paw/15 bg-paw/[0.03] px-3 py-1.5 font-pawprint text-xs font-semibold text-paw/75 transition-all duration-200 hover:border-paw/30 hover:bg-paw/[0.07] hover:text-paw"
+                      className="flex min-h-9 items-center gap-1.5 rounded-lg border border-paw/15 bg-paw/[0.03] px-3 py-2 font-pawprint text-xs font-semibold text-paw/75 transition-all duration-200 hover:border-paw/30 hover:bg-paw/[0.07] hover:text-paw focus:outline-none focus:ring-2 focus:ring-doggy/30"
                     >
                       <CalendarClock className="size-3.5" />
                       Reschedule
@@ -458,7 +458,7 @@ export default function DashboardPage() {
                       onClick={() => setPendingCancelBooking(heroBooking)}
                       disabled={cancellingId === heroBooking.id}
                       aria-label={`Cancel booking for ${heroBooking.service_name}`}
-                      className="ml-auto flex items-center gap-1.5 rounded-lg border border-red-500/25 px-3 py-1.5 font-pawprint text-xs font-semibold text-red-400 transition-all duration-200 hover:border-red-500/50 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="ml-auto flex min-h-9 items-center gap-1.5 rounded-lg border border-red-500/25 px-3 py-2 font-pawprint text-xs font-semibold text-red-400 transition-all duration-200 hover:border-red-500/50 hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-red-500/30 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {cancellingId === heroBooking.id ? (
                         <>
@@ -589,7 +589,7 @@ export default function DashboardPage() {
                         <button
                           onClick={() => setRescheduleBooking(booking)}
                           aria-label={`Reschedule booking for ${booking.service_name}`}
-                          className="rounded-lg border border-paw/15 px-3 py-1 font-pawprint text-xs font-semibold text-paw/70 transition-all duration-200 hover:border-paw/30 hover:bg-paw/[0.05] hover:text-paw"
+                          className="min-h-9 rounded-lg border border-paw/15 px-3 py-2 font-pawprint text-xs font-semibold text-paw/70 transition-all duration-200 hover:border-paw/30 hover:bg-paw/[0.05] hover:text-paw focus:outline-none focus:ring-2 focus:ring-doggy/30"
                         >
                           Reschedule
                         </button>
@@ -597,7 +597,7 @@ export default function DashboardPage() {
                           onClick={() => setPendingCancelBooking(booking)}
                           disabled={cancellingId === booking.id}
                           aria-label={`Cancel booking for ${booking.service_name}`}
-                          className="flex items-center gap-1.5 rounded-lg border border-red-500/25 px-3 py-1 font-pawprint text-xs font-semibold text-red-400 transition-all duration-200 hover:border-red-500/50 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="flex min-h-9 items-center gap-1.5 rounded-lg border border-red-500/25 px-3 py-2 font-pawprint text-xs font-semibold text-red-400 transition-all duration-200 hover:border-red-500/50 hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-red-500/30 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {cancellingId === booking.id ? (
                             <>
@@ -660,7 +660,7 @@ export default function DashboardPage() {
                               })
                             }
                             aria-label={`Rebook ${booking.service_name} for ${booking.dog_name}`}
-                            className="rounded-lg border border-doggy/30 px-3 py-1 font-pawprint text-xs font-semibold text-doggy transition-all duration-200 hover:border-doggy/60 hover:bg-doggy/10"
+                            className="min-h-9 rounded-lg border border-doggy/30 px-3 py-2 font-pawprint text-xs font-semibold text-doggy transition-all duration-200 hover:border-doggy/60 hover:bg-doggy/10 focus:outline-none focus:ring-2 focus:ring-doggy/40"
                           >
                             Rebook
                           </button>
@@ -725,7 +725,7 @@ export default function DashboardPage() {
                               })
                             }
                             aria-label={`Rebook ${booking.service_name} for ${booking.dog_name}`}
-                            className="rounded-lg border border-doggy/30 px-3 py-1 font-pawprint text-xs font-semibold text-doggy transition-all duration-200 hover:border-doggy/60 hover:bg-doggy/10"
+                            className="min-h-9 rounded-lg border border-doggy/30 px-3 py-2 font-pawprint text-xs font-semibold text-doggy transition-all duration-200 hover:border-doggy/60 hover:bg-doggy/10 focus:outline-none focus:ring-2 focus:ring-doggy/40"
                           >
                             Rebook
                           </button>

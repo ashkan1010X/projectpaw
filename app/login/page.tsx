@@ -109,7 +109,7 @@ export default function LoginPage() {
       </aside>
 
       {/* RIGHT — Form */}
-      <div className="relative flex items-center justify-center px-4 py-16 lg:col-span-3">
+      <div className="relative flex items-center justify-center overflow-hidden px-4 py-16 lg:col-span-3">
         <div className="pointer-events-none absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 size-[400px] rounded-full bg-doggy/[0.06] blur-[100px] lg:hidden" />
 
         <div className="relative z-10 w-full max-w-md">
@@ -176,7 +176,7 @@ export default function LoginPage() {
                 </label>
                 <button
                   type="button"
-                  className="font-pawprint text-xs text-doggy/70 transition-colors hover:text-doggy"
+                  className="-mr-2 inline-flex min-h-9 items-center rounded-md px-2 py-2 font-pawprint text-xs text-doggy/70 transition-colors hover:text-doggy focus:outline-none focus:ring-2 focus:ring-doggy/30"
                 >
                   Forgot?
                 </button>
@@ -205,7 +205,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-paw/30 outline-none transition-colors duration-200 hover:text-paw/70"
+                  className="absolute right-1.5 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-paw/30 outline-none transition-colors duration-200 hover:text-paw/70 focus:ring-2 focus:ring-doggy/30"
                 >
                   {showPassword ? (
                     <EyeOff className="size-4" strokeWidth={1.5} />
@@ -272,11 +272,11 @@ export default function LoginPage() {
           </div>
 
           <div className="mt-8 text-center animate-fade-in delay-400">
-            <p className="font-pawprint text-sm text-paw/45">
+            <p className="font-pawprint text-sm leading-9 text-paw/55">
               Don&apos;t have an account?{' '}
               <Link
                 href="/signup"
-                className="font-bold text-doggy transition-colors hover:text-doggy/80"
+                className="-my-1 inline-flex min-h-9 items-center rounded-md px-2 py-2 font-bold text-doggy transition-colors hover:text-doggy/80 focus:outline-none focus:ring-2 focus:ring-doggy/30"
               >
                 Sign up free
               </Link>

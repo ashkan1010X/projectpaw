@@ -149,7 +149,7 @@ export default function SignupPage() {
       </aside>
 
       {/* RIGHT — Form */}
-      <div className="relative flex items-center justify-center px-4 py-16 lg:col-span-3">
+      <div className="relative flex items-center justify-center overflow-hidden px-4 py-16 lg:col-span-3">
         <div className="pointer-events-none absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 size-[400px] rounded-full bg-doggy/[0.06] blur-[100px] lg:hidden" />
 
         <div className="relative z-10 w-full max-w-md">
@@ -274,7 +274,7 @@ export default function SignupPage() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-paw/30 outline-none transition-colors duration-200 hover:text-paw/70"
+                  className="absolute right-1.5 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-paw/30 outline-none transition-colors duration-200 hover:text-paw/70 focus:ring-2 focus:ring-doggy/30"
                 >
                   {showPassword ? (
                     <EyeOff className="size-4" strokeWidth={1.5} />
@@ -322,13 +322,19 @@ export default function SignupPage() {
               )}
             </button>
 
-            <p className="text-center font-pawprint text-xs text-paw/35">
+            <p className="text-center font-pawprint text-xs leading-7 text-paw/35">
               By creating an account, you agree to our{' '}
-              <a href="#" className="text-paw/55 underline underline-offset-2 hover:text-paw">
+              <a
+                href="#"
+                className="inline-block rounded px-1 py-1 text-paw/65 underline underline-offset-2 hover:text-paw focus:outline-none focus:ring-2 focus:ring-doggy/30"
+              >
                 Terms
               </a>{' '}
               and{' '}
-              <a href="#" className="text-paw/55 underline underline-offset-2 hover:text-paw">
+              <a
+                href="#"
+                className="inline-block rounded px-1 py-1 text-paw/65 underline underline-offset-2 hover:text-paw focus:outline-none focus:ring-2 focus:ring-doggy/30"
+              >
                 Privacy Policy
               </a>
               .
@@ -336,11 +342,11 @@ export default function SignupPage() {
           </form>
 
           <div className="mt-8 border-t border-paw/[0.06] pt-6 text-center animate-fade-in delay-300">
-            <p className="font-pawprint text-sm text-paw/45">
+            <p className="font-pawprint text-sm leading-9 text-paw/55">
               Already have an account?{' '}
               <Link
                 href="/login"
-                className="font-bold text-doggy transition-colors hover:text-doggy/80"
+                className="-my-1 inline-flex min-h-9 items-center rounded-md px-2 py-2 font-bold text-doggy transition-colors hover:text-doggy/80 focus:outline-none focus:ring-2 focus:ring-doggy/30"
               >
                 Sign in
               </Link>
