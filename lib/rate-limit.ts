@@ -56,13 +56,13 @@ export async function checkRateLimit({
     return { allowed: false, remaining: 0, retryAfterSeconds };
   }
 
-  // Record the hit — non-blocking write; if it fails we still allow the request
-  void supabaseAdmin
+  // Record the hit — must AWAIT, otherwise serverless functions can shut down
+  // before the write commits (and the next request won't see this attempt).
+  // A single small insert is ~5-20ms; cheap enough to await.
+  const { error: insertErr } = await supabaseAdmin
     .from('auth_rate_limits')
-    .insert({ bucket, identifier })
-    .then(({ error: insertErr }) => {
-      if (insertErr) console.error('[rate-limit] insert failed:', insertErr.message);
-    });
+    .insert({ bucket, identifier });
+  if (insertErr) console.error('[rate-limit] insert failed:', insertErr.message);
 
   return { allowed: true, remaining: max - hits - 1, retryAfterSeconds: 0 };
 }
