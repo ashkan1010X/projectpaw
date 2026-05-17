@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { PawPrint, Mail, ArrowLeft, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import { PawPrint, Mail, ArrowLeft, ArrowRight, Loader2, CheckCircle2, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function ForgotPasswordPage() {
@@ -10,9 +10,36 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [cooldownLeft, setCooldownLeft] = useState(0);
+
+  // Live countdown for rate-limit cooldown
+  useEffect(() => {
+    if (cooldownUntil === null) return;
+    const tick = () => {
+      const left = Math.max(0, Math.ceil((cooldownUntil - Date.now()) / 1000));
+      setCooldownLeft(left);
+      if (left === 0) {
+        setCooldownUntil(null);
+        setError(null);
+      }
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [cooldownUntil]);
+
+  function formatCooldown(seconds: number) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    if (m === 0) return `${s}s`;
+    if (s === 0) return `${m} min`;
+    return `${m} min ${s}s`;
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (cooldownLeft > 0) return;
     setError(null);
     setLoading(true);
 
@@ -22,6 +49,14 @@ export default function ForgotPasswordPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
+
+      // 429 — rate limited; surface countdown using Retry-After header
+      if (res.status === 429) {
+        const retryAfter = parseInt(res.headers.get('Retry-After') ?? '60', 10);
+        setCooldownUntil(Date.now() + retryAfter * 1000);
+        const data = (await res.json().catch(() => ({}))) as { message?: string };
+        throw new Error(data.message ?? 'Too many requests. Try again shortly.');
+      }
 
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { message?: string };
@@ -35,6 +70,8 @@ export default function ForgotPasswordPage() {
       setLoading(false);
     }
   }
+
+  const isRateLimited = cooldownLeft > 0;
 
   return (
     <div className="relative flex min-h-[calc(100vh-73px)] items-center justify-center overflow-hidden px-4 py-16">
@@ -124,7 +161,7 @@ export default function ForgotPasswordPage() {
                 </div>
               </div>
 
-              {error && (
+              {error && !isRateLimited && (
                 <div
                   role="alert"
                   className="rounded-xl border border-red-500/25 bg-red-500/[0.08] px-4 py-3 animate-fade-in"
@@ -133,9 +170,28 @@ export default function ForgotPasswordPage() {
                 </div>
               )}
 
+              {isRateLimited && (
+                <div
+                  role="alert"
+                  className="flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.08] px-4 py-3 animate-fade-in"
+                >
+                  <Clock className="mt-0.5 size-4 shrink-0 text-amber-400" />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-pawprint text-sm font-semibold text-amber-300">
+                      Too many requests
+                    </p>
+                    <p className="mt-0.5 font-pawprint text-xs text-amber-300/80">
+                      For your security, please wait{' '}
+                      <span className="font-bold tabular-nums">{formatCooldown(cooldownLeft)}</span>{' '}
+                      before requesting another reset link.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <button
                 type="submit"
-                disabled={loading || !email}
+                disabled={loading || !email || isRateLimited}
                 className="group relative mt-2 flex min-h-11 cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl bg-doggy py-3.5 font-pawprint text-sm font-bold text-white shadow-xl shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50 focus:outline-none focus:ring-2 focus:ring-doggy/50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
@@ -143,6 +199,13 @@ export default function ForgotPasswordPage() {
                   <>
                     <Loader2 className="relative size-4 animate-spin" />
                     <span className="relative">Sending link...</span>
+                  </>
+                ) : isRateLimited ? (
+                  <>
+                    <Clock className="relative size-4" />
+                    <span className="relative tabular-nums">
+                      Try again in {formatCooldown(cooldownLeft)}
+                    </span>
                   </>
                 ) : (
                   <>
