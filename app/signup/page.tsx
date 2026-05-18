@@ -367,11 +367,10 @@ export default function SignupPage() {
                   <ShieldAlert className="mt-0.5 size-3.5 shrink-0 text-red-400" />
                   <div className="min-w-0 flex-1">
                     <p className="font-pawprint text-xs font-semibold text-red-400">
-                      Found in {hibpBreachCount.toLocaleString()} known data breach
-                      {hibpBreachCount === 1 ? '' : 'es'}
+                      This password was exposed in a data breach
                     </p>
                     <p className="mt-0.5 font-pawprint text-[11px] text-red-400/80">
-                      Pick a different password — this one is on attacker dictionaries.
+                      It&apos;s no longer safe to use — choose a unique password you haven&apos;t used elsewhere.
                     </p>
                   </div>
                 </div>
