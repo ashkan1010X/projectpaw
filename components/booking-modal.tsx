@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Calendar, Dog, FileText, Check, PawPrint, type LucideIcon } from 'lucide-react';
+import { X, Calendar, Dog, FileText, Check, PawPrint, Plus, type LucideIcon } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 import { DateTimePicker } from '@/components/date-time-picker';
@@ -20,6 +21,14 @@ interface BookingModalProps {
   initialDogName?: string;
 }
 
+type Pet = {
+  id: string;
+  name: string;
+  breed: string | null;
+  age: string | null;
+  photo_url: string | null;
+};
+
 function FieldWrapper({
   label,
   htmlFor,
@@ -27,7 +36,7 @@ function FieldWrapper({
   children,
 }: {
   label: string;
-  htmlFor: string;
+  htmlFor?: string;
   icon: LucideIcon;
   children: React.ReactNode;
 }) {
@@ -60,9 +69,10 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
 
   const { token, fetchWithAuth } = useAuth();
   const router = useRouter();
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [petsLoaded, setPetsLoaded] = useState(false);
+  const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
   const [dogName, setDogName] = useState(initialDogName ?? '');
-  const [dogPhotoUrl, setDogPhotoUrl] = useState<string | null>(null);
-  const [dogBreed, setDogBreed] = useState('');
   const [datetime, setDatetime] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
@@ -92,17 +102,22 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     return () => clearTimeout(t);
   }, [success, countdown, onClose, router]);
 
-  // Pre-fill dog info from profile when no initialDogName is provided
+  // Fetch pets when modal opens
   useEffect(() => {
     if (!token) return;
-    fetchWithAuth('/api/profile')
-      .then((r) => r.json() as Promise<{ profile: { dog_name?: string | null; dog_photo_url?: string | null; dog_breed?: string | null } | null }>)
-      .then(({ profile }) => {
-        if (!initialDogName && profile?.dog_name) setDogName(profile.dog_name);
-        if (profile?.dog_photo_url) setDogPhotoUrl(profile.dog_photo_url);
-        if (profile?.dog_breed) setDogBreed(profile.dog_breed);
+    fetchWithAuth('/api/pets')
+      .then((r) => r.json() as Promise<{ pets: Pet[] }>)
+      .then(({ pets }) => {
+        const list = pets ?? [];
+        setPets(list);
+        // Auto-select first pet so users hit "Confirm" faster (1-pet case = 0 clicks)
+        if (list.length > 0 && !initialDogName) {
+          setSelectedPetId(list[0].id);
+          setDogName(list[0].name);
+        }
       })
-      .catch(() => {}); // silent — best-effort
+      .catch(() => {})
+      .finally(() => setPetsLoaded(true));
   }, [token, initialDogName, fetchWithAuth]);
 
   if (!token) {
@@ -115,8 +130,14 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     );
   }
 
+  function selectPet(pet: Pet) {
+    setSelectedPetId(pet.id);
+    setDogName(pet.name);
+    setFieldErrors((fe) => ({ ...fe, dogName: undefined }));
+  }
+
   function validateBookingField(field: keyof BookingErrors, value: string): string | undefined {
-    if (field === 'dogName' && !value.trim()) return "Your dog's name is required.";
+    if (field === 'dogName' && !value.trim()) return "Please pick a pet for this booking.";
     if (field === 'datetime') {
       if (!value) return 'Please select a date and time.';
       if (new Date(value) <= new Date()) return 'Please choose a future date and time.';
@@ -178,17 +199,20 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     }
   }
 
+  const hasPets = pets.length > 0;
+  const selectedPet = pets.find((p) => p.id === selectedPetId) ?? null;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md animate-fade-in"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-paw/15 bg-[#0f0d09] shadow-2xl animate-scale-in">
+      <div className="relative w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col rounded-3xl border border-paw/15 bg-[#0f0d09] shadow-2xl animate-scale-in">
         {/* Ambient glow */}
         <div className="pointer-events-none absolute -top-32 left-1/2 size-[300px] -translate-x-1/2 rounded-full bg-doggy/[0.15] blur-[80px]" />
 
         {/* Header */}
-        <div className="relative flex items-center justify-between overflow-hidden border-b border-paw/[0.06] bg-gradient-to-r from-doggy/95 via-doggy to-paw-dark px-6 py-5">
+        <div className="relative flex shrink-0 items-center justify-between overflow-hidden border-b border-paw/[0.06] bg-gradient-to-r from-doggy/95 via-doggy to-paw-dark px-6 py-5">
           <div
             className="pointer-events-none absolute inset-0 opacity-[0.08]"
             style={{
@@ -221,7 +245,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
           </button>
         </div>
 
-        <div className="relative p-6">
+        <div className="relative flex-1 overflow-y-auto p-6">
           {success ? (
             <div className="flex flex-col items-center gap-5 py-6 text-center animate-fade-up">
               <div className="relative flex size-20 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/[0.1]">
@@ -259,57 +283,113 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
-              {/* Pet card — shows when we have a photo or name from profile */}
-              {(dogPhotoUrl || dogName) && (
-                <div className="flex items-center gap-3 rounded-xl border border-paw/[0.08] bg-paw/[0.03] px-4 py-3 animate-fade-in">
-                  <div className="relative shrink-0">
-                    {dogPhotoUrl ? (
-                      <Image
-                        src={dogPhotoUrl}
-                        alt={dogName || 'Dog'}
-                        width={44}
-                        height={44}
-                        className="rounded-full object-cover ring-2 ring-doggy/25"
-                      />
-                    ) : (
-                      <div className="flex size-11 items-center justify-center rounded-full border border-doggy/30 bg-doggy/[0.08]">
-                        <PawPrint className="size-5 text-doggy/50" strokeWidth={1.5} />
-                      </div>
-                    )}
+              {/* Pet picker (or fallback) */}
+              {hasPets ? (
+                <FieldWrapper label={pets.length === 1 ? 'Booking For' : "Pick a Pet"} icon={Dog}>
+                  <div className="flex flex-wrap gap-2">
+                    {pets.map((pet) => {
+                      const active = selectedPetId === pet.id;
+                      return (
+                        <button
+                          type="button"
+                          key={pet.id}
+                          onClick={() => selectPet(pet)}
+                          className={cn(
+                            'group flex items-center gap-2.5 rounded-full border px-3 py-2 transition-all duration-200',
+                            active
+                              ? 'border-doggy/60 bg-doggy/[0.12] shadow-md shadow-doggy/15'
+                              : 'border-paw/[0.12] bg-paw/[0.03] hover:border-doggy/30 hover:bg-doggy/[0.05]',
+                          )}
+                          aria-pressed={active}
+                        >
+                          {pet.photo_url ? (
+                            <Image
+                              src={pet.photo_url}
+                              alt={pet.name}
+                              width={28}
+                              height={28}
+                              className="size-7 rounded-full object-cover"
+                              style={{ width: 28, height: 28 }}
+                            />
+                          ) : (
+                            <span className={cn(
+                              'flex size-7 items-center justify-center rounded-full border',
+                              active ? 'border-doggy/40 bg-doggy/[0.18]' : 'border-paw/15 bg-paw/[0.05]',
+                            )}>
+                              <PawPrint className={cn('size-3.5', active ? 'text-doggy' : 'text-paw/40')} strokeWidth={1.8} />
+                            </span>
+                          )}
+                          <span className={cn(
+                            'font-pawprint text-sm font-semibold transition-colors',
+                            active ? 'text-paw' : 'text-paw/65 group-hover:text-paw/90',
+                          )}>
+                            {pet.name}
+                          </span>
+                          {active && (
+                            <span className="flex size-4 items-center justify-center rounded-full bg-doggy">
+                              <Check className="size-2.5 text-white" strokeWidth={3} />
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                    <Link
+                      href="/profile"
+                      className="flex items-center gap-1.5 rounded-full border border-dashed border-paw/15 px-3 py-2 font-pawprint text-xs font-semibold text-paw/40 transition-colors hover:border-doggy/40 hover:text-doggy"
+                    >
+                      <Plus className="size-3.5" strokeWidth={2} />
+                      Add pet
+                    </Link>
                   </div>
-                  <div>
-                    <p className="font-pawprint text-[10px] font-bold uppercase tracking-[0.16em] text-paw/35">Booking for</p>
-                    <p className="font-pawprint text-sm font-semibold text-paw">
-                      {dogName || 'Your dog'}
-                      {dogBreed && <span className="font-normal text-paw/45"> · {dogBreed}</span>}
+
+                  {/* Selected pet detail strip */}
+                  {selectedPet && (selectedPet.breed || selectedPet.age) && (
+                    <p className="mt-1 font-pawprint text-xs text-paw/40 animate-fade-in">
+                      {[selectedPet.breed, selectedPet.age].filter(Boolean).join(' · ')}
                     </p>
+                  )}
+
+                  {fieldErrors.dogName && (
+                    <p className="font-pawprint text-xs text-red-400">{fieldErrors.dogName}</p>
+                  )}
+                </FieldWrapper>
+              ) : petsLoaded ? (
+                <FieldWrapper label="Dog's Name" htmlFor="dogName" icon={Dog}>
+                  <input
+                    id="dogName"
+                    type="text"
+                    value={dogName}
+                    onChange={(e) => {
+                      setDogName(e.target.value);
+                      setFieldErrors((fe) => ({ ...fe, dogName: undefined }));
+                    }}
+                    onBlur={(e) => {
+                      const err = e.target.value.trim() ? undefined : "Your dog's name is required.";
+                      setFieldErrors((fe) => ({ ...fe, dogName: err }));
+                    }}
+                    placeholder="e.g. Buddy"
+                    className={cn(
+                      inputClass,
+                      fieldErrors.dogName && 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/10',
+                    )}
+                  />
+                  <p className="font-pawprint text-[11px] text-paw/40">
+                    💡 <Link href="/profile" className="text-doggy/80 hover:text-doggy underline underline-offset-2">Save your pets to your profile</Link> to skip this next time.
+                  </p>
+                  {fieldErrors.dogName && (
+                    <p className="font-pawprint text-xs text-red-400">{fieldErrors.dogName}</p>
+                  )}
+                </FieldWrapper>
+              ) : (
+                /* Skeleton while pets load */
+                <div className="flex flex-col gap-2 animate-pulse">
+                  <div className="h-3 w-24 rounded bg-paw/10" />
+                  <div className="flex gap-2">
+                    <div className="h-10 w-24 rounded-full bg-paw/[0.06]" />
+                    <div className="h-10 w-24 rounded-full bg-paw/[0.06]" />
                   </div>
                 </div>
               )}
-
-              <FieldWrapper label="Dog's Name" htmlFor="dogName" icon={Dog}>
-                <input
-                  id="dogName"
-                  type="text"
-                  value={dogName}
-                  onChange={(e) => {
-                    setDogName(e.target.value);
-                    setFieldErrors((fe) => ({ ...fe, dogName: undefined }));
-                  }}
-                  onBlur={(e) => {
-                    const err = validateBookingField('dogName', e.target.value);
-                    setFieldErrors((fe) => ({ ...fe, dogName: err }));
-                  }}
-                  placeholder="e.g. Buddy"
-                  className={cn(
-                    inputClass,
-                    fieldErrors.dogName && 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/10',
-                  )}
-                />
-                {fieldErrors.dogName && (
-                  <p className="font-pawprint text-xs text-red-400">{fieldErrors.dogName}</p>
-                )}
-              </FieldWrapper>
 
               <FieldWrapper label="Date & Time" htmlFor="datetime" icon={Calendar}>
                 <DateTimePicker
