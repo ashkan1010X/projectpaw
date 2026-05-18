@@ -265,15 +265,15 @@ export default function ResetPasswordPage() {
                 {hibpStatus === 'pwned' && (
                   <div
                     role="alert"
-                    className="flex items-start gap-2 rounded-lg border border-red-500/25 bg-red-500/[0.06] px-3 py-2 animate-fade-in"
+                    className="flex items-start gap-2 rounded-lg border border-amber-500/25 bg-amber-500/[0.06] px-3 py-2 animate-fade-in"
                   >
-                    <ShieldAlert className="mt-0.5 size-3.5 shrink-0 text-red-400" />
+                    <ShieldAlert className="mt-0.5 size-3.5 shrink-0 text-amber-400" />
                     <div className="min-w-0 flex-1">
-                      <p className="font-pawprint text-xs font-semibold text-red-400">
-                        This password was exposed in a data breach
+                      <p className="font-pawprint text-xs font-semibold text-amber-300">
+                        Seen in {hibpBreachCount.toLocaleString()} password leak{hibpBreachCount === 1 ? '' : 's'}
                       </p>
-                      <p className="mt-0.5 font-pawprint text-[11px] text-red-400/80">
-                        It&apos;s no longer safe to use — choose a unique password you haven&apos;t used elsewhere.
+                      <p className="mt-0.5 font-pawprint text-[11px] text-amber-300/75">
+                        Pick one only you&apos;d think of — even a single custom word keeps it yours.
                       </p>
                     </div>
                   </div>
