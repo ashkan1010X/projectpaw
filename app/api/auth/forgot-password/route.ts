@@ -143,9 +143,15 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // CRITICAL: prefer the canonical site URL over the request origin.
+  // The request origin is `http://localhost:3000` when running `npm run dev`,
+  // which would put a broken link in the email if the user opens it on a
+  // different device. The email link must ALWAYS point to production.
   const origin =
-    req.headers.get('origin') ??
+    process.env.NEXT_PUBLIC_APP_URL ??
     process.env.NEXT_PUBLIC_SITE_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ??
+    req.headers.get('origin') ??
     'https://projectpaw.vercel.app';
 
   // CRITICAL — defer the actual email work until AFTER the response is sent.
