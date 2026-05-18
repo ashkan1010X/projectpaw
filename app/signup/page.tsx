@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { PawPrint, User, Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, Check, CheckCircle2, Circle, ShieldAlert, ShieldCheck, Loader2 } from 'lucide-react';
+import { PawPrint, User, Mail, MailCheck, Lock, Eye, EyeOff, ArrowRight, Sparkles, Check, CheckCircle2, Circle, ShieldAlert, ShieldCheck, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { isPasswordPwned } from '@/lib/hibp';
 import { cn } from '@/lib/utils';
@@ -177,6 +177,38 @@ export default function SignupPage() {
         <div className="pointer-events-none absolute left-1/2 top-1/3 -translate-x-1/2 -translate-y-1/2 size-[400px] rounded-full bg-doggy/[0.06] blur-[100px] lg:hidden" />
 
         <div className="relative z-10 w-full max-w-md">
+          {/* ── Email confirmation success screen ── */}
+          {success && (
+            <div className="flex flex-col items-center gap-6 text-center animate-fade-up">
+              <div className="flex size-16 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10">
+                <MailCheck className="size-7 text-emerald-400" strokeWidth={1.8} />
+              </div>
+              <div>
+                <h1 className="mb-3 font-elegant text-4xl font-black tracking-tight text-paw">
+                  Check your inbox
+                </h1>
+                <p className="font-pawprint text-sm text-paw/60">
+                  We sent a confirmation link to
+                </p>
+                <p className="mt-1 font-pawprint text-sm font-semibold text-paw/90">{email}</p>
+                <p className="mt-3 font-pawprint text-sm text-paw/50">
+                  Click the link to activate your account.
+                  <br />
+                  It may take a minute — check your spam folder too.
+                </p>
+              </div>
+              <Link
+                href="/login"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-doggy px-6 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/30 transition-all hover:shadow-doggy/50 focus:outline-none focus:ring-2 focus:ring-doggy/50"
+              >
+                Go to sign in
+                <ArrowRight className="size-4" />
+              </Link>
+            </div>
+          )}
+
+          {/* ── Main form (hidden once success) ── */}
+          {!success && <>
           {/* Mark (mobile only) */}
           <div className="mb-8 flex flex-col items-center gap-4 text-center lg:hidden animate-fade-down">
             <div className="flex size-14 items-center justify-center rounded-2xl border border-paw/15 bg-paw/[0.05]">
@@ -383,12 +415,6 @@ export default function SignupPage() {
               </div>
             )}
 
-            {success && (
-              <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.08] px-4 py-3 animate-fade-in">
-                <p className="font-pawprint text-sm text-emerald-400">{success}</p>
-              </div>
-            )}
-
             <button
               type="submit"
               disabled={loading || hibpStatus === 'pwned' || hibpStatus === 'checking'}
@@ -431,6 +457,7 @@ export default function SignupPage() {
               </Link>
             </p>
           </div>
+          </>}
         </div>
       </div>
     </div>
