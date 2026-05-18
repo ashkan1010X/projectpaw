@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { PawPrint, User, Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, Check, ShieldAlert, ShieldCheck, Loader2 } from 'lucide-react';
+import { PawPrint, User, Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles, Check, CheckCircle2, Circle, ShieldAlert, ShieldCheck, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { isPasswordPwned } from '@/lib/hibp';
 import { cn } from '@/lib/utils';
@@ -58,15 +58,13 @@ export default function SignupPage() {
     return () => clearTimeout(handle);
   }, [password]);
 
-  const passwordStrength = (() => {
-    if (!password) return 0;
-    let s = 0;
-    if (password.length >= 8) s++;
-    if (/[A-Z]/.test(password)) s++;
-    if (/[0-9]/.test(password)) s++;
-    if (/[^A-Za-z0-9]/.test(password)) s++;
-    return s;
-  })();
+  const reqs = {
+    length: password.length >= 8,
+    upper: /[A-Z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[^A-Za-z0-9]/.test(password),
+  };
+  const passwordStrength = Object.values(reqs).filter(Boolean).length;
   const strengthLabel = ['', 'Weak', 'Fair', 'Good', 'Strong'][passwordStrength];
   const strengthColor = ['', 'bg-red-500', 'bg-amber-500', 'bg-[#F9D923]', 'bg-emerald-500'][
     passwordStrength
@@ -319,6 +317,31 @@ export default function SignupPage() {
                         bar <= passwordStrength ? strengthColor : 'bg-paw/[0.08]',
                       )}
                     />
+                  ))}
+                </div>
+              )}
+
+              {/* Password requirements checklist */}
+              {password && (
+                <div className="grid grid-cols-2 gap-x-3 gap-y-1 animate-fade-in">
+                  {([
+                    [reqs.length,  '8+ characters'],
+                    [reqs.upper,   'Uppercase A–Z'],
+                    [reqs.number,  'Number 0–9'],
+                    [reqs.special, 'Special character'],
+                  ] as [boolean, string][]).map(([met, label]) => (
+                    <div key={label} className="flex items-center gap-1.5">
+                      {met
+                        ? <CheckCircle2 className="size-3 shrink-0 text-emerald-400 transition-colors duration-300" />
+                        : <Circle className="size-3 shrink-0 text-paw/20 transition-colors duration-300" />
+                      }
+                      <span className={cn(
+                        'font-pawprint text-[11px] transition-colors duration-300',
+                        met ? 'text-emerald-400' : 'text-paw/35',
+                      )}>
+                        {label}
+                      </span>
+                    </div>
                   ))}
                 </div>
               )}
