@@ -147,11 +147,15 @@ export async function POST(req: NextRequest) {
   // The request origin is `http://localhost:3000` when running `npm run dev`,
   // which would put a broken link in the email if the user opens it on a
   // different device. The email link must ALWAYS point to production.
+  //
+  // IMPORTANT: Do NOT use VERCEL_URL here. Vercel sets it to the deployment-
+  // specific subdomain (e.g. projectpaw-abc123.vercel.app), which is NOT in
+  // Supabase's Redirect URL allow-list. Supabase then strips the path and falls
+  // back to the Site URL root, sending the user to the homepage instead of
+  // /reset-password.
   const origin =
     process.env.NEXT_PUBLIC_APP_URL ??
     process.env.NEXT_PUBLIC_SITE_URL ??
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ??
-    req.headers.get('origin') ??
     'https://projectpaw.vercel.app';
 
   // CRITICAL — defer the actual email work until AFTER the response is sent.
