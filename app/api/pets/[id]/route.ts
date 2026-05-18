@@ -3,6 +3,8 @@ import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import type { PetRow } from '../route';
 
+const BUCKET = 'dog-photos';
+
 async function getUser(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return { error: 'Unauthorized', status: 401 as const };
@@ -15,6 +17,22 @@ function sanitize(value: unknown): string | null {
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
   return trimmed.length === 0 ? null : trimmed;
+}
+
+function extractStoragePath(url: string | null): string | null {
+  if (!url) return null;
+  const marker = `/object/public/${BUCKET}/`;
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  return url.slice(idx + marker.length);
+}
+
+async function deleteStoragePhoto(url: string | null) {
+  const path = extractStoragePath(url);
+  if (!path) return;
+  await supabaseAdmin.storage.from(BUCKET).remove([path]).catch((e) => {
+    console.error('Pet photo cleanup error:', e);
+  });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -42,6 +60,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ message: 'Nothing to update' }, { status: 400 });
   }
 
+  // If we're replacing the photo, grab the previous URL so we can clean it up
+  let previousPhotoUrl: string | null = null;
+  if (updates.photo_url !== undefined) {
+    const { data: existing } = await supabaseAdmin
+      .from('pets')
+      .select('photo_url')
+      .eq('id', id)
+      .eq('user_id', auth.user.id)
+      .maybeSingle();
+    previousPhotoUrl = (existing as { photo_url?: string | null } | null)?.photo_url ?? null;
+  }
+
   const { data, error } = await supabaseAdmin
     .from('pets')
     .update(updates)
@@ -55,6 +85,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ message: 'Pet not found or update failed' }, { status: 404 });
   }
 
+  // Best-effort cleanup of the old photo file (after the row is updated)
+  if (previousPhotoUrl && previousPhotoUrl !== updates.photo_url) {
+    void deleteStoragePhoto(previousPhotoUrl);
+  }
+
   return NextResponse.json({ pet: data as PetRow });
 }
 
@@ -63,6 +98,14 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   if ('error' in auth) return NextResponse.json({ message: auth.error }, { status: auth.status });
 
   const { id } = await params;
+
+  // Capture the photo_url first so we can clean it after the row is deleted
+  const { data: existing } = await supabaseAdmin
+    .from('pets')
+    .select('photo_url')
+    .eq('id', id)
+    .eq('user_id', auth.user.id)
+    .maybeSingle();
 
   const { error } = await supabaseAdmin
     .from('pets')
@@ -74,6 +117,10 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
     console.error('DELETE /api/pets/[id] error:', error);
     return NextResponse.json({ message: 'Failed to delete pet' }, { status: 500 });
   }
+
+  // Best-effort cleanup
+  const photoUrl = (existing as { photo_url?: string | null } | null)?.photo_url ?? null;
+  if (photoUrl) void deleteStoragePhoto(photoUrl);
 
   return NextResponse.json({ success: true });
 }

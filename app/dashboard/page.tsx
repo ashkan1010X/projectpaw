@@ -23,12 +23,16 @@ type Booking = {
 };
 
 type Profile = {
-  dog_name?: string | null;
-  dog_breed?: string | null;
-  dog_age?: string | null;
-  dog_photo_url?: string | null;
   phone?: string | null;
 } | null;
+
+type Pet = {
+  id: string;
+  name: string;
+  breed: string | null;
+  age: string | null;
+  photo_url: string | null;
+};
 
 type RebookTarget = {
   serviceId: string;
@@ -136,6 +140,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [profile, setProfile] = useState<Profile>(null);
+  const [pets, setPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -161,10 +166,14 @@ export default function DashboardPage() {
       fetchWithAuth('/api/profile')
         .then((r) => (r.ok ? (r.json() as Promise<{ profile: Profile }>) : { profile: null }))
         .catch(() => ({ profile: null })),
+      fetchWithAuth('/api/pets')
+        .then((r) => (r.ok ? (r.json() as Promise<{ pets: Pet[] }>) : { pets: [] }))
+        .catch(() => ({ pets: [] as Pet[] })),
     ])
-      .then(([b, p]) => {
+      .then(([b, p, petsRes]) => {
         setBookings(b.bookings);
         setProfile(p.profile);
+        setPets(petsRes.pets ?? []);
       })
       .catch((err: unknown) => {
         setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -251,7 +260,11 @@ export default function DashboardPage() {
   const usual = topServices(bookings);
   const favoriteName = usual[0]?.name ?? null;
   const hasPhone = Boolean(profile?.phone);
-  const dogName = profile?.dog_name || 'Your Pup';
+  const primaryPet = pets[0] ?? null;
+  const dogName = primaryPet?.name || 'Your Pup';
+  const dogPhotoUrl = primaryPet?.photo_url ?? null;
+  const dogBreed = primaryPet?.breed ?? null;
+  const dogAge = primaryPet?.age ?? null;
 
   // Smart re-engagement: when favorite service hasn't been booked in 28+ days
   // and there's nothing upcoming for it, prompt the user to rebook.
@@ -273,10 +286,10 @@ export default function DashboardPage() {
       {/* ════════════════════  PET HERO  ════════════════════ */}
       <div className="mb-8 overflow-hidden rounded-2xl border border-doggy/15 bg-gradient-to-br from-doggy/[0.10] via-paw/[0.03] to-transparent p-5 sm:p-7 animate-fade-in">
         <div className="flex items-center gap-4 sm:gap-6">
-          {profile?.dog_photo_url && !photoError ? (
+          {dogPhotoUrl && !photoError ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={profile.dog_photo_url}
+              src={dogPhotoUrl}
               alt={dogName}
               onError={() => setPhotoError(true)}
               className="size-16 shrink-0 rounded-full object-cover ring-2 ring-doggy/30 sm:size-24"
@@ -293,11 +306,11 @@ export default function DashboardPage() {
             <h1 className="mt-1 break-words font-elegant text-xl font-black leading-tight text-paw sm:text-4xl">
               {dogName}&apos;s Dashboard
             </h1>
-            {(profile?.dog_breed || profile?.dog_age) && (
+            {(dogBreed || dogAge) && (
               <p className="mt-1 font-pawprint text-xs text-paw/55 sm:text-sm">
-                {profile?.dog_breed}
-                {profile?.dog_breed && profile?.dog_age && ' · '}
-                {profile?.dog_age}
+                {dogBreed}
+                {dogBreed && dogAge && ' · '}
+                {dogAge}
               </p>
             )}
           </div>
@@ -381,7 +394,7 @@ export default function DashboardPage() {
                 setRebookTarget({
                   serviceId: favorite.id,
                   serviceName: favorite.name,
-                  dogName: profile?.dog_name ?? '',
+                  dogName: dogName !== 'Your Pup' ? dogName : '',
                 })
               }
               className="group flex w-full items-center gap-4 rounded-2xl border border-accent/25 bg-gradient-to-r from-accent/[0.08] via-accent/[0.04] to-transparent p-5 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/45 hover:shadow-lg hover:shadow-accent/10"
@@ -533,7 +546,7 @@ export default function DashboardPage() {
                       setRebookTarget({
                         serviceId: s.id,
                         serviceName: s.name,
-                        dogName: profile?.dog_name ?? '',
+                        dogName: dogName !== 'Your Pup' ? dogName : '',
                       })
                     }
                     className="group flex items-center justify-between rounded-xl border border-paw/[0.1] bg-[#1a1612] px-5 py-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-doggy/45 hover:bg-doggy/[0.06] hover:shadow-lg hover:shadow-doggy/10"

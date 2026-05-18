@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { X, PawPrint } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
+import { X, PawPrint, Camera, Loader2, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/auth-context';
 
 export type PetFormData = {
   name: string;
@@ -39,16 +41,54 @@ const inputClass = cn(
   'focus:border-doggy/60 focus:ring-2 focus:ring-doggy/15',
 );
 
+const MAX_BYTES = 5 * 1024 * 1024;
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 export function PetDrawer({ open, initial, saving, error, onClose, onSave, mode }: Props) {
+  const { fetchWithAuth } = useAuth();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState<PetFormData>(EMPTY_FORM);
   const [nameError, setNameError] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setForm(initial ?? EMPTY_FORM);
       setNameError(null);
+      setPhotoError(null);
     }
   }, [open, initial]);
+
+  async function handleFile(file: File) {
+    setPhotoError(null);
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setPhotoError('Only JPG, PNG, or WebP allowed.');
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      setPhotoError('Photo must be under 5 MB.');
+      return;
+    }
+    setPhotoUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetchWithAuth('/api/pets/photo', { method: 'POST', body: fd });
+      const data = (await res.json().catch(() => ({}))) as { url?: string; message?: string };
+      if (!res.ok || !data.url) throw new Error(data.message ?? 'Upload failed');
+      setForm((f) => ({ ...f, photo_url: data.url! }));
+    } catch (err) {
+      setPhotoError(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setPhotoUploading(false);
+    }
+  }
+
+  function removePhoto() {
+    setForm((f) => ({ ...f, photo_url: null }));
+    setPhotoError(null);
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -112,6 +152,67 @@ export function PetDrawer({ open, initial, saving, error, onClose, onSave, mode 
         {/* Body */}
         <div className="px-6 py-5 max-h-[calc(90vh-180px)] overflow-y-auto">
           <div className="flex flex-col gap-4">
+            {/* Photo */}
+            <div className="flex flex-col items-center gap-2">
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={photoUploading}
+                aria-label={form.photo_url ? 'Change pet photo' : 'Upload pet photo'}
+                className="group relative size-24 cursor-pointer rounded-full transition-transform duration-300 hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-doggy/60"
+              >
+                {form.photo_url ? (
+                  <Image src={form.photo_url} alt="Pet photo" fill className="rounded-full object-cover" sizes="96px" />
+                ) : (
+                  <div className="flex size-full items-center justify-center rounded-full border-2 border-dashed border-doggy/30 bg-doggy/[0.08]">
+                    <PawPrint className="size-9 text-doggy/40" strokeWidth={1.5} />
+                  </div>
+                )}
+                <div className={cn(
+                  'absolute inset-0 flex items-center justify-center rounded-full bg-black/50 transition-opacity duration-200',
+                  photoUploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+                )}>
+                  {photoUploading ? (
+                    <Loader2 className="size-6 animate-spin text-white" strokeWidth={1.5} />
+                  ) : (
+                    <Camera className="size-6 text-white" strokeWidth={1.5} />
+                  )}
+                </div>
+                {!photoUploading && (
+                  <div className="absolute bottom-0 right-0 flex size-7 items-center justify-center rounded-full border-2 border-[#0f0d09] bg-doggy shadow-lg shadow-doggy/30">
+                    <Camera className="size-3.5 text-white" strokeWidth={2} />
+                  </div>
+                )}
+              </button>
+              {form.photo_url ? (
+                <button
+                  type="button"
+                  onClick={removePhoto}
+                  disabled={photoUploading}
+                  className="flex items-center gap-1 font-pawprint text-[11px] text-paw/40 transition-colors hover:text-red-400 disabled:opacity-40"
+                >
+                  <Trash2 className="size-3" strokeWidth={1.8} />
+                  Remove photo
+                </button>
+              ) : (
+                <p className="font-pawprint text-[11px] text-paw/30">Optional · JPG/PNG · 5 MB max</p>
+              )}
+              {photoError && (
+                <p className="font-pawprint text-[11px] text-red-400">{photoError}</p>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleFile(file);
+                  e.target.value = '';
+                }}
+              />
+            </div>
+
             {/* Name */}
             <div>
               <label htmlFor="pet-name" className="mb-1.5 block font-pawprint text-xs text-paw/55">
