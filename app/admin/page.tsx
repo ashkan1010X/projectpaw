@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { supabase } from '@/lib/supabase';
@@ -75,6 +75,26 @@ export default function AdminPage() {
 
   const [services, setServices] = useState<ServiceRow[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Search / filter / sort state
+  const [search, setSearch] = useState('');
+  const [filterPopular, setFilterPopular] = useState<'all' | 'popular'>('all');
+  const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc'>('default');
+
+  const displayedServices = useMemo(() => {
+    let list = [...services];
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter((s) => s.name.toLowerCase().includes(q));
+    }
+    if (filterPopular === 'popular') {
+      list = list.filter((s) => s.popular);
+    }
+    if (sortBy === 'price-asc') list.sort((a, b) => a.price - b.price);
+    else if (sortBy === 'price-desc') list.sort((a, b) => b.price - a.price);
+    return list;
+  }, [services, search, filterPopular, sortBy]);
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null); // null = adding new
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
@@ -242,11 +262,13 @@ export default function AdminPage() {
   return (
     <main className="mx-auto max-w-6xl px-6 py-12">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="font-elegant text-3xl font-black text-paw">Services</h1>
           <p className="mt-1 font-pawprint text-sm text-paw/50">
-            {services.length} service{services.length !== 1 ? 's' : ''} · manage your offerings
+            {displayedServices.length === services.length
+              ? `${services.length} service${services.length !== 1 ? 's' : ''} · manage your offerings`
+              : `${displayedServices.length} of ${services.length} services`}
           </p>
         </div>
         <button
@@ -255,6 +277,77 @@ export default function AdminPage() {
         >
           + Add New
         </button>
+      </div>
+
+      {/* Search / filter / sort toolbar */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        {/* Search */}
+        <div className="relative flex-1 min-w-[160px] max-w-xs">
+          <svg
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-paw/30"
+            fill="none" stroke="currentColor" strokeWidth={2}
+            viewBox="0 0 24 24" aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search services…"
+            aria-label="Search services"
+            className="w-full rounded-lg border border-paw/[0.12] bg-[#1a1612] pl-9 pr-3 py-2 font-pawprint text-sm text-paw placeholder:text-paw/30 outline-none focus:border-doggy/60 transition-colors"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              aria-label="Clear search"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-paw/30 hover:text-paw/60 transition-colors"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+
+        {/* Popular filter */}
+        <div className="flex rounded-lg border border-paw/[0.12] overflow-hidden font-pawprint text-xs font-semibold">
+          {(['all', 'popular'] as const).map((opt) => (
+            <button
+              key={opt}
+              onClick={() => setFilterPopular(opt)}
+              className={cn(
+                'px-3 py-2 transition-colors capitalize',
+                filterPopular === opt
+                  ? 'bg-doggy text-white'
+                  : 'bg-[#1a1612] text-paw/50 hover:text-paw/80',
+              )}
+            >
+              {opt === 'all' ? 'All' : '⭐ Popular'}
+            </button>
+          ))}
+        </div>
+
+        {/* Sort */}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+          aria-label="Sort services"
+          className="rounded-lg border border-paw/[0.12] bg-[#1a1612] px-3 py-2 font-pawprint text-xs text-paw/70 outline-none focus:border-doggy/60 transition-colors cursor-pointer"
+        >
+          <option value="default">Sort: Default</option>
+          <option value="price-asc">Price: Low → High</option>
+          <option value="price-desc">Price: High → Low</option>
+        </select>
+
+        {/* Clear all filters */}
+        {(search || filterPopular !== 'all' || sortBy !== 'default') && (
+          <button
+            onClick={() => { setSearch(''); setFilterPopular('all'); setSortBy('default'); }}
+            className="font-pawprint text-xs text-paw/40 hover:text-paw/70 transition-colors underline underline-offset-2"
+          >
+            Clear filters
+          </button>
+        )}
       </div>
 
       <div className="flex gap-0 rounded-xl border border-paw/[0.08] overflow-hidden bg-[#1a1612]">
@@ -274,7 +367,18 @@ export default function AdminPage() {
           {services.length === 0 && (
             <p className="px-5 py-8 font-pawprint text-sm text-paw/40">No services yet.</p>
           )}
-          {services.map((service) => (
+          {services.length > 0 && displayedServices.length === 0 && (
+            <div className="px-5 py-10 text-center">
+              <p className="font-pawprint text-sm text-paw/40">No services match your filters.</p>
+              <button
+                onClick={() => { setSearch(''); setFilterPopular('all'); setSortBy('default'); }}
+                className="mt-2 font-pawprint text-xs text-doggy hover:text-doggy/80 underline underline-offset-2"
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
+          {displayedServices.map((service) => (
             <div
               key={service.id}
               className={cn(
