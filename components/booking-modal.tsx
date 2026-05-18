@@ -354,7 +354,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                   )}
                 </FieldWrapper>
               ) : petsLoaded ? (
-                <FieldWrapper label="Dog's Name" htmlFor="dogName" icon={Dog}>
+                <FieldWrapper label="Pet's Name" htmlFor="dogName" icon={Dog}>
                   <input
                     id="dogName"
                     type="text"
