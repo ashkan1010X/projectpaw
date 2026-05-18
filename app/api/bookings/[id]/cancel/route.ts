@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+
+// Cancel rate limit — authenticated user can legitimately cancel a few bookings,
+// but >10/hr suggests abuse (mail-bombing admin via cancel/rebook loops).
+const PER_USER_MAX = 10;
+const PER_USER_WINDOW_MIN = 60;
+const PER_IP_MAX = 30;
+const PER_IP_WINDOW_MIN = 60;
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -77,6 +85,33 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   } = await supabase.auth.getUser(token);
   if (authError || !user?.email) {
     return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
+  }
+
+  // Rate limit by user_id (authenticated) AND IP (defense in depth)
+  const [userLimit, ipLimit] = await Promise.all([
+    checkRateLimit({
+      bucket: 'booking_cancel_user',
+      identifier: user.id,
+      max: PER_USER_MAX,
+      windowMinutes: PER_USER_WINDOW_MIN,
+    }),
+    checkRateLimit({
+      bucket: 'booking_cancel_ip',
+      identifier: getClientIp(req),
+      max: PER_IP_MAX,
+      windowMinutes: PER_IP_WINDOW_MIN,
+    }),
+  ]);
+  if (!userLimit.allowed || !ipLimit.allowed) {
+    const retryAfter = Math.max(userLimit.retryAfterSeconds, ipLimit.retryAfterSeconds);
+    const minutes = Math.ceil(retryAfter / 60);
+    return NextResponse.json(
+      { message: `Too many cancellations. Please try again in ${minutes} minute${minutes === 1 ? '' : 's'}.` },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(retryAfter), 'X-RateLimit-Limit': String(PER_USER_MAX) },
+      },
+    );
   }
 
   const { data: booking, error: fetchError } = await supabaseAdmin

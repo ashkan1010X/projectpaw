@@ -3,6 +3,14 @@ import nodemailer from 'nodemailer';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendSms } from '@/lib/twilio';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+
+// Reschedule rate limit — legit users rarely reschedule >10/hr; abuse pattern is
+// loop-reschedule to mail-bomb customer or admin with notifications.
+const PER_USER_MAX = 10;
+const PER_USER_WINDOW_MIN = 60;
+const PER_IP_MAX = 30;
+const PER_IP_WINDOW_MIN = 60;
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -104,6 +112,33 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { data: { user }, error: authError } = await supabase.auth.getUser(token);
   if (authError || !user?.email) {
     return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
+  }
+
+  // Rate limit by user_id (authenticated) AND IP (defense in depth)
+  const [userLimit, ipLimit] = await Promise.all([
+    checkRateLimit({
+      bucket: 'booking_reschedule_user',
+      identifier: user.id,
+      max: PER_USER_MAX,
+      windowMinutes: PER_USER_WINDOW_MIN,
+    }),
+    checkRateLimit({
+      bucket: 'booking_reschedule_ip',
+      identifier: getClientIp(req),
+      max: PER_IP_MAX,
+      windowMinutes: PER_IP_WINDOW_MIN,
+    }),
+  ]);
+  if (!userLimit.allowed || !ipLimit.allowed) {
+    const retryAfter = Math.max(userLimit.retryAfterSeconds, ipLimit.retryAfterSeconds);
+    const minutes = Math.ceil(retryAfter / 60);
+    return NextResponse.json(
+      { message: `Too many reschedule attempts. Please try again in ${minutes} minute${minutes === 1 ? '' : 's'}.` },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(retryAfter), 'X-RateLimit-Limit': String(PER_USER_MAX) },
+      },
+    );
   }
 
   const { datetime } = (await req.json()) as { datetime: string };
