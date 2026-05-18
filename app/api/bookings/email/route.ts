@@ -52,6 +52,7 @@ function buildProviderHtml(
   serviceName: string,
   formattedDate: string,
   notes?: string,
+  address?: string,
 ) {
   return `
     <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; background: #0f0d09; color: #F5CBA7; border-radius: 16px; overflow: hidden;">
@@ -79,6 +80,7 @@ function buildProviderHtml(
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Date & Time</td>
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${formattedDate}</td>
           </tr>
+          ${address ? `<tr><td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55); width: 40%;">Address</td><td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7;">${address}</td></tr>` : ''}
           ${notes ? `<tr><td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Notes</td><td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7;">${notes}</td></tr>` : ''}
         </table>
         <div style="margin-top: 28px; text-align: center;">
@@ -166,13 +168,14 @@ export async function POST(req: NextRequest) {
   // Fetch phone for SMS (best-effort)
   const { data: profileRow } = await supabaseAdmin
     .from('profiles')
-    .select('phone')
+    .select('phone, address')
     .eq('user_id', user.id)
     .maybeSingle();
-  const userPhone = (profileRow as { phone?: string | null } | null)?.phone ?? null;
+  const userPhone = (profileRow as { phone?: string | null; address?: string | null } | null)?.phone ?? null;
+  const userAddress = (profileRow as { phone?: string | null; address?: string | null } | null)?.address ?? null;
 
   const customerHtml = buildCustomerHtml(dogName, serviceName, formattedDate, notes);
-  const providerHtml = buildProviderHtml(customerName, user.email, dogName, serviceName, formattedDate, notes);
+  const providerHtml = buildProviderHtml(customerName, user.email, dogName, serviceName, formattedDate, notes, userAddress ?? undefined);
 
   const confirmationSms = userPhone
     ? sendSms(
