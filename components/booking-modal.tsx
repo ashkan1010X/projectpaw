@@ -101,18 +101,21 @@ function StripeCardSection({
   const elements = useElements();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cardComplete, setCardComplete] = useState(false);
+  const [stage, setStage] = useState<'idle' | 'authorizing' | 'charging' | 'finalizing'>('idle');
 
   async function handlePay() {
     if (!stripe || !elements) return;
     setLoading(true);
     setError(null);
+    setStage('authorizing');
 
     try {
-      // 1. Create PaymentIntent server-side (server verifies price & slot)
+      // 1. Create PaymentIntent server-side (server verifies price & slot, full metadata for webhook recovery)
       const intentRes = await fetchWithAuth('/api/bookings/payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ serviceId, serviceName, datetime }),
+        body: JSON.stringify({ serviceId, serviceName, dogName, petSpecies, datetime, notes }),
       });
 
       if (intentRes.status === 409) {
@@ -129,6 +132,7 @@ function StripeCardSection({
       const card = elements.getElement(CardElement);
       if (!card) throw new Error('Card form not ready.');
 
+      setStage('charging');
       const { error: stripeErr, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: { card },
       });
@@ -136,7 +140,8 @@ function StripeCardSection({
       if (stripeErr) throw new Error(stripeErr.message ?? 'Payment declined.');
       if (paymentIntent?.status !== 'succeeded') throw new Error('Payment not completed. Please try again.');
 
-      // 3. Finalize booking (email route verifies intent server-side before inserting)
+      // 3. Finalize booking (email route verifies intent server-side; webhook is the safety net)
+      setStage('finalizing');
       const bookRes = await fetchWithAuth('/api/bookings/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -167,14 +172,26 @@ function StripeCardSection({
       setError(err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
       setLoading(false);
+      setStage('idle');
     }
   }
+
+  const buttonLabel =
+    stage === 'authorizing' ? 'Preparing payment…' :
+    stage === 'charging' ? 'Charging card…' :
+    stage === 'finalizing' ? 'Confirming booking…' :
+    `Pay $${amount} Now →`;
 
   return (
     <div className="flex flex-col gap-4">
       {/* Card input */}
       <div className="rounded-xl border border-paw/[0.12] bg-paw/[0.03] px-4 py-3.5 transition-all duration-200 focus-within:border-doggy/50 focus-within:ring-2 focus-within:ring-doggy/15">
         <CardElement
+          onChange={(e) => {
+            setCardComplete(e.complete);
+            if (e.error) setError(e.error.message);
+            else if (error) setError(null);
+          }}
           options={{
             hidePostalCode: true,
             style: {
@@ -223,11 +240,11 @@ function StripeCardSection({
         <button
           type="button"
           onClick={handlePay}
-          disabled={loading || !stripe || !elements}
+          disabled={loading || !stripe || !elements || !cardComplete}
           className="group relative flex-1 cursor-pointer overflow-hidden rounded-xl bg-doggy py-3.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-          <span className="relative">{loading ? 'Processing…' : `Pay $${amount} Now →`}</span>
+          <span className="relative">{buttonLabel}</span>
         </button>
       </div>
     </div>

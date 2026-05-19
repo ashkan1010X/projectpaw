@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { stripe } from '@/lib/stripe';
 import { FALLBACK_SERVICES } from '@/lib/service-icons';
+import { isPetSpecies } from '@/lib/species';
 
 async function resolveServicePriceCents(serviceId: string): Promise<number | null> {
   const { data } = await supabaseAdmin
@@ -29,10 +30,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
   }
 
-  const { serviceId, serviceName, datetime } = (await req.json()) as {
+  const { serviceId, serviceName, dogName, petSpecies: rawSpecies, datetime, notes } = (await req.json()) as {
     serviceId: string;
     serviceName?: string;
+    dogName?: string;
+    petSpecies?: string;
     datetime: string;
+    notes?: string;
   };
 
   // Reject if slot is already taken
@@ -55,18 +59,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Service not found' }, { status: 404 });
   }
 
-  const intent = await stripe.paymentIntents.create({
-    amount: amountCents,
-    currency: 'cad',
-    description: `ProjectPaw — ${serviceName ?? serviceId}`,
-    metadata: {
-      user_id: user.id,
-      user_email: user.email,
-      service_id: serviceId,
-      datetime,
+  const petSpecies = isPetSpecies(rawSpecies) ? rawSpecies : 'dog';
+
+  // Idempotency key — collapses double-clicks into a single intent
+  const idempotencyKey = `pi-${user.id}-${serviceId}-${datetime}`;
+
+  const intent = await stripe.paymentIntents.create(
+    {
+      amount: amountCents,
+      currency: 'cad',
+      description: `ProjectPaw — ${serviceName ?? serviceId}`,
+      statement_descriptor_suffix: 'BOOKING',
+      payment_method_types: ['card'],
+      metadata: {
+        purpose: 'projectpaw_booking',
+        user_id: user.id,
+        user_email: user.email,
+        service_id: serviceId,
+        service_name: serviceName ?? '',
+        dog_name: dogName ?? '',
+        pet_species: petSpecies,
+        datetime,
+        notes: (notes ?? '').slice(0, 480),
+      },
     },
-    automatic_payment_methods: { enabled: true },
-  });
+    { idempotencyKey },
+  );
 
   return NextResponse.json({ clientSecret: intent.client_secret, amountCents });
 }

@@ -162,7 +162,21 @@ export async function POST(req: NextRequest) {
     if (intent.status !== 'succeeded') {
       return NextResponse.json({ message: 'Payment not completed' }, { status: 402 });
     }
+    // Prevent intent hijacking — the authenticated user must own the intent
+    if (intent.metadata?.user_id !== user.id) {
+      return NextResponse.json({ message: 'Payment does not belong to this user' }, { status: 403 });
+    }
     verifiedAmountCents = intent.amount;
+
+    // Idempotency — if webhook already created the booking, treat as success
+    const { data: alreadyBooked } = await supabaseAdmin
+      .from('bookings')
+      .select('id')
+      .eq('stripe_payment_intent_id', stripePaymentIntentId)
+      .maybeSingle();
+    if (alreadyBooked) {
+      return NextResponse.json({ success: true, alreadyExisted: true });
+    }
   }
 
   const customerName = (user.user_metadata?.name as string | undefined) ?? user.email;
@@ -176,14 +190,24 @@ export async function POST(req: NextRequest) {
     .limit(1);
 
   if (existing && existing.length > 0) {
-    // Slot taken — if the user already paid, immediately refund them
+    // Slot taken — if user paid, attempt refund; honestly report success/failure
     if (paymentMethod === 'stripe' && stripePaymentIntentId) {
-      await stripe.refunds.create({ payment_intent: stripePaymentIntentId }).catch(console.error);
+      try {
+        await stripe.refunds.create({ payment_intent: stripePaymentIntentId });
+        return NextResponse.json(
+          { message: 'That slot was just taken — your payment has been refunded automatically.' },
+          { status: 409 },
+        );
+      } catch (refundErr) {
+        console.error('CRITICAL: refund failed after slot conflict', { stripePaymentIntentId, refundErr });
+        return NextResponse.json(
+          { message: 'That slot was just taken and the automatic refund failed. Please contact support immediately — your payment is being investigated.' },
+          { status: 409 },
+        );
+      }
     }
     return NextResponse.json(
-      { message: paymentMethod === 'stripe'
-          ? 'That slot was just taken — your payment has been refunded automatically.'
-          : 'That time slot is already taken. Please choose a different time.' },
+      { message: 'That time slot is already taken. Please choose a different time.' },
       { status: 409 },
     );
   }
