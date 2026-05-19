@@ -10,6 +10,7 @@ import { PhoneInput } from '@/components/phone-input';
 import { Toast } from '@/components/toast';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { PetDrawer, type PetFormData } from '@/components/pet-drawer';
+import { SPECIES_META, isPetSpecies, type PetSpecies } from '@/lib/species';
 import { cn } from '@/lib/utils';
 
 type Profile = {
@@ -20,6 +21,7 @@ type Profile = {
 type Pet = {
   id: string;
   name: string;
+  species: PetSpecies;
   breed: string | null;
   age: string | null;
   weight: string | null;
@@ -126,6 +128,7 @@ export default function ProfilePage() {
     setDrawerMode('edit');
     setDrawerInitial({
       name: pet.name,
+      species: isPetSpecies(pet.species) ? pet.species : 'dog',
       breed: pet.breed ?? '',
       age: pet.age ?? '',
       weight: pet.weight ?? '',
@@ -331,7 +334,13 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-elegant text-base font-black text-paw">{pet.name}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="truncate font-elegant text-base font-black text-paw">{pet.name}</p>
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-doggy/25 bg-doggy/[0.1] px-1.5 py-0.5 font-pawprint text-[10px] font-bold text-doggy/85">
+                      <span aria-hidden>{SPECIES_META[isPetSpecies(pet.species) ? pet.species : 'dog'].emoji}</span>
+                      <span>{SPECIES_META[isPetSpecies(pet.species) ? pet.species : 'dog'].label}</span>
+                    </span>
+                  </div>
                   <p className="truncate font-pawprint text-xs text-paw/50">
                     {[pet.breed, pet.age, pet.weight].filter(Boolean).join(' · ') || 'No details yet'}
                   </p>

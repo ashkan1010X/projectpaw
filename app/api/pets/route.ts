@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { isPetSpecies, type PetSpecies } from '@/lib/species';
 
 export type PetRow = {
   id: string;
   user_id: string;
   name: string;
+  species: PetSpecies;
   breed: string | null;
   age: string | null;
   weight: string | null;
@@ -55,6 +57,7 @@ export async function POST(req: NextRequest) {
 
   const body = (await req.json().catch(() => ({}))) as {
     name?: string;
+    species?: string;
     breed?: string;
     age?: string;
     weight?: string;
@@ -65,6 +68,8 @@ export async function POST(req: NextRequest) {
   const name = sanitize(body.name);
   if (!name) return NextResponse.json({ message: "Pet's name is required." }, { status: 400 });
   if (name.length > 60) return NextResponse.json({ message: 'Name is too long (max 60).' }, { status: 400 });
+
+  const species: PetSpecies = isPetSpecies(body.species) ? body.species : 'dog';
 
   // Cap pets per user (defensive — prevents abuse)
   const { count } = await supabaseAdmin
@@ -81,6 +86,7 @@ export async function POST(req: NextRequest) {
     .insert({
       user_id: auth.user.id,
       name,
+      species,
       breed: sanitize(body.breed),
       age: sanitize(body.age),
       weight: sanitize(body.weight),

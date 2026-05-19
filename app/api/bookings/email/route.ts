@@ -3,6 +3,7 @@ import nodemailer from 'nodemailer';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendSms } from '@/lib/twilio';
+import { isPetSpecies, SPECIES_META, type PetSpecies } from '@/lib/species';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -15,7 +16,8 @@ const transporter = nodemailer.createTransport({
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? '';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://projectpaw.vercel.app';
 
-function buildCustomerHtml(dogName: string, serviceName: string, formattedDate: string, notes?: string) {
+function buildCustomerHtml(dogName: string, serviceName: string, formattedDate: string, petSpecies: PetSpecies, notes?: string) {
+  const meta = SPECIES_META[petSpecies];
   return `
     <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; background: #0f0d09; color: #F5CBA7; border-radius: 16px; overflow: hidden;">
       <div style="background: linear-gradient(135deg, #B2A4FF, #A67C52); padding: 32px; text-align: center;">
@@ -32,6 +34,10 @@ function buildCustomerHtml(dogName: string, serviceName: string, formattedDate: 
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Pet</td>
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${dogName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Pet Type</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${meta.emoji} ${meta.label}</td>
           </tr>
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Date & Time</td>
@@ -51,9 +57,11 @@ function buildProviderHtml(
   dogName: string,
   serviceName: string,
   formattedDate: string,
+  petSpecies: PetSpecies,
   notes?: string,
   address?: string,
 ) {
+  const meta = SPECIES_META[petSpecies];
   return `
     <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; background: #0f0d09; color: #F5CBA7; border-radius: 16px; overflow: hidden;">
       <div style="background: linear-gradient(135deg, #c97b2a, #e8a83a); padding: 32px; text-align: center;">
@@ -75,6 +83,10 @@ function buildProviderHtml(
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Pet</td>
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${dogName}</td>
+          </tr>
+          <tr>
+            <td style="padding: 14px 0; border-bottom: 2px solid rgba(178,164,255,0.25); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Pet Type</td>
+            <td style="padding: 14px 0; border-bottom: 2px solid rgba(178,164,255,0.25); font-family: sans-serif; font-size: 16px; color: #B2A4FF; font-weight: 800; letter-spacing: 0.02em;">${meta.emoji} ${meta.label}</td>
           </tr>
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Date & Time</td>
@@ -109,13 +121,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
   }
 
-  const { serviceId, serviceName, dogName, datetime, notes } = (await req.json()) as {
+  const { serviceId, serviceName, dogName, petSpecies: rawSpecies, datetime, notes } = (await req.json()) as {
     serviceId: string;
     serviceName: string;
     dogName: string;
+    petSpecies?: string;
     datetime: string;
     notes?: string;
   };
+
+  const petSpecies: PetSpecies = isPetSpecies(rawSpecies) ? rawSpecies : 'dog';
+  const speciesLabel = SPECIES_META[petSpecies].label;
 
   const customerName = (user.user_metadata?.name as string | undefined) ?? user.email;
 
@@ -140,6 +156,7 @@ export async function POST(req: NextRequest) {
     service_id: serviceId,
     service_name: serviceName,
     dog_name: dogName,
+    pet_species: petSpecies,
     datetime,
     notes: notes ?? null,
   });
@@ -174,14 +191,23 @@ export async function POST(req: NextRequest) {
   const userPhone = (profileRow as { phone?: string | null; address?: string | null } | null)?.phone ?? null;
   const userAddress = (profileRow as { phone?: string | null; address?: string | null } | null)?.address ?? null;
 
-  const customerHtml = buildCustomerHtml(dogName, serviceName, formattedDate, notes);
-  const providerHtml = buildProviderHtml(customerName, user.email, dogName, serviceName, formattedDate, notes, userAddress ?? undefined);
+  const customerHtml = buildCustomerHtml(dogName, serviceName, formattedDate, petSpecies, notes);
+  const providerHtml = buildProviderHtml(customerName, user.email, dogName, serviceName, formattedDate, petSpecies, notes, userAddress ?? undefined);
 
   const confirmationSms = userPhone
     ? sendSms(
         userPhone,
-        `Confirmed! Your ${serviceName} for ${dogName} is booked for ${formattedDate}. Reply X to cancel this appointment. STOP to opt out. — ProjectPaw 🐾`,
+        `Confirmed! Your ${serviceName} for ${dogName} is booked for ${formattedDate}. Reply X to cancel. STOP to opt out. — ProjectPaw 🐾`,
       ).catch((e: unknown) => console.error('Confirmation SMS error:', e))
+    : Promise.resolve();
+
+  // Provider SMS (separate channel) — includes species so Sara knows what to prep
+  const providerPhone = process.env.PROVIDER_SMS_PHONE;
+  const providerSms = providerPhone
+    ? sendSms(
+        providerPhone,
+        `New booking: ${serviceName} for ${dogName} (${speciesLabel}) on ${formattedDate}. — ProjectPaw 🐾`,
+      ).catch((e: unknown) => console.error('Provider SMS error:', e))
     : Promise.resolve();
 
   const [customerResult, providerResult] = await Promise.allSettled([
@@ -196,11 +222,12 @@ export async function POST(req: NextRequest) {
           from: `"ProjectPaw" <${process.env.SMTP_USER}>`,
           to: ADMIN_EMAIL,
           replyTo: user.email,
-          subject: `New Booking: ${serviceName} for ${dogName} — ${formattedDate}`,
+          subject: `New Booking: ${serviceName} for ${dogName} (${speciesLabel}) — ${formattedDate}`,
           html: providerHtml,
         })
       : Promise.resolve(),
     confirmationSms,
+    providerSms,
   ]);
 
   if (customerResult.status === 'rejected') {

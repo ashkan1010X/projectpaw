@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { isPetSpecies } from '@/lib/species';
 import type { PetRow } from '../route';
 
 const BUCKET = 'dog-photos';
@@ -49,6 +50,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (!name) return NextResponse.json({ message: "Pet's name is required." }, { status: 400 });
     if (name.length > 60) return NextResponse.json({ message: 'Name is too long (max 60).' }, { status: 400 });
     updates.name = name;
+  }
+  if (body.species !== undefined) {
+    if (!isPetSpecies(body.species)) {
+      return NextResponse.json({ message: 'Invalid pet type.' }, { status: 400 });
+    }
+    updates.species = body.species;
   }
   if (body.breed !== undefined) updates.breed = sanitize(body.breed);
   if (body.age !== undefined) updates.age = sanitize(body.age);

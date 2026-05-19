@@ -5,9 +5,11 @@ import Image from 'next/image';
 import { X, PawPrint, Camera, Loader2, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
+import { PET_SPECIES, SPECIES_META, type PetSpecies } from '@/lib/species';
 
 export type PetFormData = {
   name: string;
+  species: PetSpecies;
   breed: string;
   age: string;
   weight: string;
@@ -17,6 +19,7 @@ export type PetFormData = {
 
 const EMPTY_FORM: PetFormData = {
   name: '',
+  species: 'dog',
   breed: '',
   age: '',
   weight: '',
@@ -213,6 +216,42 @@ export function PetDrawer({ open, initial, saving, error, onClose, onSave, mode 
               />
             </div>
 
+            {/* Pet Type */}
+            <div>
+              <label className="mb-1.5 block font-pawprint text-xs text-paw/55">
+                Pet Type <span className="text-doggy">*</span>
+              </label>
+              <div
+                role="radiogroup"
+                aria-label="Pet type"
+                className="flex flex-wrap gap-1.5"
+              >
+                {PET_SPECIES.map((s) => {
+                  const meta = SPECIES_META[s];
+                  const active = form.species === s;
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      aria-label={meta.label}
+                      onClick={() => setForm((f) => ({ ...f, species: s }))}
+                      className={cn(
+                        'flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-pawprint text-xs font-semibold transition-all duration-200',
+                        active
+                          ? 'border-doggy/60 bg-doggy/[0.15] text-paw shadow-sm shadow-doggy/15'
+                          : 'border-paw/[0.12] bg-paw/[0.03] text-paw/55 hover:border-doggy/30 hover:text-paw/85',
+                      )}
+                    >
+                      <span aria-hidden>{meta.emoji}</span>
+                      <span>{meta.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Name */}
             <div>
               <label htmlFor="pet-name" className="mb-1.5 block font-pawprint text-xs text-paw/55">
@@ -237,7 +276,7 @@ export function PetDrawer({ open, initial, saving, error, onClose, onSave, mode 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label htmlFor="pet-breed" className="mb-1.5 block font-pawprint text-xs text-paw/55">Breed</label>
-                <input id="pet-breed" type="text" value={form.breed} onChange={set('breed')} placeholder="e.g. Labrador" className={inputClass} maxLength={60} />
+                <input id="pet-breed" type="text" value={form.breed} onChange={set('breed')} placeholder={SPECIES_META[form.species].breedPlaceholder} className={inputClass} maxLength={60} />
               </div>
               <div>
                 <label htmlFor="pet-age" className="mb-1.5 block font-pawprint text-xs text-paw/55">Age</label>

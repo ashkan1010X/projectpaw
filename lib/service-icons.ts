@@ -9,6 +9,8 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
+import type { PetSpecies } from './species';
+
 export type ServiceRow = {
   id: string;
   name: string;
@@ -20,6 +22,7 @@ export type ServiceRow = {
   duration: string;
   popular: boolean;
   sort_order: number;
+  allowed_pet_types: PetSpecies[];
 };
 
 const SERVICE_ICONS: Record<string, LucideIcon> = {
@@ -48,6 +51,7 @@ export const FALLBACK_SERVICES: ServiceRow[] = [
     duration: '90 min',
     popular: true,
     sort_order: 1,
+    allowed_pet_types: ['dog', 'cat', 'rabbit'],
   },
   {
     id: '2',
@@ -60,6 +64,7 @@ export const FALLBACK_SERVICES: ServiceRow[] = [
     duration: '60 min',
     popular: false,
     sort_order: 2,
+    allowed_pet_types: ['dog'],
   },
   {
     id: '3',
@@ -72,6 +77,7 @@ export const FALLBACK_SERVICES: ServiceRow[] = [
     duration: 'Per night',
     popular: false,
     sort_order: 3,
+    allowed_pet_types: ['dog', 'cat', 'rabbit', 'bird', 'other'],
   },
   {
     id: '4',
@@ -84,6 +90,7 @@ export const FALLBACK_SERVICES: ServiceRow[] = [
     duration: '60 min',
     popular: false,
     sort_order: 4,
+    allowed_pet_types: ['dog', 'cat', 'rabbit'],
   },
   {
     id: '5',
@@ -96,6 +103,7 @@ export const FALLBACK_SERVICES: ServiceRow[] = [
     duration: '45 min',
     popular: false,
     sort_order: 5,
+    allowed_pet_types: ['dog', 'cat', 'rabbit', 'bird', 'other'],
   },
   {
     id: '6',
@@ -108,6 +116,7 @@ export const FALLBACK_SERVICES: ServiceRow[] = [
     duration: 'Full day',
     popular: false,
     sort_order: 6,
+    allowed_pet_types: ['dog', 'cat', 'rabbit', 'bird', 'other'],
   },
   {
     id: '7',
@@ -120,5 +129,6 @@ export const FALLBACK_SERVICES: ServiceRow[] = [
     duration: 'Varies',
     popular: false,
     sort_order: 7,
+    allowed_pet_types: ['dog', 'cat', 'rabbit', 'bird', 'other'],
   },
 ];

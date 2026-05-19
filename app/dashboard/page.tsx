@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Loader2, PawPrint, Sparkles, Clock, Bell, Heart, CalendarClock } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { BookingModal } from '@/components/booking-modal';
+import { SPECIES_META, isPetSpecies, type PetSpecies } from '@/lib/species';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { RescheduleDialog } from '@/components/reschedule-dialog';
 import { AddToCalendar } from '@/components/add-to-calendar';
@@ -17,10 +18,15 @@ type Booking = {
   service_id: string;
   service_name: string;
   dog_name: string;
+  pet_species: string | null;
   datetime: string;
   notes: string | null;
   status: string;
 };
+
+function bookingEmoji(b: Booking): string {
+  return isPetSpecies(b.pet_species) ? SPECIES_META[b.pet_species].emoji : '🐾';
+}
 
 type Profile = {
   phone?: string | null;
@@ -29,6 +35,7 @@ type Profile = {
 type Pet = {
   id: string;
   name: string;
+  species: PetSpecies;
   breed: string | null;
   age: string | null;
   photo_url: string | null;
@@ -261,10 +268,14 @@ export default function DashboardPage() {
   const favoriteName = usual[0]?.name ?? null;
   const hasPhone = Boolean(profile?.phone);
   const primaryPet = pets[0] ?? null;
-  const dogName = primaryPet?.name || 'Your Pup';
+  const primarySpecies: PetSpecies = primaryPet && isPetSpecies(primaryPet.species)
+    ? primaryPet.species
+    : 'dog';
+  const dogName = primaryPet?.name || 'Your Pet';
   const dogPhotoUrl = primaryPet?.photo_url ?? null;
   const dogBreed = primaryPet?.breed ?? null;
   const dogAge = primaryPet?.age ?? null;
+  const heroEmoji = SPECIES_META[primarySpecies].emoji;
 
   // Smart re-engagement: when favorite service hasn't been booked in 28+ days
   // and there's nothing upcoming for it, prompt the user to rebook.
@@ -295,8 +306,8 @@ export default function DashboardPage() {
               className="size-16 shrink-0 rounded-full object-cover ring-2 ring-doggy/30 sm:size-24"
             />
           ) : (
-            <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-doggy/15 ring-2 ring-doggy/20 sm:size-24">
-              <PawPrint className="size-7 text-doggy/60 sm:size-10" />
+            <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-doggy/15 text-3xl leading-none ring-2 ring-doggy/20 sm:size-24 sm:text-5xl" aria-label={SPECIES_META[primarySpecies].label}>
+              <span aria-hidden>{heroEmoji}</span>
             </div>
           )}
           <div className="min-w-0 flex-1">
@@ -432,7 +443,7 @@ export default function DashboardPage() {
                         {heroBooking.service_name}
                       </p>
                       <p className="mt-0.5 font-pawprint text-sm text-paw/65">
-                        for {heroBooking.dog_name}
+                        for <span aria-hidden>{bookingEmoji(heroBooking)}</span> {heroBooking.dog_name}
                       </p>
                       <div className="mt-1.5 flex items-center gap-2">
                         <p className="font-pawprint text-xs font-semibold text-paw/55">
@@ -582,7 +593,7 @@ export default function DashboardPage() {
                         <p className="font-pawprint text-sm font-semibold text-paw">
                           {booking.service_name}
                           <span className="ml-2 font-normal text-paw/55">
-                            — {booking.dog_name}
+                            — <span aria-hidden>{bookingEmoji(booking)}</span> {booking.dog_name}
                           </span>
                         </p>
                         <div className="mt-0.5 flex items-center gap-1.5">
@@ -650,7 +661,7 @@ export default function DashboardPage() {
                           <p className="font-pawprint text-sm font-semibold text-paw/80">
                             {booking.service_name}
                             <span className="ml-2 font-normal text-paw/55">
-                              — {booking.dog_name}
+                              — <span aria-hidden>{bookingEmoji(booking)}</span> {booking.dog_name}
                             </span>
                           </p>
                           <div className="mt-0.5 flex items-center gap-1.5">
@@ -715,7 +726,7 @@ export default function DashboardPage() {
                           <p className="font-pawprint text-sm font-semibold text-paw/70">
                             {booking.service_name}
                             <span className="ml-2 font-normal text-paw/45">
-                              — {booking.dog_name}
+                              — <span aria-hidden>{bookingEmoji(booking)}</span> {booking.dog_name}
                             </span>
                           </p>
                           <div className="mt-0.5 flex items-center gap-1.5">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, Calendar, Dog, FileText, Check, PawPrint, Plus, type LucideIcon } from 'lucide-react';
 import Image from 'next/image';
@@ -8,11 +8,13 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 import { DateTimePicker } from '@/components/date-time-picker';
+import { SPECIES_META, isPetSpecies, PET_SPECIES, type PetSpecies } from '@/lib/species';
 
 interface Service {
   id: string;
   name: string;
   price: number;
+  allowed_pet_types?: PetSpecies[];
 }
 
 interface BookingModalProps {
@@ -24,6 +26,7 @@ interface BookingModalProps {
 type Pet = {
   id: string;
   name: string;
+  species: PetSpecies;
   breed: string | null;
   age: string | null;
   photo_url: string | null;
@@ -102,6 +105,18 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     return () => clearTimeout(t);
   }, [success, countdown, onClose, router]);
 
+  const allowed = useMemo<PetSpecies[]>(
+    () => (service.allowed_pet_types && service.allowed_pet_types.length > 0
+      ? service.allowed_pet_types
+      : [...PET_SPECIES]),
+    [service.allowed_pet_types],
+  );
+
+  const compatiblePets = useMemo(
+    () => pets.filter((p) => allowed.includes(isPetSpecies(p.species) ? p.species : 'dog')),
+    [pets, allowed],
+  );
+
   // Fetch pets when modal opens
   useEffect(() => {
     if (!token) return;
@@ -110,15 +125,18 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
       .then(({ pets }) => {
         const list = pets ?? [];
         setPets(list);
-        // Auto-select first pet so users hit "Confirm" faster (1-pet case = 0 clicks)
-        if (list.length > 0 && !initialDogName) {
-          setSelectedPetId(list[0].id);
-          setDogName(list[0].name);
+        // Auto-select first COMPATIBLE pet so users hit "Confirm" faster
+        const firstCompat = list.find((p) =>
+          allowed.includes(isPetSpecies(p.species) ? p.species : 'dog'),
+        );
+        if (firstCompat && !initialDogName) {
+          setSelectedPetId(firstCompat.id);
+          setDogName(firstCompat.name);
         }
       })
       .catch(() => {})
       .finally(() => setPetsLoaded(true));
-  }, [token, initialDogName, fetchWithAuth]);
+  }, [token, initialDogName, fetchWithAuth, allowed]);
 
   if (!token) {
     return (
@@ -174,10 +192,15 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     setError(null);
 
     try {
+      const selected = pets.find((p) => p.id === selectedPetId);
+      const petSpecies: PetSpecies = selected
+        ? (isPetSpecies(selected.species) ? selected.species : 'dog')
+        : 'dog';
+
       const res = await fetchWithAuth('/api/bookings/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ serviceId: service.id, serviceName: service.name, dogName, datetime, notes }),
+        body: JSON.stringify({ serviceId: service.id, serviceName: service.name, dogName, petSpecies, datetime, notes }),
       });
 
       if (res.status === 409) {
@@ -200,7 +223,9 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
   }
 
   const hasPets = pets.length > 0;
+  const hasCompatible = compatiblePets.length > 0;
   const selectedPet = pets.find((p) => p.id === selectedPetId) ?? null;
+  const allowsAllSpecies = allowed.length === PET_SPECIES.length;
 
   return (
     <div
@@ -284,11 +309,13 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
               {/* Pet picker (or fallback) */}
-              {hasPets ? (
-                <FieldWrapper label={pets.length === 1 ? 'Booking For' : "Pick a Pet"} icon={Dog}>
+              {hasPets && hasCompatible ? (
+                <FieldWrapper label={compatiblePets.length === 1 ? 'Booking For' : "Pick a Pet"} icon={Dog}>
                   <div className="flex flex-wrap gap-2">
-                    {pets.map((pet) => {
+                    {compatiblePets.map((pet) => {
                       const active = selectedPetId === pet.id;
+                      const species = isPetSpecies(pet.species) ? pet.species : 'dog';
+                      const meta = SPECIES_META[species];
                       return (
                         <button
                           type="button"
@@ -301,6 +328,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                               : 'border-paw/[0.12] bg-paw/[0.03] hover:border-doggy/30 hover:bg-doggy/[0.05]',
                           )}
                           aria-pressed={active}
+                          aria-label={`${pet.name}, ${meta.label}`}
                         >
                           {pet.photo_url ? (
                             <Image
@@ -313,10 +341,10 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                             />
                           ) : (
                             <span className={cn(
-                              'flex size-7 items-center justify-center rounded-full border',
+                              'flex size-7 items-center justify-center rounded-full border text-base leading-none',
                               active ? 'border-doggy/40 bg-doggy/[0.18]' : 'border-paw/15 bg-paw/[0.05]',
-                            )}>
-                              <PawPrint className={cn('size-3.5', active ? 'text-doggy' : 'text-paw/40')} strokeWidth={1.8} />
+                            )} aria-hidden>
+                              {meta.emoji}
                             </span>
                           )}
                           <span className={cn(
@@ -345,13 +373,37 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                   {/* Selected pet detail strip */}
                   {selectedPet && (selectedPet.breed || selectedPet.age) && (
                     <p className="mt-1 font-pawprint text-xs text-paw/40 animate-fade-in">
-                      {[selectedPet.breed, selectedPet.age].filter(Boolean).join(' · ')}
+                      {[SPECIES_META[isPetSpecies(selectedPet.species) ? selectedPet.species : 'dog'].label, selectedPet.breed, selectedPet.age].filter(Boolean).join(' · ')}
+                    </p>
+                  )}
+
+                  {!allowsAllSpecies && pets.length > compatiblePets.length && (
+                    <p className="mt-1 font-pawprint text-[11px] text-paw/40">
+                      Hiding {pets.length - compatiblePets.length} pet{pets.length - compatiblePets.length === 1 ? '' : 's'} — this service only accepts {allowed.map((a) => SPECIES_META[a].label).join(', ')}.
                     </p>
                   )}
 
                   {fieldErrors.dogName && (
                     <p className="font-pawprint text-xs text-red-400">{fieldErrors.dogName}</p>
                   )}
+                </FieldWrapper>
+              ) : hasPets && !hasCompatible && petsLoaded ? (
+                <FieldWrapper label="Pet Required" icon={Dog}>
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/[0.06] p-4">
+                    <p className="font-pawprint text-sm font-semibold text-amber-300">
+                      None of your pets can book this service.
+                    </p>
+                    <p className="mt-1 font-pawprint text-xs text-amber-200/70">
+                      <strong>{service.name}</strong> only accepts {allowed.map((a) => `${SPECIES_META[a].emoji} ${SPECIES_META[a].label}`).join(', ')}.
+                    </p>
+                    <Link
+                      href="/profile"
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-amber-500/20 px-3 py-1.5 font-pawprint text-xs font-bold text-amber-200 transition-colors hover:bg-amber-500/30"
+                    >
+                      <Plus className="size-3.5" strokeWidth={2} />
+                      Add a compatible pet
+                    </Link>
+                  </div>
                 </FieldWrapper>
               ) : petsLoaded ? (
                 <FieldWrapper label="Pet's Name" htmlFor="dogName" icon={Dog}>
@@ -434,7 +486,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || (hasPets && !hasCompatible)}
                   className="group relative flex-1 cursor-pointer overflow-hidden rounded-xl bg-doggy py-3.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
