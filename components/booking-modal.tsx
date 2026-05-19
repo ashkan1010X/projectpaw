@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Calendar, Dog, FileText, Check, PawPrint, Plus, type LucideIcon } from 'lucide-react';
+import { X, Calendar, Dog, FileText, Check, Plus, ArrowLeft, type LucideIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 import { DateTimePicker } from '@/components/date-time-picker';
 import { SPECIES_META, isPetSpecies, PET_SPECIES, type PetSpecies } from '@/lib/species';
+import { PAYMENT_METHODS, PAYMENT_META, type PaymentMethod } from '@/lib/payment';
 
 interface Service {
   id: string;
@@ -69,22 +70,24 @@ const inputClass = cn(
 
 export function BookingModal({ service, onClose, initialDogName }: BookingModalProps) {
   type BookingErrors = { dogName?: string; datetime?: string };
+  type Step = 'details' | 'review';
 
   const { token, fetchWithAuth } = useAuth();
   const router = useRouter();
+  const [step, setStep] = useState<Step>('details');
   const [pets, setPets] = useState<Pet[]>([]);
   const [petsLoaded, setPetsLoaded] = useState(false);
   const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
   const [dogName, setDogName] = useState(initialDogName ?? '');
   const [datetime, setDatetime] = useState('');
   const [notes, setNotes] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<BookingErrors>({});
   const [countdown, setCountdown] = useState(3);
 
-  // Esc to close
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -93,7 +96,6 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  // Auto-redirect to dashboard after booking confirmed
   useEffect(() => {
     if (!success) return;
     if (countdown <= 0) {
@@ -117,7 +119,6 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     [pets, allowed],
   );
 
-  // Fetch pets when modal opens
   useEffect(() => {
     if (!token) return;
     fetchWithAuth('/api/pets')
@@ -125,7 +126,6 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
       .then(({ pets }) => {
         const list = pets ?? [];
         setPets(list);
-        // Auto-select first COMPATIBLE pet so users hit "Confirm" faster
         const firstCompat = list.find((p) =>
           allowed.includes(isPetSpecies(p.species) ? p.species : 'dog'),
         );
@@ -177,20 +177,23 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     }
   }
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+  function handleContinue() {
     const errors: BookingErrors = {
       dogName: validateBookingField('dogName', dogName),
       datetime: validateBookingField('datetime', datetime),
     };
-    const hasErrors = Object.values(errors).some(Boolean);
-    if (hasErrors) {
+    if (Object.values(errors).some(Boolean)) {
       setFieldErrors(errors);
       return;
     }
+    setFieldErrors({});
+    setError(null);
+    setStep('review');
+  }
+
+  async function handleConfirm() {
     setLoading(true);
     setError(null);
-
     try {
       const selected = pets.find((p) => p.id === selectedPetId);
       const petSpecies: PetSpecies = selected
@@ -200,12 +203,21 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
       const res = await fetchWithAuth('/api/bookings/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ serviceId: service.id, serviceName: service.name, dogName, petSpecies, datetime, notes }),
+        body: JSON.stringify({
+          serviceId: service.id,
+          serviceName: service.name,
+          dogName,
+          petSpecies,
+          datetime,
+          notes,
+          paymentMethod,
+        }),
       });
 
       if (res.status === 409) {
         const data = (await res.json().catch(() => ({}))) as { message?: string };
         setFieldErrors((fe) => ({ ...fe, datetime: data.message ?? 'That slot is no longer available. Please pick another time.' }));
+        setStep('details');
         return;
       }
 
@@ -226,6 +238,20 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
   const hasCompatible = compatiblePets.length > 0;
   const selectedPet = pets.find((p) => p.id === selectedPetId) ?? null;
   const allowsAllSpecies = allowed.length === PET_SPECIES.length;
+  const reviewSpecies: PetSpecies = selectedPet
+    ? (isPetSpecies(selectedPet.species) ? selectedPet.species : 'dog')
+    : 'dog';
+  const ReviewSpeciesIcon = SPECIES_META[reviewSpecies].Icon;
+
+  const formattedReviewDate = datetime
+    ? new Date(datetime).toLocaleString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      })
+    : '';
 
   return (
     <div
@@ -233,7 +259,6 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="relative w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col rounded-3xl border border-paw/15 bg-[#0f0d09] shadow-2xl animate-scale-in">
-        {/* Ambient glow */}
         <div className="pointer-events-none absolute -top-32 left-1/2 size-[300px] -translate-x-1/2 rounded-full bg-doggy/[0.15] blur-[80px]" />
 
         {/* Header */}
@@ -249,7 +274,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
 
           <div className="relative">
             <div className="mb-1 inline-block rounded-full bg-white/15 px-2.5 py-0.5 font-pawprint text-[10px] font-bold uppercase tracking-widest text-white/90 backdrop-blur-sm">
-              Booking
+              {success ? 'Confirmed' : step === 'details' ? 'Step 1 of 2 · Details' : 'Step 2 of 2 · Review'}
             </div>
             <h2 className="font-elegant text-2xl font-black leading-none text-white">
               {service.name}
@@ -270,6 +295,14 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
           </button>
         </div>
 
+        {/* Step dots (hidden on success) */}
+        {!success && (
+          <div className="flex shrink-0 justify-center gap-1.5 border-b border-paw/[0.04] bg-paw/[0.02] py-2.5">
+            <span className={cn('h-1.5 rounded-full transition-all duration-300', step === 'details' ? 'w-8 bg-doggy' : 'w-1.5 bg-paw/20')} />
+            <span className={cn('h-1.5 rounded-full transition-all duration-300', step === 'review' ? 'w-8 bg-doggy' : 'w-1.5 bg-paw/20')} />
+          </div>
+        )}
+
         <div className="relative flex-1 overflow-y-auto p-6">
           {success ? (
             <div className="flex flex-col items-center gap-5 py-6 text-center animate-fade-up">
@@ -281,6 +314,9 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                 <p className="font-elegant text-2xl font-black text-paw">Booking Confirmed!</p>
                 <p className="mt-1 font-pawprint text-sm text-paw/55">
                   Confirmation details sent to your email.
+                </p>
+                <p className="mt-2 font-pawprint text-xs text-paw/45">
+                  Payment ({PAYMENT_META[paymentMethod].shortLabel.toLowerCase()}) will be collected at the appointment.
                 </p>
                 <p className="mt-3 font-pawprint text-xs text-paw/35">
                   Taking you to your bookings in {countdown}s…
@@ -305,10 +341,9 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                 </button>
               </div>
             </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          ) : step === 'details' ? (
+            <div className="flex flex-col gap-5">
 
-              {/* Pet picker (or fallback) */}
               {hasPets && hasCompatible ? (
                 <FieldWrapper label={compatiblePets.length === 1 ? 'Booking For' : "Pick a Pet"} icon={Dog}>
                   <div className="flex flex-wrap gap-2">
@@ -371,7 +406,6 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                     </Link>
                   </div>
 
-                  {/* Selected pet detail strip */}
                   {selectedPet && (selectedPet.breed || selectedPet.age) && (
                     <p className="mt-1 font-pawprint text-xs text-paw/40 animate-fade-in">
                       {[SPECIES_META[isPetSpecies(selectedPet.species) ? selectedPet.species : 'dog'].label, selectedPet.breed, selectedPet.age].filter(Boolean).join(' · ')}
@@ -417,7 +451,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                       setFieldErrors((fe) => ({ ...fe, dogName: undefined }));
                     }}
                     onBlur={(e) => {
-                      const err = e.target.value.trim() ? undefined : "Your dog's name is required.";
+                      const err = e.target.value.trim() ? undefined : "Your pet's name is required.";
                       setFieldErrors((fe) => ({ ...fe, dogName: err }));
                     }}
                     placeholder="e.g. Buddy"
@@ -434,7 +468,6 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                   )}
                 </FieldWrapper>
               ) : (
-                /* Skeleton while pets load */
                 <div className="flex flex-col gap-2 animate-pulse">
                   <div className="h-3 w-24 rounded bg-paw/10" />
                   <div className="flex gap-2">
@@ -480,21 +513,143 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                 <button
                   type="button"
                   onClick={onClose}
-                  disabled={loading}
-                  className="flex-1 cursor-pointer rounded-xl border border-paw/[0.1] py-3.5 font-pawprint text-sm font-semibold text-paw/55 transition-all duration-300 hover:border-paw/25 hover:bg-paw/[0.04] hover:text-paw disabled:opacity-50"
+                  className="flex-1 cursor-pointer rounded-xl border border-paw/[0.1] py-3.5 font-pawprint text-sm font-semibold text-paw/55 transition-all duration-300 hover:border-paw/25 hover:bg-paw/[0.04] hover:text-paw"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
-                  disabled={loading || (hasPets && !hasCompatible)}
+                  type="button"
+                  onClick={handleContinue}
+                  disabled={hasPets && !hasCompatible}
                   className="group relative flex-1 cursor-pointer overflow-hidden rounded-xl bg-doggy py-3.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                  <span className="relative">{loading ? 'Booking...' : 'Confirm'}</span>
+                  <span className="relative">Continue →</span>
                 </button>
               </div>
-            </form>
+            </div>
+          ) : (
+            /* STEP 2 — REVIEW & CONFIRM */
+            <div className="flex flex-col gap-5 animate-fade-in">
+
+              {/* Order summary card */}
+              <div className="rounded-2xl border border-paw/[0.1] bg-gradient-to-br from-paw/[0.05] to-doggy/[0.04] p-5">
+                <p className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.18em] text-paw/40">Your Booking</p>
+
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-elegant text-xl font-black leading-tight text-paw">{service.name}</p>
+                    <p className="mt-1 flex items-center gap-1.5 font-pawprint text-sm text-paw/65">
+                      <ReviewSpeciesIcon className="size-3.5 text-doggy/80" strokeWidth={1.8} />
+                      <span className="font-semibold">{dogName}</span>
+                      <span className="text-paw/35">·</span>
+                      <span>{SPECIES_META[reviewSpecies].label}</span>
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-elegant text-2xl font-black leading-none text-doggy">${service.price}</p>
+                    <p className="mt-0.5 font-pawprint text-[10px] uppercase tracking-wider text-paw/35">Total</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center gap-2 rounded-xl border border-paw/[0.08] bg-[#0f0d09]/40 px-3 py-2.5">
+                  <Calendar className="size-3.5 text-doggy/70" strokeWidth={1.8} />
+                  <span className="font-pawprint text-sm font-semibold text-paw">{formattedReviewDate}</span>
+                </div>
+
+                {notes && (
+                  <div className="mt-2 flex items-start gap-2 rounded-xl border border-paw/[0.08] bg-[#0f0d09]/40 px-3 py-2.5">
+                    <FileText className="mt-0.5 size-3.5 shrink-0 text-paw/45" strokeWidth={1.8} />
+                    <span className="font-pawprint text-xs text-paw/65">{notes}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Payment method picker */}
+              <div className="flex flex-col gap-2.5">
+                <p className="font-pawprint text-xs font-semibold uppercase tracking-[0.18em] text-paw/55">
+                  How would you like to pay?
+                </p>
+                <div role="radiogroup" aria-label="Payment method" className="flex flex-col gap-2">
+                  {PAYMENT_METHODS.map((m) => {
+                    const meta = PAYMENT_META[m];
+                    const Icon = meta.Icon;
+                    const active = paymentMethod === m;
+                    return (
+                      <button
+                        key={m}
+                        type="button"
+                        role="radio"
+                        aria-checked={active}
+                        aria-label={meta.label}
+                        onClick={() => setPaymentMethod(m)}
+                        className={cn(
+                          'flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all duration-200',
+                          active
+                            ? 'border-doggy/60 bg-doggy/[0.10] shadow-sm shadow-doggy/15'
+                            : 'border-paw/[0.1] bg-paw/[0.03] hover:border-doggy/30 hover:bg-doggy/[0.04]',
+                        )}
+                      >
+                        <span className={cn(
+                          'flex size-9 shrink-0 items-center justify-center rounded-lg border',
+                          active ? 'border-doggy/40 bg-doggy/[0.18] text-doggy' : 'border-paw/15 bg-paw/[0.05] text-paw/55',
+                        )}>
+                          <Icon className="size-4" strokeWidth={1.8} />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className={cn(
+                            'block font-pawprint text-sm font-bold',
+                            active ? 'text-paw' : 'text-paw/80',
+                          )}>{meta.label}</span>
+                          <span className="block font-pawprint text-[11px] text-paw/45">{meta.hint}</span>
+                        </span>
+                        <span className={cn(
+                          'flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-all',
+                          active ? 'border-doggy bg-doggy' : 'border-paw/20',
+                        )}>
+                          {active && <Check className="size-3 text-white" strokeWidth={3} />}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Info callout */}
+              <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/20 bg-amber-500/[0.05] px-4 py-3">
+                <span className="mt-0.5 text-base leading-none" aria-hidden>💡</span>
+                <p className="font-pawprint text-xs leading-relaxed text-amber-200/85">
+                  <strong className="font-bold text-amber-200">No payment needed now.</strong> Your provider will collect payment at the time of service.
+                </p>
+              </div>
+
+              {error && (
+                <div className="rounded-xl border border-red-500/25 bg-red-500/[0.08] px-4 py-3 animate-fade-in">
+                  <p className="font-pawprint text-sm text-red-400">{error}</p>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-1">
+                <button
+                  type="button"
+                  onClick={() => setStep('details')}
+                  disabled={loading}
+                  className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border border-paw/[0.1] px-4 py-3.5 font-pawprint text-sm font-semibold text-paw/55 transition-all duration-300 hover:border-paw/25 hover:bg-paw/[0.04] hover:text-paw disabled:opacity-50"
+                >
+                  <ArrowLeft className="size-4" strokeWidth={2} />
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  disabled={loading}
+                  className="group relative flex-1 cursor-pointer overflow-hidden rounded-xl bg-doggy py-3.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                  <span className="relative">{loading ? 'Booking…' : 'Confirm Booking'}</span>
+                </button>
+              </div>
+            </div>
           )}
         </div>
       </div>

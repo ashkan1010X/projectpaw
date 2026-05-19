@@ -7,6 +7,7 @@ import { Loader2, PawPrint, Sparkles, Clock, Bell, Heart, CalendarClock } from '
 import { useAuth } from '@/contexts/auth-context';
 import { BookingModal } from '@/components/booking-modal';
 import { SPECIES_META, isPetSpecies, type PetSpecies } from '@/lib/species';
+import { PAYMENT_META, isPaymentMethod } from '@/lib/payment';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { RescheduleDialog } from '@/components/reschedule-dialog';
 import { AddToCalendar } from '@/components/add-to-calendar';
@@ -19,10 +20,23 @@ type Booking = {
   service_name: string;
   dog_name: string;
   pet_species: string | null;
+  payment_method: string | null;
   datetime: string;
   notes: string | null;
   status: string;
 };
+
+function BookingPaymentBadge({ method }: { method: string | null }) {
+  if (!isPaymentMethod(method)) return null;
+  const meta = PAYMENT_META[method];
+  const Icon = meta.Icon;
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-paw/10 bg-paw/5 px-2 py-0.5 font-pawprint text-[10px] font-semibold text-paw/55">
+      <Icon className="size-2.5" strokeWidth={2} aria-hidden />
+      {meta.shortLabel}
+    </span>
+  );
+}
 
 function BookingPetIcon({ booking, className }: { booking: Booking; className?: string }) {
   const species = isPetSpecies(booking.pet_species) ? booking.pet_species : 'dog';
@@ -447,7 +461,7 @@ export default function DashboardPage() {
                       <p className="mt-0.5 font-pawprint text-sm text-paw/65">
                         for <BookingPetIcon booking={heroBooking} /> {heroBooking.dog_name}
                       </p>
-                      <div className="mt-1.5 flex items-center gap-2">
+                      <div className="mt-1.5 flex flex-wrap items-center gap-2">
                         <p className="font-pawprint text-xs font-semibold text-paw/55">
                           {formatBookingDate(heroBooking.datetime).date}
                         </p>
@@ -455,6 +469,12 @@ export default function DashboardPage() {
                         <p className="font-pawprint text-xs text-paw/45">
                           {formatBookingDate(heroBooking.datetime).time}
                         </p>
+                        {heroBooking.payment_method && (
+                          <>
+                            <span className="text-paw/25">·</span>
+                            <BookingPaymentBadge method={heroBooking.payment_method} />
+                          </>
+                        )}
                       </div>
                     </div>
                     <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
