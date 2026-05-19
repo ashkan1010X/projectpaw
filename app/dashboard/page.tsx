@@ -24,8 +24,10 @@ type Booking = {
   status: string;
 };
 
-function bookingEmoji(b: Booking): string {
-  return isPetSpecies(b.pet_species) ? SPECIES_META[b.pet_species].emoji : '🐾';
+function BookingPetIcon({ booking, className }: { booking: Booking; className?: string }) {
+  const species = isPetSpecies(booking.pet_species) ? booking.pet_species : 'dog';
+  const Icon = SPECIES_META[species].Icon;
+  return <Icon className={className ?? 'inline size-3.5'} strokeWidth={1.8} aria-hidden />;
 }
 
 type Profile = {
@@ -275,7 +277,7 @@ export default function DashboardPage() {
   const dogPhotoUrl = primaryPet?.photo_url ?? null;
   const dogBreed = primaryPet?.breed ?? null;
   const dogAge = primaryPet?.age ?? null;
-  const heroEmoji = SPECIES_META[primarySpecies].emoji;
+  const HeroIcon = SPECIES_META[primarySpecies].Icon;
 
   // Smart re-engagement: when favorite service hasn't been booked in 28+ days
   // and there's nothing upcoming for it, prompt the user to rebook.
@@ -306,8 +308,8 @@ export default function DashboardPage() {
               className="size-16 shrink-0 rounded-full object-cover ring-2 ring-doggy/30 sm:size-24"
             />
           ) : (
-            <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-doggy/15 text-3xl leading-none ring-2 ring-doggy/20 sm:size-24 sm:text-5xl" aria-label={SPECIES_META[primarySpecies].label}>
-              <span aria-hidden>{heroEmoji}</span>
+            <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-doggy/15 ring-2 ring-doggy/20 sm:size-24" aria-label={SPECIES_META[primarySpecies].label}>
+              <HeroIcon className="size-8 text-doggy/70 sm:size-12" strokeWidth={1.5} aria-hidden />
             </div>
           )}
           <div className="min-w-0 flex-1">
@@ -443,7 +445,7 @@ export default function DashboardPage() {
                         {heroBooking.service_name}
                       </p>
                       <p className="mt-0.5 font-pawprint text-sm text-paw/65">
-                        for <span aria-hidden>{bookingEmoji(heroBooking)}</span> {heroBooking.dog_name}
+                        for <BookingPetIcon booking={heroBooking} /> {heroBooking.dog_name}
                       </p>
                       <div className="mt-1.5 flex items-center gap-2">
                         <p className="font-pawprint text-xs font-semibold text-paw/55">
@@ -593,7 +595,7 @@ export default function DashboardPage() {
                         <p className="font-pawprint text-sm font-semibold text-paw">
                           {booking.service_name}
                           <span className="ml-2 font-normal text-paw/55">
-                            — <span aria-hidden>{bookingEmoji(booking)}</span> {booking.dog_name}
+                            — <BookingPetIcon booking={booking} /> {booking.dog_name}
                           </span>
                         </p>
                         <div className="mt-0.5 flex items-center gap-1.5">
@@ -661,7 +663,7 @@ export default function DashboardPage() {
                           <p className="font-pawprint text-sm font-semibold text-paw/80">
                             {booking.service_name}
                             <span className="ml-2 font-normal text-paw/55">
-                              — <span aria-hidden>{bookingEmoji(booking)}</span> {booking.dog_name}
+                              — <BookingPetIcon booking={booking} /> {booking.dog_name}
                             </span>
                           </p>
                           <div className="mt-0.5 flex items-center gap-1.5">
@@ -726,7 +728,7 @@ export default function DashboardPage() {
                           <p className="font-pawprint text-sm font-semibold text-paw/70">
                             {booking.service_name}
                             <span className="ml-2 font-normal text-paw/45">
-                              — <span aria-hidden>{bookingEmoji(booking)}</span> {booking.dog_name}
+                              — <BookingPetIcon booking={booking} /> {booking.dog_name}
                             </span>
                           </p>
                           <div className="mt-0.5 flex items-center gap-1.5">

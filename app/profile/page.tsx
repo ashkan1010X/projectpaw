@@ -336,10 +336,16 @@ export default function ProfilePage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="truncate font-elegant text-base font-black text-paw">{pet.name}</p>
-                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-doggy/25 bg-doggy/[0.1] px-1.5 py-0.5 font-pawprint text-[10px] font-bold text-doggy/85">
-                      <span aria-hidden>{SPECIES_META[isPetSpecies(pet.species) ? pet.species : 'dog'].emoji}</span>
-                      <span>{SPECIES_META[isPetSpecies(pet.species) ? pet.species : 'dog'].label}</span>
-                    </span>
+                    {(() => {
+                      const meta = SPECIES_META[isPetSpecies(pet.species) ? pet.species : 'dog'];
+                      const Icon = meta.Icon;
+                      return (
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-doggy/25 bg-doggy/[0.1] px-1.5 py-0.5 font-pawprint text-[10px] font-bold text-doggy/85">
+                          <Icon className="size-3" strokeWidth={2} aria-hidden />
+                          <span>{meta.label}</span>
+                        </span>
+                      );
+                    })()}
                   </div>
                   <p className="truncate font-pawprint text-xs text-paw/50">
                     {[pet.breed, pet.age, pet.weight].filter(Boolean).join(' · ') || 'No details yet'}

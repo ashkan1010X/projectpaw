@@ -228,6 +228,7 @@ export function PetDrawer({ open, initial, saving, error, onClose, onSave, mode 
               >
                 {PET_SPECIES.map((s) => {
                   const meta = SPECIES_META[s];
+                  const Icon = meta.Icon;
                   const active = form.species === s;
                   return (
                     <button
@@ -244,7 +245,7 @@ export function PetDrawer({ open, initial, saving, error, onClose, onSave, mode 
                           : 'border-paw/[0.12] bg-paw/[0.03] text-paw/55 hover:border-doggy/30 hover:text-paw/85',
                       )}
                     >
-                      <span aria-hidden>{meta.emoji}</span>
+                      <Icon className="size-3.5" strokeWidth={1.8} aria-hidden />
                       <span>{meta.label}</span>
                     </button>
                   );

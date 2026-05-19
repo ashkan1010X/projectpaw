@@ -316,6 +316,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                       const active = selectedPetId === pet.id;
                       const species = isPetSpecies(pet.species) ? pet.species : 'dog';
                       const meta = SPECIES_META[species];
+                      const SpeciesIcon = meta.Icon;
                       return (
                         <button
                           type="button"
@@ -341,10 +342,10 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                             />
                           ) : (
                             <span className={cn(
-                              'flex size-7 items-center justify-center rounded-full border text-base leading-none',
+                              'flex size-7 items-center justify-center rounded-full border',
                               active ? 'border-doggy/40 bg-doggy/[0.18]' : 'border-paw/15 bg-paw/[0.05]',
                             )} aria-hidden>
-                              {meta.emoji}
+                              <SpeciesIcon className={cn('size-3.5', active ? 'text-doggy' : 'text-paw/55')} strokeWidth={1.8} />
                             </span>
                           )}
                           <span className={cn(
@@ -394,7 +395,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                       None of your pets can book this service.
                     </p>
                     <p className="mt-1 font-pawprint text-xs text-amber-200/70">
-                      <strong>{service.name}</strong> only accepts {allowed.map((a) => `${SPECIES_META[a].emoji} ${SPECIES_META[a].label}`).join(', ')}.
+                      <strong>{service.name}</strong> only accepts {allowed.map((a) => SPECIES_META[a].label).join(', ')}.
                     </p>
                     <Link
                       href="/profile"
