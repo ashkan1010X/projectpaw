@@ -176,6 +176,7 @@ function StripeCardSection({
       <div className="rounded-xl border border-paw/[0.12] bg-paw/[0.03] px-4 py-3.5 transition-all duration-200 focus-within:border-doggy/50 focus-within:ring-2 focus-within:ring-doggy/15">
         <CardElement
           options={{
+            hidePostalCode: true,
             style: {
               base: {
                 color: '#F5CBA7',
