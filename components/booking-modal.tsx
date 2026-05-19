@@ -2,14 +2,16 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Calendar, Dog, FileText, Check, Plus, ArrowLeft, type LucideIcon } from 'lucide-react';
+import { X, Calendar, Dog, FileText, Check, Plus, ArrowLeft, ShieldCheck, type LucideIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 import { DateTimePicker } from '@/components/date-time-picker';
 import { SPECIES_META, isPetSpecies, PET_SPECIES, type PetSpecies } from '@/lib/species';
 import { PAYMENT_METHODS, PAYMENT_META, type PaymentMethod } from '@/lib/payment';
+import { stripePromise } from '@/lib/stripe-client';
 
 interface Service {
   id: string;
@@ -67,6 +69,169 @@ const inputClass = cn(
   'outline-none transition-all duration-300',
   'focus:border-doggy/60 focus:bg-paw/[0.05] focus:ring-2 focus:ring-doggy/15',
 );
+
+type StripeCardSectionProps = {
+  amount: number;
+  serviceId: string;
+  serviceName: string;
+  dogName: string;
+  petSpecies: PetSpecies;
+  datetime: string;
+  notes: string;
+  onBack: () => void;
+  onSuccess: () => void;
+  onSlotConflict: () => void;
+  fetchWithAuth: (url: string, opts?: RequestInit) => Promise<Response>;
+};
+
+function StripeCardSection({
+  amount,
+  serviceId,
+  serviceName,
+  dogName,
+  petSpecies,
+  datetime,
+  notes,
+  onBack,
+  onSuccess,
+  onSlotConflict,
+  fetchWithAuth,
+}: StripeCardSectionProps) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handlePay() {
+    if (!stripe || !elements) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      // 1. Create PaymentIntent server-side (server verifies price & slot)
+      const intentRes = await fetchWithAuth('/api/bookings/payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ serviceId, serviceName, datetime }),
+      });
+
+      if (intentRes.status === 409) {
+        onSlotConflict();
+        return;
+      }
+      if (!intentRes.ok) {
+        const d = (await intentRes.json().catch(() => ({}))) as { message?: string };
+        throw new Error(d.message ?? 'Payment setup failed. Please try again.');
+      }
+      const { clientSecret } = (await intentRes.json()) as { clientSecret: string };
+
+      // 2. Confirm card payment in-page (no redirect)
+      const card = elements.getElement(CardElement);
+      if (!card) throw new Error('Card form not ready.');
+
+      const { error: stripeErr, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: { card },
+      });
+
+      if (stripeErr) throw new Error(stripeErr.message ?? 'Payment declined.');
+      if (paymentIntent?.status !== 'succeeded') throw new Error('Payment not completed. Please try again.');
+
+      // 3. Finalize booking (email route verifies intent server-side before inserting)
+      const bookRes = await fetchWithAuth('/api/bookings/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          serviceId,
+          serviceName,
+          dogName,
+          petSpecies,
+          datetime,
+          notes: notes || undefined,
+          paymentMethod: 'stripe',
+          stripePaymentIntentId: paymentIntent.id,
+        }),
+      });
+
+      if (bookRes.status === 409) {
+        // Slot taken after payment — server auto-refunds, inform user
+        const d = (await bookRes.json().catch(() => ({}))) as { message?: string };
+        throw new Error(d.message ?? 'Slot was just taken — your payment has been refunded.');
+      }
+      if (!bookRes.ok) {
+        const d = (await bookRes.json().catch(() => ({}))) as { message?: string };
+        throw new Error(d.message ?? 'Booking failed after payment. Contact support.');
+      }
+
+      onSuccess();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Card input */}
+      <div className="rounded-xl border border-paw/[0.12] bg-paw/[0.03] px-4 py-3.5 transition-all duration-200 focus-within:border-doggy/50 focus-within:ring-2 focus-within:ring-doggy/15">
+        <CardElement
+          options={{
+            style: {
+              base: {
+                color: '#F5CBA7',
+                fontFamily: '"Baloo 2", sans-serif',
+                fontSize: '14px',
+                '::placeholder': { color: 'rgba(245,203,167,0.35)' },
+              },
+              invalid: { color: '#ef4444', iconColor: '#ef4444' },
+            },
+          }}
+        />
+      </div>
+
+      {/* Powered by Stripe badge */}
+      <div className="flex items-center gap-1.5">
+        <ShieldCheck className="size-3.5 text-paw/30" strokeWidth={1.5} />
+        <span className="font-pawprint text-[11px] text-paw/35">Secured by Stripe · 256-bit TLS encryption</span>
+      </div>
+
+      {/* Cancellation policy */}
+      <div className="flex items-start gap-2.5 rounded-xl border border-doggy/15 bg-doggy/[0.05] px-4 py-3">
+        <span className="mt-0.5 text-sm leading-none" aria-hidden>📋</span>
+        <p className="font-pawprint text-[11px] leading-relaxed text-paw/60">
+          <strong className="text-paw/80">Cancellation policy:</strong> Full refund if cancelled more than 24 hours before your appointment. 50% refund within 24 hours.
+        </p>
+      </div>
+
+      {error && (
+        <div className="rounded-xl border border-red-500/25 bg-red-500/[0.08] px-4 py-3 animate-fade-in">
+          <p className="font-pawprint text-sm text-red-400">{error}</p>
+        </div>
+      )}
+
+      <div className="flex gap-3 pt-1">
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={loading}
+          className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border border-paw/[0.1] px-4 py-3.5 font-pawprint text-sm font-semibold text-paw/55 transition-all duration-300 hover:border-paw/25 hover:bg-paw/[0.04] hover:text-paw disabled:opacity-50"
+        >
+          <ArrowLeft className="size-4" strokeWidth={2} />
+          Back
+        </button>
+        <button
+          type="button"
+          onClick={handlePay}
+          disabled={loading || !stripe || !elements}
+          className="group relative flex-1 cursor-pointer overflow-hidden rounded-xl bg-doggy py-3.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+          <span className="relative">{loading ? 'Processing…' : `Pay $${amount} Now →`}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export function BookingModal({ service, onClose, initialDogName }: BookingModalProps) {
   type BookingErrors = { dogName?: string; datetime?: string };
@@ -155,7 +320,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
   }
 
   function validateBookingField(field: keyof BookingErrors, value: string): string | undefined {
-    if (field === 'dogName' && !value.trim()) return "Please pick a pet for this booking.";
+    if (field === 'dogName' && !value.trim()) return 'Please pick a pet for this booking.';
     if (field === 'datetime') {
       if (!value) return 'Please select a date and time.';
       if (new Date(value) <= new Date()) return 'Please choose a future date and time.';
@@ -253,6 +418,20 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
       })
     : '';
 
+  const selectedPetSpecies: PetSpecies = selectedPet
+    ? (isPetSpecies(selectedPet.species) ? selectedPet.species : 'dog')
+    : 'dog';
+
+  const stripeAppearance = {
+    theme: 'night' as const,
+    variables: {
+      colorPrimary: '#B2A4FF',
+      colorBackground: '#0f0d09',
+      colorText: '#F5CBA7',
+      borderRadius: '12px',
+    },
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md animate-fade-in"
@@ -316,7 +495,9 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                   Confirmation details sent to your email.
                 </p>
                 <p className="mt-2 font-pawprint text-xs text-paw/45">
-                  Payment ({PAYMENT_META[paymentMethod].shortLabel.toLowerCase()}) will be collected at the appointment.
+                  {paymentMethod === 'stripe'
+                    ? 'Your card has been charged successfully.'
+                    : `Payment (${PAYMENT_META[paymentMethod].shortLabel.toLowerCase()}) will be collected at the appointment.`}
                 </p>
                 <p className="mt-3 font-pawprint text-xs text-paw/35">
                   Taking you to your bookings in {countdown}s…
@@ -345,7 +526,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
             <div className="flex flex-col gap-5">
 
               {hasPets && hasCompatible ? (
-                <FieldWrapper label={compatiblePets.length === 1 ? 'Booking For' : "Pick a Pet"} icon={Dog}>
+                <FieldWrapper label={compatiblePets.length === 1 ? 'Booking For' : 'Pick a Pet'} icon={Dog}>
                   <div className="flex flex-wrap gap-2">
                     {compatiblePets.map((pet) => {
                       const active = selectedPetId === pet.id;
@@ -529,7 +710,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
               </div>
             </div>
           ) : (
-            /* STEP 2 — REVIEW & CONFIRM */
+            /* STEP 2 — REVIEW & PAYMENT */
             <div className="flex flex-col gap-5 animate-fade-in">
 
               {/* Order summary card */}
@@ -615,40 +796,64 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                 </div>
               </div>
 
-              {/* Info callout */}
-              <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/20 bg-amber-500/[0.05] px-4 py-3">
-                <span className="mt-0.5 text-base leading-none" aria-hidden>💡</span>
-                <p className="font-pawprint text-xs leading-relaxed text-amber-200/85">
-                  <strong className="font-bold text-amber-200">No payment needed now.</strong> Your provider will collect payment at the time of service.
-                </p>
-              </div>
+              {/* Stripe card form — mounted only when stripe selected */}
+              {paymentMethod === 'stripe' ? (
+                <Elements stripe={stripePromise} options={{ appearance: stripeAppearance }}>
+                  <StripeCardSection
+                    amount={service.price}
+                    serviceId={service.id}
+                    serviceName={service.name}
+                    dogName={dogName}
+                    petSpecies={selectedPetSpecies}
+                    datetime={datetime}
+                    notes={notes}
+                    onBack={() => setStep('details')}
+                    onSuccess={() => setSuccess(true)}
+                    onSlotConflict={() => {
+                      setFieldErrors((fe) => ({ ...fe, datetime: 'That slot is no longer available. Please pick another time.' }));
+                      setStep('details');
+                    }}
+                    fetchWithAuth={fetchWithAuth}
+                  />
+                </Elements>
+              ) : (
+                <>
+                  {/* No-payment callout for cash/etransfer */}
+                  <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/20 bg-amber-500/[0.05] px-4 py-3">
+                    <span className="mt-0.5 text-base leading-none" aria-hidden>💡</span>
+                    <p className="font-pawprint text-xs leading-relaxed text-amber-200/85">
+                      <strong className="font-bold text-amber-200">No payment needed now.</strong> Your provider will collect payment at the time of service.
+                    </p>
+                  </div>
 
-              {error && (
-                <div className="rounded-xl border border-red-500/25 bg-red-500/[0.08] px-4 py-3 animate-fade-in">
-                  <p className="font-pawprint text-sm text-red-400">{error}</p>
-                </div>
+                  {error && (
+                    <div className="rounded-xl border border-red-500/25 bg-red-500/[0.08] px-4 py-3 animate-fade-in">
+                      <p className="font-pawprint text-sm text-red-400">{error}</p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setStep('details')}
+                      disabled={loading}
+                      className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border border-paw/[0.1] px-4 py-3.5 font-pawprint text-sm font-semibold text-paw/55 transition-all duration-300 hover:border-paw/25 hover:bg-paw/[0.04] hover:text-paw disabled:opacity-50"
+                    >
+                      <ArrowLeft className="size-4" strokeWidth={2} />
+                      Back
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleConfirm}
+                      disabled={loading}
+                      className="group relative flex-1 cursor-pointer overflow-hidden rounded-xl bg-doggy py-3.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                      <span className="relative">{loading ? 'Booking…' : 'Confirm Booking'}</span>
+                    </button>
+                  </div>
+                </>
               )}
-
-              <div className="flex gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setStep('details')}
-                  disabled={loading}
-                  className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl border border-paw/[0.1] px-4 py-3.5 font-pawprint text-sm font-semibold text-paw/55 transition-all duration-300 hover:border-paw/25 hover:bg-paw/[0.04] hover:text-paw disabled:opacity-50"
-                >
-                  <ArrowLeft className="size-4" strokeWidth={2} />
-                  Back
-                </button>
-                <button
-                  type="button"
-                  onClick={handleConfirm}
-                  disabled={loading}
-                  className="group relative flex-1 cursor-pointer overflow-hidden rounded-xl bg-doggy py-3.5 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-                  <span className="relative">{loading ? 'Booking…' : 'Confirm Booking'}</span>
-                </button>
-              </div>
             </div>
           )}
         </div>

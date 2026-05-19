@@ -1,6 +1,6 @@
 import { Banknote, Smartphone, CreditCard, type LucideIcon } from 'lucide-react';
 
-export const PAYMENT_METHODS = ['cash', 'etransfer', 'card'] as const;
+export const PAYMENT_METHODS = ['cash', 'etransfer', 'stripe'] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
 export function isPaymentMethod(v: unknown): v is PaymentMethod {
@@ -31,12 +31,12 @@ export const PAYMENT_META: Record<PaymentMethod, {
     hint: 'Send Interac e-transfer at appointment',
     emailLine: 'E-Transfer — provider will share details at appointment',
   },
-  card: {
-    label: 'Card at Appointment',
-    shortLabel: 'Card',
+  stripe: {
+    label: 'Pay Online Now',
+    shortLabel: 'Online',
     emoji: '💳',
     Icon: CreditCard,
-    hint: 'Tap or insert card with the provider on-site',
-    emailLine: 'Card — provider will bring a card reader',
+    hint: 'Secure card payment — charged immediately',
+    emailLine: 'Online card payment — charged at time of booking',
   },
 };

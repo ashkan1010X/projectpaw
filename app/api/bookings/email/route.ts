@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { stripe } from '@/lib/stripe';
 import { sendSms } from '@/lib/twilio';
 import { isPetSpecies, SPECIES_META, type PetSpecies } from '@/lib/species';
 import { isPaymentMethod, PAYMENT_META, type PaymentMethod } from '@/lib/payment';
@@ -135,7 +136,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
   }
 
-  const { serviceId, serviceName, dogName, petSpecies: rawSpecies, datetime, notes, paymentMethod: rawPayment } = (await req.json()) as {
+  const { serviceId, serviceName, dogName, petSpecies: rawSpecies, datetime, notes, paymentMethod: rawPayment, stripePaymentIntentId } = (await req.json()) as {
     serviceId: string;
     serviceName: string;
     dogName: string;
@@ -143,12 +144,26 @@ export async function POST(req: NextRequest) {
     datetime: string;
     notes?: string;
     paymentMethod?: string;
+    stripePaymentIntentId?: string;
   };
 
   const petSpecies: PetSpecies = isPetSpecies(rawSpecies) ? rawSpecies : 'dog';
   const speciesLabel = SPECIES_META[petSpecies].label;
   const paymentMethod: PaymentMethod = isPaymentMethod(rawPayment) ? rawPayment : 'cash';
   const paymentMeta = PAYMENT_META[paymentMethod];
+
+  // Verify Stripe PaymentIntent before doing anything
+  let verifiedAmountCents: number | null = null;
+  if (paymentMethod === 'stripe') {
+    if (!stripePaymentIntentId) {
+      return NextResponse.json({ message: 'Missing payment intent' }, { status: 400 });
+    }
+    const intent = await stripe.paymentIntents.retrieve(stripePaymentIntentId);
+    if (intent.status !== 'succeeded') {
+      return NextResponse.json({ message: 'Payment not completed' }, { status: 402 });
+    }
+    verifiedAmountCents = intent.amount;
+  }
 
   const customerName = (user.user_metadata?.name as string | undefined) ?? user.email;
 
@@ -161,8 +176,14 @@ export async function POST(req: NextRequest) {
     .limit(1);
 
   if (existing && existing.length > 0) {
+    // Slot taken — if the user already paid, immediately refund them
+    if (paymentMethod === 'stripe' && stripePaymentIntentId) {
+      await stripe.refunds.create({ payment_intent: stripePaymentIntentId }).catch(console.error);
+    }
     return NextResponse.json(
-      { message: 'That time slot is already taken. Please choose a different time.' },
+      { message: paymentMethod === 'stripe'
+          ? 'That slot was just taken — your payment has been refunded automatically.'
+          : 'That time slot is already taken. Please choose a different time.' },
       { status: 409 },
     );
   }
@@ -177,6 +198,11 @@ export async function POST(req: NextRequest) {
     datetime,
     notes: notes ?? null,
     payment_method: paymentMethod,
+    ...(paymentMethod === 'stripe' && stripePaymentIntentId ? {
+      stripe_payment_intent_id: stripePaymentIntentId,
+      amount_cents: verifiedAmountCents,
+      payment_status: 'paid',
+    } : {}),
   });
 
   if (insertError) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { stripe } from '@/lib/stripe';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 // Cancel rate limit — authenticated user can legitimately cancel a few bookings,
@@ -116,7 +117,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data: booking, error: fetchError } = await supabaseAdmin
     .from('bookings')
-    .select('id, user_id, service_name, dog_name, datetime, status')
+    .select('id, user_id, service_name, dog_name, datetime, status, payment_method, stripe_payment_intent_id, amount_cents, payment_status')
     .eq('id', id)
     .single();
 
@@ -132,9 +133,53 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ message: 'Already cancelled' }, { status: 400 });
   }
 
+  // Stripe refund logic — applied before DB update so email can include refund info
+  let refundedCents = 0;
+  let newPaymentStatus: string | null = booking.payment_status as string | null;
+  let refundNote: string | null = null;
+
+  if (
+    booking.payment_method === 'stripe' &&
+    booking.stripe_payment_intent_id &&
+    booking.payment_status === 'paid' &&
+    booking.amount_cents
+  ) {
+    const hoursUntilService = (new Date(booking.datetime).getTime() - Date.now()) / 3_600_000;
+    const amountCents = booking.amount_cents as number;
+
+    if (hoursUntilService > 24) {
+      // Full refund — more than 24 hours notice
+      refundedCents = amountCents;
+      newPaymentStatus = 'refunded_full';
+      refundNote = `Full refund of $${(amountCents / 100).toFixed(2)} CAD issued — more than 24 hours notice.`;
+    } else {
+      // 50% refund — within 24 hours
+      refundedCents = Math.round(amountCents / 2);
+      newPaymentStatus = 'refunded_partial';
+      refundNote = `50% refund of $${(refundedCents / 100).toFixed(2)} CAD issued — cancelled within 24 hours.`;
+    }
+
+    try {
+      await stripe.refunds.create({
+        payment_intent: booking.stripe_payment_intent_id as string,
+        amount: refundedCents,
+      });
+    } catch (err) {
+      console.error('Stripe refund error:', err);
+      return NextResponse.json({ message: 'Refund failed — booking not cancelled. Please contact support.' }, { status: 500 });
+    }
+  }
+
   const { error: updateError } = await supabaseAdmin
     .from('bookings')
-    .update({ status: 'cancelled' })
+    .update({
+      status: 'cancelled',
+      ...(newPaymentStatus !== booking.payment_status ? {
+        payment_status: newPaymentStatus,
+        refunded_cents: refundedCents,
+        refunded_at: new Date().toISOString(),
+      } : {}),
+    })
     .eq('id', id)
     .eq('user_id', user.id);
 
@@ -173,14 +218,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${booking.service_name}</td>
           </tr>
           <tr>
-            <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Dog</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Pet</td>
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${booking.dog_name}</td>
           </tr>
           <tr>
-            <td style="padding: 12px 0; font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Date & Time</td>
-            <td style="padding: 12px 0; font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${formattedDate}</td>
+            <td style="padding: 12px 0; ${refundNote ? 'border-bottom: 1px solid rgba(245,203,167,0.1);' : ''} font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Date & Time</td>
+            <td style="padding: 12px 0; ${refundNote ? 'border-bottom: 1px solid rgba(245,203,167,0.1);' : ''} font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${formattedDate}</td>
           </tr>
         </table>
+        ${refundNote ? `
+        <div style="margin-top: 20px; padding: 16px 18px; border-radius: 12px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);">
+          <p style="margin: 0 0 4px; font-family: sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(16,185,129,0.7);">Refund</p>
+          <p style="margin: 0; font-family: sans-serif; font-size: 14px; color: #F5CBA7;">${refundNote}</p>
+          <p style="margin: 6px 0 0; font-family: sans-serif; font-size: 12px; color: rgba(245,203,167,0.55);">Refunds typically appear in 5–10 business days.</p>
+        </div>` : ''}
         <p style="margin: 32px 0 0; font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.45); text-align: center;">
           Want to rebook? Visit your dashboard anytime.
         </p>
