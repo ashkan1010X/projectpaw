@@ -142,6 +142,14 @@ export async function POST(req: NextRequest) {
       </div>
     </div>`;
 
+  // Fetch customer phone for SMS confirmation
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('phone')
+    .eq('user_id', userId)
+    .maybeSingle();
+  const customerPhone = profile?.phone as string | null | undefined;
+
   await Promise.allSettled([
     transporter.sendMail({
       from: `"ProjectPaw" <${process.env.SMTP_USER}>`,
@@ -157,6 +165,12 @@ export async function POST(req: NextRequest) {
           subject: `[Webhook recovery] New Booking: ${serviceName} for ${dogName} — ${formattedDate} · Paid $${(intent.amount / 100).toFixed(2)}`,
           html: customerHtml,
         })
+      : Promise.resolve(),
+    customerPhone
+      ? sendSms(
+          customerPhone,
+          `Booking confirmed! ${serviceName} for ${dogName} on ${formattedDate}. $${(intent.amount / 100).toFixed(2)} CAD charged. Reply X to cancel or HELP for support. — ProjectPaw 🐾`,
+        ).catch(() => {})
       : Promise.resolve(),
     process.env.PROVIDER_SMS_PHONE
       ? sendSms(
