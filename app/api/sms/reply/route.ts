@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { after } from 'next/server';
 import twilio from 'twilio';
 import nodemailer from 'nodemailer';
 import { supabaseAdmin } from '@/lib/supabase-admin';
@@ -116,7 +117,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    await supabaseAdmin
+    const { error: updateError } = await supabaseAdmin
       .from('bookings')
       .update({
         status: 'cancelled',
@@ -130,6 +131,13 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', booking.id);
 
+    if (updateError) {
+      console.error('SMS cancel: DB update failed', updateError);
+      return twimlResponse(
+        `Sorry, we hit a snag cancelling that. Email ${SUPPORT_EMAIL} and we'll sort it. — ProjectPaw 🐾`,
+      );
+    }
+
     const apptTime = new Date(booking.datetime as string).toLocaleString('en-US', {
       weekday: 'short',
       month: 'short',
@@ -138,9 +146,12 @@ export async function POST(req: NextRequest) {
       minute: '2-digit',
     });
 
-    // Notify provider — fetch customer email/name from auth
+    // Notify provider — fetch customer email/name from auth.
+    // Wrapped in after() so the work actually runs after the TwiML response is sent
+    // back to Twilio; in serverless, fire-and-forget promises can be terminated early.
     if (ADMIN_EMAIL) {
-      supabaseAdmin.auth.admin
+      after(
+        supabaseAdmin.auth.admin
         .getUserById(profile.user_id)
         .then(({ data }) => {
           const customerEmail = data.user?.email ?? '';
@@ -195,7 +206,8 @@ export async function POST(req: NextRequest) {
             html: providerHtml,
           });
         })
-        .catch((e: unknown) => console.error('Provider cancellation email error (SMS):', e));
+        .catch((e: unknown) => console.error('Provider cancellation email error (SMS):', e)),
+      );
     }
 
     const refundLine = refundNote ? ` ${refundNote} Allow 5–10 business days.` : '';
