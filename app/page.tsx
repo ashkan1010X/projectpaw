@@ -12,6 +12,9 @@ import {
   Shield,
   Award,
   Heart,
+  Search,
+  CalendarCheck,
+  BellRing,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -60,6 +63,33 @@ const TRUST_BADGES = [
   { icon: Shield, label: 'Vetted Pros' },
   { icon: Award, label: 'Certified' },
   { icon: Heart, label: 'Insured' },
+];
+
+const HOW_IT_WORKS: { icon: LucideIcon; step: string; title: string; description: string; accent: string }[] = [
+  {
+    icon: Search,
+    step: '01',
+    title: 'Choose a service',
+    description:
+      'Browse seven premium services — grooming, boarding, training and more. Transparent prices, no surprises.',
+    accent: 'from-doggy to-[#9C8FE8]',
+  },
+  {
+    icon: CalendarCheck,
+    step: '02',
+    title: 'Pick your time',
+    description:
+      'See real-time availability and book in under a minute. Pay by card now, cash, or e-transfer on arrival.',
+    accent: 'from-paw-dark to-paw',
+  },
+  {
+    icon: BellRing,
+    step: '03',
+    title: 'Relax — we’ll text you',
+    description:
+      'Instant SMS confirmation, a friendly reminder 24h before, and one tap to cancel or reschedule.',
+    accent: 'from-[#F9D923] to-[#e8a83a]',
+  },
 ];
 
 export default function HomePage() {
@@ -262,6 +292,77 @@ export default function HomePage() {
               className="group inline-flex items-center gap-2 rounded-lg px-3 py-2.5 font-pawprint text-sm font-semibold text-doggy transition-all duration-300 hover:gap-3 hover:bg-doggy/[0.06] focus:outline-none focus:ring-2 focus:ring-doggy/40"
             >
               View all services
+              <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="relative border-t border-paw/[0.06] px-6 py-28">
+        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-[600px] rounded-full bg-doggy/[0.04] blur-[120px]" />
+
+        <div className="relative mx-auto max-w-6xl">
+          <div className="mb-16 flex flex-col items-center gap-3 text-center">
+            <span className="font-pawprint text-xs font-bold uppercase tracking-[0.2em] text-doggy">
+              How It Works
+            </span>
+            <h2 className="font-elegant text-4xl font-black tracking-tight text-paw md:text-6xl">
+              Booked in Under a Minute
+            </h2>
+            <p className="max-w-md font-pawprint text-base text-paw/45">
+              Three simple steps from sign-up to a happy, well-cared-for pup.
+            </p>
+          </div>
+
+          <div className="relative grid gap-6 md:grid-cols-3 md:gap-8">
+            {/* Connector line — desktop only, sits behind the cards */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute left-[12%] right-[12%] top-[88px] hidden h-px md:block"
+              style={{
+                background:
+                  'linear-gradient(90deg, transparent 0%, rgba(178,164,255,0.35) 20%, rgba(245,203,167,0.35) 50%, rgba(249,217,35,0.35) 80%, transparent 100%)',
+              }}
+            />
+
+            {HOW_IT_WORKS.map(({ icon: Icon, step, title, description, accent }) => (
+              <div
+                key={step}
+                className="group relative flex flex-col items-center gap-5 text-center"
+              >
+                {/* Icon disc */}
+                <div className="relative">
+                  <div
+                    className={`pointer-events-none absolute inset-0 -m-3 rounded-full bg-gradient-to-br ${accent} opacity-30 blur-2xl transition-opacity duration-500 group-hover:opacity-50`}
+                  />
+                  <div
+                    className={`relative flex size-[88px] items-center justify-center rounded-full border border-paw/15 bg-gradient-to-br ${accent} shadow-xl shadow-doggy/20 transition-transform duration-500 group-hover:-translate-y-1 group-hover:rotate-3`}
+                  >
+                    <Icon className="size-9 text-white" strokeWidth={1.75} />
+                  </div>
+                  {/* Step number chip */}
+                  <span className="absolute -right-2 -top-2 inline-flex size-7 items-center justify-center rounded-full border border-paw/20 bg-[#0f0d09] font-pawprint text-[11px] font-bold text-paw shadow-md">
+                    {step}
+                  </span>
+                </div>
+
+                <h3 className="font-elegant text-2xl font-black tracking-tight text-paw">
+                  {title}
+                </h3>
+                <p className="max-w-xs font-pawprint text-sm leading-[1.7] text-paw/55">
+                  {description}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-14 text-center">
+            <Link
+              href="/services"
+              className="group inline-flex items-center gap-2 rounded-xl bg-doggy/10 px-6 py-3 font-pawprint text-sm font-bold text-doggy ring-1 ring-doggy/25 transition-all duration-300 hover:bg-doggy/15 hover:ring-doggy/40"
+            >
+              Start your first booking
               <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
