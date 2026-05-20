@@ -310,6 +310,12 @@ export default function DashboardPage() {
     favorite && !hasUpcomingFavorite && daysSinceFavorite !== null && daysSinceFavorite >= 28;
 
   const firstName = (user?.name ?? '').split(' ')[0] || 'there';
+  const hasPet = pets.length > 0;
+  const hasBooking = bookings.length > 0;
+  // Show the onboarding checklist whenever any step is incomplete. When it's
+  // showing it owns the primary CTA, so we hide redundant lower-page actions
+  // (pet hero placeholder, "book your first appointment" empty state).
+  const showOnboarding = !hasPhone || !hasPet || !hasBooking;
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-10 sm:py-12">
@@ -318,11 +324,15 @@ export default function DashboardPage() {
       <OnboardingChecklist
         firstName={firstName}
         hasPhone={hasPhone}
-        hasPet={pets.length > 0}
-        hasBooking={bookings.length > 0}
+        hasPet={hasPet}
+        hasBooking={hasBooking}
       />
 
       {/* ════════════════════  PET HERO  ════════════════════ */}
+      {/* Hidden until the user adds a pet — otherwise we'd show a placeholder
+          paw + "Your Pet's Dashboard" which clashes with the checklist's
+          "add your first pet" step. */}
+      {hasPet && (
       <div className="mb-8 overflow-hidden rounded-2xl border border-doggy/15 bg-gradient-to-br from-doggy/[0.10] via-paw/[0.03] to-transparent p-5 sm:p-7 animate-fade-in">
         <div className="flex items-center gap-4 sm:gap-6">
           {dogPhotoUrl && !photoError ? (
@@ -355,6 +365,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      )}
 
       {/* ════════════════════  INSIGHT STATS  ════════════════════ */}
       <div className="mb-8 grid grid-cols-3 gap-3 sm:gap-4">
@@ -407,7 +418,11 @@ export default function DashboardPage() {
       )}
 
       {/* Empty state — no bookings at all */}
-      {!error && bookings.length === 0 && (
+      {/* Skipped when the onboarding checklist is up; the checklist already
+          drives the "book your first service" action. Once the user finishes
+          onboarding this empty state appears as their normal "no bookings yet"
+          card on the dashboard. */}
+      {!error && bookings.length === 0 && !showOnboarding && (
         <div className="rounded-xl border border-paw/[0.08] bg-[#1a1612] px-8 py-16 text-center">
           <p className="mb-2 font-elegant text-xl text-paw/60">
             Let&apos;s book {dogName}&apos;s first appointment
