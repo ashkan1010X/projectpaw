@@ -109,6 +109,10 @@ export async function POST(req: NextRequest) {
         });
       } catch (e) {
         console.error('SMS cancel: Stripe refund failed', e);
+        // Keep payment_status unchanged so DB update succeeds — admin handles refund manually.
+        refundedCents = 0;
+        newPaymentStatus = booking.payment_status as string;
+        refundNote = null;
       }
     }
 
