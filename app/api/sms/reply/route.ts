@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import twilio from 'twilio';
 import nodemailer from 'nodemailer';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { stripe } from '@/lib/stripe';
 
 const { MessagingResponse } = twilio.twiml;
 
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
     // Find their next upcoming booking
     const { data: booking } = await supabaseAdmin
       .from('bookings')
-      .select('id, service_name, dog_name, datetime')
+      .select('id, service_name, dog_name, datetime, payment_method, stripe_payment_intent_id, amount_cents, payment_status')
       .eq('user_id', profile.user_id)
       .eq('status', 'upcoming')
       .gte('datetime', new Date().toISOString())
@@ -79,7 +80,35 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await supabaseAdmin.from('bookings').update({ status: 'cancelled' }).eq('id', booking.id);
+    // Stripe refund — same policy as dashboard cancel
+    let refundedCents = 0;
+    let newPaymentStatus: string | null = booking.payment_status as string | null;
+    let refundNote: string | null = null;
+
+    if (
+      booking.payment_method === 'stripe' &&
+      booking.stripe_payment_intent_id &&
+      booking.payment_status === 'paid' &&
+      booking.amount_cents
+    ) {
+      const hoursUntil = (new Date(booking.datetime as string).getTime() - Date.now()) / 3_600_000;
+      const amountCents = booking.amount_cents as number;
+      refundedCents = hoursUntil > 24 ? amountCents : Math.round(amountCents / 2);
+      newPaymentStatus = hoursUntil > 24 ? 'refunded_full' : 'refunded_partial';
+      refundNote = hoursUntil > 24
+        ? `Full refund of $${(refundedCents / 100).toFixed(2)} CAD issued.`
+        : `50% refund of $${(refundedCents / 100).toFixed(2)} CAD issued (cancelled within 24h).`;
+      try {
+        await stripe.refunds.create({ payment_intent: booking.stripe_payment_intent_id as string, amount: refundedCents });
+      } catch (e) {
+        console.error('SMS cancel: Stripe refund failed', e);
+      }
+    }
+
+    await supabaseAdmin.from('bookings').update({
+      status: 'cancelled',
+      ...(refundedCents > 0 ? { payment_status: newPaymentStatus, refunded_cents: refundedCents, refunded_at: new Date().toISOString() } : {}),
+    }).eq('id', booking.id);
 
     const apptTime = new Date(booking.datetime as string).toLocaleString('en-US', {
       weekday: 'short',
@@ -141,8 +170,9 @@ export async function POST(req: NextRequest) {
       }).catch((e: unknown) => console.error('Provider cancellation email error (SMS):', e));
     }
 
+    const refundLine = refundNote ? ` ${refundNote} Allow 5–10 business days.` : '';
     return twimlResponse(
-      `Cancelled ✓ Your ${booking.service_name as string} for ${booking.dog_name as string} on ${apptTime} has been cancelled. We hope to see you again soon! — ProjectPaw 🐾`,
+      `Cancelled ✓ Your ${booking.service_name as string} for ${booking.dog_name as string} on ${apptTime} has been cancelled.${refundLine} We hope to see you again soon! — ProjectPaw 🐾`,
     );
   }
 
