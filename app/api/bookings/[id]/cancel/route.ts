@@ -137,10 +137,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       });
     } catch (err) {
       console.error('Stripe refund error:', err);
-      // Refund failed (e.g. test-mode PI against live keys, already refunded, etc.)
-      // Still cancel the booking — flag payment_status for manual review rather than blocking the user.
+      // Refund failed (test/live key mismatch, already refunded, etc.)
+      // Leave payment_status as 'paid' so the DB update succeeds — admin sees
+      // status=cancelled + payment_status=paid and knows a manual refund is needed.
       refundedCents = 0;
-      newPaymentStatus = 'refund_pending';
+      newPaymentStatus = booking.payment_status as string;
       refundNote = null;
     }
   }
