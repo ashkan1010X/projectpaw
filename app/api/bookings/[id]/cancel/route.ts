@@ -3,15 +3,7 @@ import nodemailer from 'nodemailer';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { stripe } from '@/lib/stripe';
-import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 import { escapeHtml } from '@/lib/escape-html';
-
-// Cancel rate limit — authenticated user can legitimately cancel a few bookings,
-// but >10/hr suggests abuse (mail-bombing admin via cancel/rebook loops).
-const PER_USER_MAX = 10;
-const PER_USER_WINDOW_MIN = 60;
-const PER_IP_MAX = 30;
-const PER_IP_WINDOW_MIN = 60;
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -94,33 +86,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
   }
 
-  // Rate limit by user_id (authenticated) AND IP (defense in depth)
-  const [userLimit, ipLimit] = await Promise.all([
-    checkRateLimit({
-      bucket: 'booking_cancel_user',
-      identifier: user.id,
-      max: PER_USER_MAX,
-      windowMinutes: PER_USER_WINDOW_MIN,
-    }),
-    checkRateLimit({
-      bucket: 'booking_cancel_ip',
-      identifier: getClientIp(req),
-      max: PER_IP_MAX,
-      windowMinutes: PER_IP_WINDOW_MIN,
-    }),
-  ]);
-  if (!userLimit.allowed || !ipLimit.allowed) {
-    const retryAfter = Math.max(userLimit.retryAfterSeconds, ipLimit.retryAfterSeconds);
-    const minutes = Math.ceil(retryAfter / 60);
-    return NextResponse.json(
-      { message: `Too many cancellations. Please try again in ${minutes} minute${minutes === 1 ? '' : 's'}.` },
-      {
-        status: 429,
-        headers: { 'Retry-After': String(retryAfter), 'X-RateLimit-Limit': String(PER_USER_MAX) },
-      },
-    );
-  }
-
   const { data: booking, error: fetchError } = await supabaseAdmin
     .from('bookings')
     .select('id, user_id, service_name, dog_name, datetime, status, payment_method, stripe_payment_intent_id, amount_cents, payment_status')
@@ -172,7 +137,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       });
     } catch (err) {
       console.error('Stripe refund error:', err);
-      return NextResponse.json({ message: 'Refund failed — booking not cancelled. Please contact support.' }, { status: 500 });
+      // Refund failed (e.g. test-mode PI against live keys, already refunded, etc.)
+      // Still cancel the booking — flag payment_status for manual review rather than blocking the user.
+      refundedCents = 0;
+      newPaymentStatus = 'refund_pending';
+      refundNote = null;
     }
   }
 

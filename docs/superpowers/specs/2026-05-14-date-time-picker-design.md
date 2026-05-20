@@ -12,12 +12,12 @@
 
 ## Files
 
-| Action | Path |
-|--------|------|
-| Add (via shadcn CLI) | `components/ui/calendar.tsx` |
-| Add (via shadcn CLI) | `components/ui/popover.tsx` |
-| Create | `components/date-time-picker.tsx` |
-| Modify | `components/booking-modal.tsx` |
+| Action               | Path                              |
+| -------------------- | --------------------------------- |
+| Add (via shadcn CLI) | `components/ui/calendar.tsx`      |
+| Add (via shadcn CLI) | `components/ui/popover.tsx`       |
+| Create               | `components/date-time-picker.tsx` |
+| Modify               | `components/booking-modal.tsx`    |
 
 ---
 
@@ -26,16 +26,18 @@
 **File:** `components/date-time-picker.tsx`
 
 **Props:**
+
 ```typescript
 interface DateTimePickerProps {
-  value: string;              // ISO "2026-05-21T10:00" or ""
+  value: string; // ISO "2026-05-21T10:00" or ""
   onChange: (value: string) => void;
-  error?: boolean;            // true = red border on trigger
-  minDate?: Date;             // disabled before this (default: new Date())
+  error?: boolean; // true = red border on trigger
+  minDate?: Date; // disabled before this (default: new Date())
 }
 ```
 
 **Internal state:**
+
 ```typescript
 const [open, setOpen] = useState(false);
 const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
@@ -43,31 +45,34 @@ const [selectedHour, setSelectedHour] = useState<number | null>(null);
 ```
 
 **Time slots:** Fixed array of 10 hourly options, 9 AM through 6 PM:
+
 ```typescript
 const TIME_SLOTS = [
-  { label: '9 AM',  hour: 9  },
+  { label: '9 AM', hour: 9 },
   { label: '10 AM', hour: 10 },
   { label: '11 AM', hour: 11 },
   { label: '12 PM', hour: 12 },
-  { label: '1 PM',  hour: 13 },
-  { label: '2 PM',  hour: 14 },
-  { label: '3 PM',  hour: 15 },
-  { label: '4 PM',  hour: 16 },
-  { label: '5 PM',  hour: 17 },
-  { label: '6 PM',  hour: 18 },
+  { label: '1 PM', hour: 13 },
+  { label: '2 PM', hour: 14 },
+  { label: '3 PM', hour: 15 },
+  { label: '4 PM', hour: 16 },
+  { label: '5 PM', hour: 17 },
+  { label: '6 PM', hour: 18 },
 ];
 ```
 
 **Combining date + time:** When both `selectedDate` and `selectedHour` are set, combine and emit:
+
 ```typescript
 const combined = new Date(selectedDate);
 combined.setHours(selectedHour, 0, 0, 0);
-const iso = `${combined.getFullYear()}-${String(combined.getMonth()+1).padStart(2,'0')}-${String(combined.getDate()).padStart(2,'0')}T${String(selectedHour).padStart(2,'0')}:00`;
+const iso = `${combined.getFullYear()}-${String(combined.getMonth() + 1).padStart(2, '0')}-${String(combined.getDate()).padStart(2, '0')}T${String(selectedHour).padStart(2, '0')}:00`;
 onChange(iso);
 setOpen(false); // auto-close popover
 ```
 
 **Slot disabling:** When `selectedDate` is today, disable slots where `slot.hour <= currentHour`. Use `isSameDay` imported from `date-fns` (available as a transitive shadcn dependency):
+
 ```typescript
 import { isSameDay } from 'date-fns';
 // ...
@@ -77,7 +82,8 @@ const slotDisabled = (hour: number) => !!isToday && hour <= currentHour;
 ```
 
 **Trigger button display:**
-- Empty: `"Select date & time"` in `text-paw/25`  
+
+- Empty: `"Select date & time"` in `text-paw/25`
 - Filled: `"Wed, May 21 · 10 AM"` — weekday+date in `text-paw`, slot label in `text-doggy`
 
 **Trigger border:** `border-paw/[0.1]` normally, `border-doggy/60` when open, `border-red-500/50` when `error` prop is true.
@@ -158,6 +164,7 @@ The `onBlur` validation is removed from the datetime field — validation fires 
 ## Validation (unchanged)
 
 `validateBookingField('datetime', value)` in `booking-modal.tsx` stays identical:
+
 - Empty string → `"Please select a date and time."`
 - Date in the past → `"Please choose a future date and time."`
 

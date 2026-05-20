@@ -67,7 +67,9 @@ export async function POST(req: NextRequest) {
     // Find their next upcoming booking
     const { data: booking } = await supabaseAdmin
       .from('bookings')
-      .select('id, service_name, dog_name, datetime, payment_method, stripe_payment_intent_id, amount_cents, payment_status')
+      .select(
+        'id, service_name, dog_name, datetime, payment_method, stripe_payment_intent_id, amount_cents, payment_status',
+      )
       .eq('user_id', profile.user_id)
       .eq('status', 'upcoming')
       .gte('datetime', new Date().toISOString())
@@ -96,20 +98,33 @@ export async function POST(req: NextRequest) {
       const amountCents = booking.amount_cents as number;
       refundedCents = hoursUntil > 24 ? amountCents : Math.round(amountCents / 2);
       newPaymentStatus = hoursUntil > 24 ? 'refunded_full' : 'refunded_partial';
-      refundNote = hoursUntil > 24
-        ? `Full refund of $${(refundedCents / 100).toFixed(2)} CAD issued.`
-        : `50% refund of $${(refundedCents / 100).toFixed(2)} CAD issued (cancelled within 24h).`;
+      refundNote =
+        hoursUntil > 24
+          ? `Full refund of $${(refundedCents / 100).toFixed(2)} CAD issued.`
+          : `50% refund of $${(refundedCents / 100).toFixed(2)} CAD issued (cancelled within 24h).`;
       try {
-        await stripe.refunds.create({ payment_intent: booking.stripe_payment_intent_id as string, amount: refundedCents });
+        await stripe.refunds.create({
+          payment_intent: booking.stripe_payment_intent_id as string,
+          amount: refundedCents,
+        });
       } catch (e) {
         console.error('SMS cancel: Stripe refund failed', e);
       }
     }
 
-    await supabaseAdmin.from('bookings').update({
-      status: 'cancelled',
-      ...(refundedCents > 0 ? { payment_status: newPaymentStatus, refunded_cents: refundedCents, refunded_at: new Date().toISOString() } : {}),
-    }).eq('id', booking.id);
+    await supabaseAdmin
+      .from('bookings')
+      .update({
+        status: 'cancelled',
+        ...(refundedCents > 0
+          ? {
+              payment_status: newPaymentStatus,
+              refunded_cents: refundedCents,
+              refunded_at: new Date().toISOString(),
+            }
+          : {}),
+      })
+      .eq('id', booking.id);
 
     const apptTime = new Date(booking.datetime as string).toLocaleString('en-US', {
       weekday: 'short',
@@ -121,14 +136,17 @@ export async function POST(req: NextRequest) {
 
     // Notify provider — fetch customer email/name from auth
     if (ADMIN_EMAIL) {
-      supabaseAdmin.auth.admin.getUserById(profile.user_id).then(({ data }) => {
-        const customerEmail = data.user?.email ?? '';
-        const customerName = (data.user?.user_metadata?.name as string | undefined) ?? customerEmail;
-        const customerNameSafe = escapeHtml(customerName);
-        const customerEmailSafe = escapeHtml(customerEmail);
-        const dogNameSafe = escapeHtml(booking.dog_name as string);
-        const serviceNameSafe = escapeHtml(booking.service_name as string);
-        const providerHtml = `
+      supabaseAdmin.auth.admin
+        .getUserById(profile.user_id)
+        .then(({ data }) => {
+          const customerEmail = data.user?.email ?? '';
+          const customerName =
+            (data.user?.user_metadata?.name as string | undefined) ?? customerEmail;
+          const customerNameSafe = escapeHtml(customerName);
+          const customerEmailSafe = escapeHtml(customerEmail);
+          const dogNameSafe = escapeHtml(booking.dog_name as string);
+          const serviceNameSafe = escapeHtml(booking.service_name as string);
+          const providerHtml = `
           <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; background: #0f0d09; color: #F5CBA7; border-radius: 16px; overflow: hidden;">
             <div style="background: linear-gradient(135deg, #ef4444, #b91c1c); padding: 32px; text-align: center;">
               <div style="display: inline-block; background: rgba(255,255,255,0.15); border-radius: 100px; padding: 4px 14px; font-family: sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: white; margin-bottom: 12px;">Staff Notification</div>
@@ -165,14 +183,15 @@ export async function POST(req: NextRequest) {
             </div>
           </div>
         `;
-        return transporter.sendMail({
-          from: `"ProjectPaw" <${process.env.SMTP_USER}>`,
-          to: ADMIN_EMAIL,
-          replyTo: customerEmail,
-          subject: `Booking Cancelled: ${booking.service_name as string} for ${booking.dog_name as string} — ${apptTime}`,
-          html: providerHtml,
-        });
-      }).catch((e: unknown) => console.error('Provider cancellation email error (SMS):', e));
+          return transporter.sendMail({
+            from: `"ProjectPaw" <${process.env.SMTP_USER}>`,
+            to: ADMIN_EMAIL,
+            replyTo: customerEmail,
+            subject: `Booking Cancelled: ${booking.service_name as string} for ${booking.dog_name as string} — ${apptTime}`,
+            html: providerHtml,
+          });
+        })
+        .catch((e: unknown) => console.error('Provider cancellation email error (SMS):', e));
     }
 
     const refundLine = refundNote ? ` ${refundNote} Allow 5–10 business days.` : '';

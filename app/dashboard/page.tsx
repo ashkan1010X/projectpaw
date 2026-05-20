@@ -234,10 +234,15 @@ export default function DashboardPage() {
       );
       setToast({ message: 'Booking cancelled', variant: 'success' });
     } catch (err) {
-      setCancelErrors((prev) => ({
-        ...prev,
-        [booking.id]: err instanceof Error ? err.message : 'Something went wrong',
-      }));
+      const msg = err instanceof Error ? err.message : 'Something went wrong';
+      setCancelErrors((prev) => ({ ...prev, [booking.id]: msg }));
+      setTimeout(() => {
+        setCancelErrors((prev) => {
+          const next = { ...prev };
+          delete next[booking.id];
+          return next;
+        });
+      }, 5000);
     } finally {
       setCancellingId(null);
     }
