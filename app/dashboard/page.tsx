@@ -12,6 +12,8 @@ import { ConfirmDialog } from '@/components/confirm-dialog';
 import { RescheduleDialog } from '@/components/reschedule-dialog';
 import { AddToCalendar } from '@/components/add-to-calendar';
 import { OnboardingChecklist } from '@/components/onboarding-checklist';
+import { PhoneSheet } from '@/components/phone-sheet';
+import { PetDrawer, type PetFormData } from '@/components/pet-drawer';
 import { Toast } from '@/components/toast';
 import { cn } from '@/lib/utils';
 
@@ -172,6 +174,13 @@ export default function DashboardPage() {
   const [rebookTarget, setRebookTarget] = useState<RebookTarget | null>(null);
   const [pendingCancelBooking, setPendingCancelBooking] = useState<Booking | null>(null);
   const [rescheduleBooking, setRescheduleBooking] = useState<Booking | null>(null);
+  // ── Onboarding sheets — open from checklist clicks ──
+  const [phoneSheetOpen, setPhoneSheetOpen] = useState(false);
+  const [phoneSaving, setPhoneSaving] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [petSheetOpen, setPetSheetOpen] = useState(false);
+  const [petSaving, setPetSaving] = useState(false);
+  const [petError, setPetError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null);
   const [photoError, setPhotoError] = useState(false);
 
@@ -231,6 +240,51 @@ export default function DashboardPage() {
       }));
     } finally {
       setCancellingId(null);
+    }
+  }
+
+  // ── Onboarding save handlers ──
+  async function handleSavePhone(phone: string) {
+    setPhoneSaving(true);
+    setPhoneError(null);
+    try {
+      const res = await fetchWithAuth('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { message?: string };
+        throw new Error(data.message ?? 'Failed to save phone');
+      }
+      setProfile((prev) => ({ ...(prev ?? {}), phone }));
+      setPhoneSheetOpen(false);
+      setToast({ message: 'Phone number saved 📱', variant: 'success' });
+    } catch (err) {
+      setPhoneError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setPhoneSaving(false);
+    }
+  }
+
+  async function handleSavePet(data: PetFormData) {
+    setPetSaving(true);
+    setPetError(null);
+    try {
+      const res = await fetchWithAuth('/api/pets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      const json = (await res.json().catch(() => ({}))) as { pet?: Pet; message?: string };
+      if (!res.ok || !json.pet) throw new Error(json.message ?? 'Failed to add pet');
+      setPets((prev) => [...prev, json.pet!]);
+      setPetSheetOpen(false);
+      setToast({ message: `${json.pet.name} added 🐾`, variant: 'success' });
+    } catch (err) {
+      setPetError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setPetSaving(false);
     }
   }
 
@@ -326,6 +380,32 @@ export default function DashboardPage() {
         hasPhone={hasPhone}
         hasPet={hasPet}
         hasBooking={hasBooking}
+        onAddPhone={() => {
+          setPhoneError(null);
+          setPhoneSheetOpen(true);
+        }}
+        onAddPet={() => {
+          setPetError(null);
+          setPetSheetOpen(true);
+        }}
+      />
+
+      {/* Onboarding sheets — sit at the page root so they cover the dashboard */}
+      <PhoneSheet
+        open={phoneSheetOpen}
+        initialPhone={profile?.phone ?? null}
+        saving={phoneSaving}
+        error={phoneError}
+        onClose={() => setPhoneSheetOpen(false)}
+        onSave={handleSavePhone}
+      />
+      <PetDrawer
+        open={petSheetOpen}
+        mode="add"
+        saving={petSaving}
+        error={petError}
+        onClose={() => setPetSheetOpen(false)}
+        onSave={handleSavePet}
       />
 
       {/* ════════════════════  PET HERO  ════════════════════ */}

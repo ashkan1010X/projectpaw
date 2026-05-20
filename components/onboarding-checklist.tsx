@@ -4,33 +4,45 @@ import Link from 'next/link';
 import { Check, Phone, PawPrint, CalendarPlus, ArrowRight, Sparkles } from 'lucide-react';
 
 // LinkedIn-style profile-completion checklist. Lives on the dashboard and
-// hides itself once every step is done. Each row links directly to the
-// page that finishes that step, so there's never a "now where do I go?"
-// moment for a new user.
+// hides itself once every step is done.
+//
+// Phone + pet steps trigger callbacks so the parent can open a sheet (Stripe/
+// Linear pattern — focused form, dashboard stays visible behind a blur).
+// "Book first service" still navigates to /services because it's a browse,
+// not a quick form.
 
 type Props = {
   firstName: string;
   hasPhone: boolean;
   hasPet: boolean;
   hasBooking: boolean;
+  onAddPhone: () => void;
+  onAddPet: () => void;
 };
 
+type StepKey = 'account' | 'phone' | 'pet' | 'booking';
+
 type Step = {
-  key: string;
+  key: StepKey;
   label: string;
   helper: string;
-  href: string;
   icon: typeof Phone;
   done: boolean;
 };
 
-export function OnboardingChecklist({ firstName, hasPhone, hasPet, hasBooking }: Props) {
+export function OnboardingChecklist({
+  firstName,
+  hasPhone,
+  hasPet,
+  hasBooking,
+  onAddPhone,
+  onAddPet,
+}: Props) {
   const steps: Step[] = [
     {
       key: 'account',
       label: 'Create your account',
       helper: 'Done — welcome aboard',
-      href: '/profile',
       icon: Sparkles,
       done: true,
     },
@@ -38,7 +50,6 @@ export function OnboardingChecklist({ firstName, hasPhone, hasPet, hasBooking }:
       key: 'phone',
       label: 'Add your phone number',
       helper: 'So we can text you booking confirmations and reminders',
-      href: '/profile',
       icon: Phone,
       done: hasPhone,
     },
@@ -46,7 +57,6 @@ export function OnboardingChecklist({ firstName, hasPhone, hasPet, hasBooking }:
       key: 'pet',
       label: 'Add your first pet',
       helper: 'Tell us their name, breed, and add a photo',
-      href: '/profile',
       icon: PawPrint,
       done: hasPet,
     },
@@ -54,7 +64,6 @@ export function OnboardingChecklist({ firstName, hasPhone, hasPet, hasBooking }:
       key: 'booking',
       label: 'Book your first service',
       helper: 'Grooming, walking, boarding — see what we offer',
-      href: '/services',
       icon: CalendarPlus,
       done: hasBooking,
     },
@@ -64,11 +73,16 @@ export function OnboardingChecklist({ firstName, hasPhone, hasPet, hasBooking }:
   const total = steps.length;
   const percent = Math.round((completed / total) * 100);
 
-  // Don't render if everything's done — the user is past onboarding.
+  // Hide once the user finishes onboarding — they're past acquisition.
   if (completed === total) return null;
 
-  // Find the next incomplete step so we can surface it prominently
   const nextStep = steps.find((s) => !s.done);
+
+  function handleClick(key: StepKey) {
+    if (key === 'phone') onAddPhone();
+    else if (key === 'pet') onAddPet();
+    // booking is rendered as a <Link>; never reaches this handler
+  }
 
   return (
     <section
@@ -109,64 +123,74 @@ export function OnboardingChecklist({ firstName, hasPhone, hasPet, hasBooking }:
         {steps.map((step) => {
           const Icon = step.icon;
           const isNext = step.key === nextStep?.key;
-          return (
-            <li key={step.key}>
-              <Link
-                href={step.href}
-                tabIndex={step.done ? -1 : 0}
-                aria-disabled={step.done}
-                className={`group flex items-center gap-3 px-5 py-3.5 transition-colors duration-200 sm:gap-4 sm:px-7 sm:py-4 ${
+          const isBooking = step.key === 'booking';
+
+          const inner = (
+            <>
+              <span
+                className={`flex size-9 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
                   step.done
-                    ? 'cursor-default'
-                    : 'hover:bg-paw/[0.03] focus:bg-paw/[0.04] focus:outline-none'
+                    ? 'bg-doggy/15 text-doggy ring-1 ring-doggy/30'
+                    : isNext
+                    ? 'bg-doggy text-white shadow-lg shadow-doggy/35 ring-1 ring-doggy/40'
+                    : 'bg-paw/[0.06] text-paw/45 ring-1 ring-paw/10'
                 }`}
+                aria-hidden
               >
-                {/* Check or icon */}
+                {step.done ? (
+                  <Check className="size-4" strokeWidth={3} />
+                ) : (
+                  <Icon className="size-4" strokeWidth={2} />
+                )}
+              </span>
+
+              <span className="min-w-0 flex-1 text-left">
                 <span
-                  className={`flex size-9 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
-                    step.done
-                      ? 'bg-doggy/15 text-doggy ring-1 ring-doggy/30'
-                      : isNext
-                      ? 'bg-doggy text-white shadow-lg shadow-doggy/35 ring-1 ring-doggy/40'
-                      : 'bg-paw/[0.06] text-paw/45 ring-1 ring-paw/10'
+                  className={`block font-pawprint text-sm font-bold sm:text-base ${
+                    step.done ? 'text-paw/45 line-through' : 'text-paw'
+                  }`}
+                >
+                  {step.label}
+                </span>
+                <span
+                  className={`mt-0.5 block font-pawprint text-xs sm:text-sm ${
+                    step.done ? 'text-paw/30' : 'text-paw/55'
+                  }`}
+                >
+                  {step.helper}
+                </span>
+              </span>
+
+              {!step.done && (
+                <ArrowRight
+                  className={`size-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1 ${
+                    isNext ? 'text-doggy' : 'text-paw/40'
                   }`}
                   aria-hidden
-                >
-                  {step.done ? (
-                    <Check className="size-4" strokeWidth={3} />
-                  ) : (
-                    <Icon className="size-4" strokeWidth={2} />
-                  )}
-                </span>
+                />
+              )}
+            </>
+          );
 
-                {/* Text */}
-                <span className="min-w-0 flex-1">
-                  <span
-                    className={`block font-pawprint text-sm font-bold sm:text-base ${
-                      step.done ? 'text-paw/45 line-through' : 'text-paw'
-                    }`}
-                  >
-                    {step.label}
-                  </span>
-                  <span
-                    className={`mt-0.5 block font-pawprint text-xs sm:text-sm ${
-                      step.done ? 'text-paw/30' : 'text-paw/55'
-                    }`}
-                  >
-                    {step.helper}
-                  </span>
-                </span>
+          const rowClass = `group flex w-full items-center gap-3 px-5 py-3.5 transition-colors duration-200 sm:gap-4 sm:px-7 sm:py-4 ${
+            step.done
+              ? 'cursor-default'
+              : 'cursor-pointer hover:bg-paw/[0.03] focus:bg-paw/[0.04] focus:outline-none'
+          }`;
 
-                {/* CTA arrow — only on actionable rows */}
-                {!step.done && (
-                  <ArrowRight
-                    className={`size-4 shrink-0 transition-transform duration-300 group-hover:translate-x-1 ${
-                      isNext ? 'text-doggy' : 'text-paw/40'
-                    }`}
-                    aria-hidden
-                  />
-                )}
-              </Link>
+          return (
+            <li key={step.key}>
+              {step.done ? (
+                <div className={rowClass}>{inner}</div>
+              ) : isBooking ? (
+                <Link href="/services" className={rowClass}>
+                  {inner}
+                </Link>
+              ) : (
+                <button type="button" onClick={() => handleClick(step.key)} className={rowClass}>
+                  {inner}
+                </button>
+              )}
             </li>
           );
         })}
