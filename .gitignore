@@ -59,3 +59,5 @@ screenshots/
 agentdb.rvf
 agentdb.rvf.lock
 .claude/
+
+.vercel
