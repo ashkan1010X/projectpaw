@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, Phone, PawPrint, CalendarPlus, ArrowRight, Sparkles, PartyPopper } from 'lucide-react';
 
 // LinkedIn-style profile-completion checklist with a celebration moment
@@ -86,10 +86,20 @@ export function OnboardingChecklist({
   const percent = Math.round((completed / total) * 100);
 
   const [celebrating, setCelebrating] = useState(false);
+  // Track previous count so we only fire on a real transition. Without this,
+  // existing users who completed onboarding *before* this feature shipped
+  // would get a "Welcome!" the first time they opened the dashboard.
+  const prevCompletedRef = useRef<number | null>(null);
 
-  // Fire the celebration the first time the user reaches 4/4 — never again.
   useEffect(() => {
-    if (completed !== total) return;
+    const prev = prevCompletedRef.current;
+    prevCompletedRef.current = completed;
+
+    // Initial render: just record the count, never fire.
+    if (prev === null) return;
+
+    // Only fire on the precise transition from incomplete → complete.
+    if (prev >= total || completed !== total) return;
     if (typeof window === 'undefined') return;
     if (window.localStorage.getItem(CELEBRATED_KEY)) return;
 

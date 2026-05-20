@@ -199,6 +199,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('doguser');
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
+    // Per-browser onboarding flags belong to the previous user. Clearing
+    // them lets the next person who logs in on this browser see their own
+    // welcome moment if they're new.
+    localStorage.removeItem('projectpaw:onboarding-celebrated');
   }
 
   function updateName(name: string) {
