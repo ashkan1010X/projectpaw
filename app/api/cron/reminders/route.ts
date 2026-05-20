@@ -7,7 +7,13 @@ import { sendSms } from '@/lib/twilio';
 // in the next-day window gets exactly one reminder regardless of booking time.
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET;
-  if (secret && req.headers.get('authorization') !== `Bearer ${secret}`) {
+  // Fail closed: if the secret isn't configured, refuse rather than running
+  // the cron unauthenticated. Set CRON_SECRET in .env.local + Vercel env vars.
+  if (!secret) {
+    console.error('[cron/reminders] CRON_SECRET not configured');
+    return NextResponse.json({ message: 'Cron not configured' }, { status: 500 });
+  }
+  if (req.headers.get('authorization') !== `Bearer ${secret}`) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 

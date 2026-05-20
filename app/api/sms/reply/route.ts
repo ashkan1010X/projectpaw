@@ -3,6 +3,7 @@ import twilio from 'twilio';
 import nodemailer from 'nodemailer';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { stripe } from '@/lib/stripe';
+import { escapeHtml } from '@/lib/escape-html';
 
 const { MessagingResponse } = twilio.twiml;
 
@@ -123,6 +124,10 @@ export async function POST(req: NextRequest) {
       supabaseAdmin.auth.admin.getUserById(profile.user_id).then(({ data }) => {
         const customerEmail = data.user?.email ?? '';
         const customerName = (data.user?.user_metadata?.name as string | undefined) ?? customerEmail;
+        const customerNameSafe = escapeHtml(customerName);
+        const customerEmailSafe = escapeHtml(customerEmail);
+        const dogNameSafe = escapeHtml(booking.dog_name as string);
+        const serviceNameSafe = escapeHtml(booking.service_name as string);
         const providerHtml = `
           <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; background: #0f0d09; color: #F5CBA7; border-radius: 16px; overflow: hidden;">
             <div style="background: linear-gradient(135deg, #ef4444, #b91c1c); padding: 32px; text-align: center;">
@@ -133,17 +138,17 @@ export async function POST(req: NextRequest) {
             <div style="padding: 32px;">
               <div style="background: rgba(245,203,167,0.05); border: 1px solid rgba(245,203,167,0.1); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
                 <p style="margin: 0 0 4px; font-family: sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,203,167,0.4);">Customer</p>
-                <p style="margin: 0; font-family: sans-serif; font-size: 16px; font-weight: bold; color: #F5CBA7;">${customerName}</p>
-                <a href="mailto:${customerEmail}" style="font-family: sans-serif; font-size: 13px; color: #e8a83a; text-decoration: none;">${customerEmail}</a>
+                <p style="margin: 0; font-family: sans-serif; font-size: 16px; font-weight: bold; color: #F5CBA7;">${customerNameSafe}</p>
+                <a href="mailto:${customerEmailSafe}" style="font-family: sans-serif; font-size: 13px; color: #e8a83a; text-decoration: none;">${customerEmailSafe}</a>
               </div>
               <table style="width: 100%; border-collapse: collapse;">
                 <tr>
                   <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55); width: 40%;">Service</td>
-                  <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${booking.service_name as string}</td>
+                  <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${serviceNameSafe}</td>
                 </tr>
                 <tr>
                   <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Dog's Name</td>
-                  <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${booking.dog_name as string}</td>
+                  <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${dogNameSafe}</td>
                 </tr>
                 <tr>
                   <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Date & Time</td>

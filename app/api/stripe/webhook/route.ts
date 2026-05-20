@@ -6,6 +6,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendSms } from '@/lib/twilio';
 import { isPetSpecies, SPECIES_META, type PetSpecies } from '@/lib/species';
 import { PAYMENT_META } from '@/lib/payment';
+import { escapeHtml } from '@/lib/escape-html';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -125,6 +126,8 @@ export async function POST(req: NextRequest) {
   const speciesLabel = SPECIES_META[petSpecies].label;
   const payMeta = PAYMENT_META.stripe;
 
+  const dogNameSafe = escapeHtml(dogName);
+  const serviceNameSafe = escapeHtml(serviceName);
   const customerHtml = `
     <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; background: #0f0d09; color: #F5CBA7; border-radius: 16px; overflow: hidden;">
       <div style="background: linear-gradient(135deg, #B2A4FF, #A67C52); padding: 32px; text-align: center;">
@@ -132,10 +135,10 @@ export async function POST(req: NextRequest) {
         <p style="margin: 8px 0 0; color: rgba(255,255,255,0.8); font-family: sans-serif; font-size: 14px;">ProjectPaw — Payment received</p>
       </div>
       <div style="padding: 32px;">
-        <p style="font-family: sans-serif; font-size: 15px; margin: 0 0 24px;">Hi! Your booking for <strong>${dogName}</strong> is confirmed and your card has been charged.</p>
+        <p style="font-family: sans-serif; font-size: 15px; margin: 0 0 24px;">Hi! Your booking for <strong>${dogNameSafe}</strong> is confirmed and your card has been charged.</p>
         <table style="width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 14px;">
-          <tr><td style="padding: 12px 0; color: rgba(245,203,167,0.55);">Service</td><td style="padding: 12px 0; font-weight: bold;">${serviceName}</td></tr>
-          <tr><td style="padding: 12px 0; color: rgba(245,203,167,0.55);">Pet</td><td style="padding: 12px 0; font-weight: bold;">${dogName} (${speciesLabel})</td></tr>
+          <tr><td style="padding: 12px 0; color: rgba(245,203,167,0.55);">Service</td><td style="padding: 12px 0; font-weight: bold;">${serviceNameSafe}</td></tr>
+          <tr><td style="padding: 12px 0; color: rgba(245,203,167,0.55);">Pet</td><td style="padding: 12px 0; font-weight: bold;">${dogNameSafe} (${speciesLabel})</td></tr>
           <tr><td style="padding: 12px 0; color: rgba(245,203,167,0.55);">When</td><td style="padding: 12px 0; font-weight: bold;">${formattedDate}</td></tr>
           <tr><td style="padding: 12px 0; color: rgba(245,203,167,0.55);">Paid</td><td style="padding: 12px 0; font-weight: bold;">$${(intent.amount / 100).toFixed(2)} CAD</td></tr>
         </table>

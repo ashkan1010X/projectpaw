@@ -6,6 +6,7 @@ import { stripe } from '@/lib/stripe';
 import { sendSms } from '@/lib/twilio';
 import { isPetSpecies, SPECIES_META, type PetSpecies } from '@/lib/species';
 import { isPaymentMethod, PAYMENT_META, type PaymentMethod } from '@/lib/payment';
+import { escapeHtml } from '@/lib/escape-html';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -21,6 +22,9 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://projectpaw.vercel.ap
 function buildCustomerHtml(dogName: string, serviceName: string, formattedDate: string, petSpecies: PetSpecies, paymentMethod: PaymentMethod, notes?: string) {
   const meta = SPECIES_META[petSpecies];
   const pay = PAYMENT_META[paymentMethod];
+  const dogNameSafe = escapeHtml(dogName);
+  const serviceNameSafe = escapeHtml(serviceName);
+  const notesSafe = escapeHtml(notes);
   return `
     <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; background: #0f0d09; color: #F5CBA7; border-radius: 16px; overflow: hidden;">
       <div style="background: linear-gradient(135deg, #B2A4FF, #A67C52); padding: 32px; text-align: center;">
@@ -28,15 +32,15 @@ function buildCustomerHtml(dogName: string, serviceName: string, formattedDate: 
         <p style="margin: 8px 0 0; color: rgba(255,255,255,0.8); font-family: sans-serif; font-size: 14px;">ProjectPaw</p>
       </div>
       <div style="padding: 32px;">
-        <p style="font-family: sans-serif; font-size: 15px; color: #F5CBA7; margin: 0 0 24px;">Hi there! Your booking for <strong>${dogName}</strong> is confirmed.</p>
+        <p style="font-family: sans-serif; font-size: 15px; color: #F5CBA7; margin: 0 0 24px;">Hi there! Your booking for <strong>${dogNameSafe}</strong> is confirmed.</p>
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55); width: 40%;">Service</td>
-            <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${serviceName}</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${serviceNameSafe}</td>
           </tr>
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Pet</td>
-            <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${dogName}</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${dogNameSafe}</td>
           </tr>
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Pet Type</td>
@@ -46,7 +50,7 @@ function buildCustomerHtml(dogName: string, serviceName: string, formattedDate: 
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Date & Time</td>
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${formattedDate}</td>
           </tr>
-          ${notes ? `<tr><td style="padding: 12px 0; font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Notes</td><td style="padding: 12px 0; font-family: sans-serif; font-size: 14px; color: #F5CBA7;">${notes}</td></tr>` : ''}
+          ${notesSafe ? `<tr><td style="padding: 12px 0; font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Notes</td><td style="padding: 12px 0; font-family: sans-serif; font-size: 14px; color: #F5CBA7;">${notesSafe}</td></tr>` : ''}
         </table>
         <div style="margin-top: 24px; padding: 16px 18px; border-radius: 12px; background: rgba(178,164,255,0.08); border: 1px solid rgba(178,164,255,0.18);">
           <p style="margin: 0 0 4px; font-family: sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(178,164,255,0.7);">Payment</p>
@@ -72,6 +76,12 @@ function buildProviderHtml(
 ) {
   const meta = SPECIES_META[petSpecies];
   const pay = PAYMENT_META[paymentMethod];
+  const customerNameSafe = escapeHtml(customerName);
+  const customerEmailSafe = escapeHtml(customerEmail);
+  const dogNameSafe = escapeHtml(dogName);
+  const serviceNameSafe = escapeHtml(serviceName);
+  const notesSafe = escapeHtml(notes);
+  const addressSafe = escapeHtml(address);
   return `
     <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; background: #0f0d09; color: #F5CBA7; border-radius: 16px; overflow: hidden;">
       <div style="background: linear-gradient(135deg, #c97b2a, #e8a83a); padding: 32px; text-align: center;">
@@ -82,17 +92,17 @@ function buildProviderHtml(
       <div style="padding: 32px;">
         <div style="background: rgba(245,203,167,0.05); border: 1px solid rgba(245,203,167,0.1); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
           <p style="margin: 0 0 4px; font-family: sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,203,167,0.4);">Customer</p>
-          <p style="margin: 0; font-family: sans-serif; font-size: 16px; font-weight: bold; color: #F5CBA7;">${customerName}</p>
-          <a href="mailto:${customerEmail}" style="font-family: sans-serif; font-size: 13px; color: #e8a83a; text-decoration: none;">${customerEmail}</a>
+          <p style="margin: 0; font-family: sans-serif; font-size: 16px; font-weight: bold; color: #F5CBA7;">${customerNameSafe}</p>
+          <a href="mailto:${customerEmailSafe}" style="font-family: sans-serif; font-size: 13px; color: #e8a83a; text-decoration: none;">${customerEmailSafe}</a>
         </div>
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55); width: 40%;">Service</td>
-            <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${serviceName}</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${serviceNameSafe}</td>
           </tr>
           <tr>
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Pet</td>
-            <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${dogName}</td>
+            <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${dogNameSafe}</td>
           </tr>
           <tr>
             <td style="padding: 14px 0; border-bottom: 2px solid rgba(178,164,255,0.25); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Pet Type</td>
@@ -102,12 +112,12 @@ function buildProviderHtml(
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Date & Time</td>
             <td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${formattedDate}</td>
           </tr>
-          ${address ? `<tr><td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55); width: 40%;">Address</td><td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7;">${address}</td></tr>` : ''}
+          ${addressSafe ? `<tr><td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55); width: 40%;">Address</td><td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7;">${addressSafe}</td></tr>` : ''}
           <tr>
             <td style="padding: 14px 0; border-bottom: 2px solid rgba(249,217,35,0.25); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Payment</td>
             <td style="padding: 14px 0; border-bottom: 2px solid rgba(249,217,35,0.25); font-family: sans-serif; font-size: 16px; color: #F9D923; font-weight: 800; letter-spacing: 0.02em;">${pay.emoji} ${pay.label}</td>
           </tr>
-          ${notes ? `<tr><td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Notes</td><td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7;">${notes}</td></tr>` : ''}
+          ${notesSafe ? `<tr><td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.55);">Notes</td><td style="padding: 12px 0; border-bottom: 1px solid rgba(245,203,167,0.1); font-family: sans-serif; font-size: 14px; color: #F5CBA7;">${notesSafe}</td></tr>` : ''}
         </table>
         <p style="margin: 16px 0 0; font-family: sans-serif; font-size: 12px; color: rgba(245,203,167,0.5); padding-left: 8px; border-left: 3px solid rgba(249,217,35,0.4);">${pay.emailLine}</p>
         <div style="margin-top: 28px; text-align: center;">
