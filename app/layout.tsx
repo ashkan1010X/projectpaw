@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Playfair_Display, Baloo_2 } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/contexts/auth-context';
 import { NavBar } from '@/components/nav-bar';
+import { StickyMobileCta } from '@/components/sticky-mobile-cta';
 
 const geistSans = Geist({
   variable: '--font-sans',
@@ -45,6 +46,7 @@ export default function RootLayout({
         <AuthProvider>
           <NavBar />
           <main id="main-content" className="flex-1">{children}</main>
+          <StickyMobileCta />
         </AuthProvider>
       </body>
     </html>
