@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { Loader2, PawPrint, Sparkles, Clock, Bell, Heart, CalendarClock } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { BookingModal } from '@/components/booking-modal';
+import { supabase } from '@/lib/supabase';
+import { FALLBACK_SERVICES, type ServiceRow } from '@/lib/service-icons';
 import { SPECIES_META, isPetSpecies, type PetSpecies } from '@/lib/species';
 import { PAYMENT_META, isPaymentMethod } from '@/lib/payment';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -167,6 +169,7 @@ export default function DashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [profile, setProfile] = useState<Profile>(null);
   const [pets, setPets] = useState<Pet[]>([]);
+  const [services, setServices] = useState<ServiceRow[]>(FALLBACK_SERVICES);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -183,6 +186,23 @@ export default function DashboardPage() {
   const [petError, setPetError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null);
   const [photoError, setPhotoError] = useState(false);
+
+  // Fetch services once on mount — public read RLS, no auth needed.
+  // Falls back to FALLBACK_SERVICES on error (already the initial state).
+  useEffect(() => {
+    let cancelled = false;
+    supabase
+      .from('services')
+      .select('*')
+      .order('sort_order')
+      .then(({ data, error }) => {
+        if (cancelled || error || !data) return;
+        setServices(data as ServiceRow[]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (!initialized) return;
@@ -948,17 +968,21 @@ export default function DashboardPage() {
       )}
 
       {/* Rebook modal */}
-      {rebookTarget && (
-        <BookingModal
-          service={{
-            id: rebookTarget.serviceId,
-            name: rebookTarget.serviceName,
-            price: 0,
-          }}
-          initialDogName={rebookTarget.dogName}
-          onClose={() => setRebookTarget(null)}
-        />
-      )}
+      {rebookTarget && (() => {
+        const matched = services.find((s) => s.id === rebookTarget.serviceId);
+        return (
+          <BookingModal
+            service={{
+              id: rebookTarget.serviceId,
+              name: rebookTarget.serviceName,
+              price: matched?.price ?? 0,
+              allowed_pet_types: matched?.allowed_pet_types,
+            }}
+            initialDogName={rebookTarget.dogName}
+            onClose={() => setRebookTarget(null)}
+          />
+        );
+      })()}
     </main>
   );
 }
