@@ -11,6 +11,7 @@ import { PAYMENT_META, isPaymentMethod } from '@/lib/payment';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { RescheduleDialog } from '@/components/reschedule-dialog';
 import { AddToCalendar } from '@/components/add-to-calendar';
+import { OnboardingChecklist } from '@/components/onboarding-checklist';
 import { Toast } from '@/components/toast';
 import { cn } from '@/lib/utils';
 
@@ -308,8 +309,19 @@ export default function DashboardPage() {
   const showReengagement =
     favorite && !hasUpcomingFavorite && daysSinceFavorite !== null && daysSinceFavorite >= 28;
 
+  const firstName = (user?.name ?? '').split(' ')[0] || 'there';
+
   return (
     <main className="mx-auto max-w-4xl px-6 py-10 sm:py-12">
+      {/* ════════════════════  ONBOARDING CHECKLIST  ════════════════════ */}
+      {/* Auto-hides once all four steps are complete */}
+      <OnboardingChecklist
+        firstName={firstName}
+        hasPhone={hasPhone}
+        hasPet={pets.length > 0}
+        hasBooking={bookings.length > 0}
+      />
+
       {/* ════════════════════  PET HERO  ════════════════════ */}
       <div className="mb-8 overflow-hidden rounded-2xl border border-doggy/15 bg-gradient-to-br from-doggy/[0.10] via-paw/[0.03] to-transparent p-5 sm:p-7 animate-fade-in">
         <div className="flex items-center gap-4 sm:gap-6">

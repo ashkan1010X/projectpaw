@@ -77,7 +77,9 @@ export default function LoginPage() {
       }
 
       login(data.user, data.token, data.refreshToken);
-      router.push('/services');
+      // Dashboard is the home base — new users see the onboarding checklist there,
+      // returning users see their next appointment and stats.
+      router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.');
     } finally {

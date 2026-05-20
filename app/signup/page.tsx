@@ -98,7 +98,8 @@ export default function SignupPage() {
       }
 
       login(data.user, data.token, data.refreshToken);
-      router.push('/services');
+      // New users land on the dashboard so the onboarding checklist greets them.
+      router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong.');
     } finally {
