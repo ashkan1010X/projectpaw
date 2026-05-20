@@ -12,15 +12,18 @@ import { useAuth } from '@/contexts/auth-context';
 // user arrives, every card on the page is itself a booking action.
 const ALLOWED_PATHS = new Set(['/', '/about', '/gallery']);
 
-// Sentinel pixel height — once the user has scrolled past this much of the
-// viewport, the hero CTA is offscreen and we surface the sticky bar.
+// Once the user has scrolled past this many pixels the hero CTAs are offscreen
+// and a thumb-reach bar starts paying for itself. Tuned to clear the hero on
+// the smallest supported viewport (Galaxy S20, 360×800).
 const SHOW_AFTER_PX = 480;
 
 export function StickyMobileCta() {
   const pathname = usePathname();
   const { user } = useAuth();
-  const [visible, setVisible] = useState(false);
+  const [scrolledPast, setScrolledPast] = useState(false);
+  const [footerInView, setFooterInView] = useState(false);
 
+  // Track scroll position
   useEffect(() => {
     if (!ALLOWED_PATHS.has(pathname)) return;
 
@@ -28,7 +31,7 @@ export function StickyMobileCta() {
     const onScroll = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
-        setVisible(window.scrollY > SHOW_AFTER_PX);
+        setScrolledPast(window.scrollY > SHOW_AFTER_PX);
       });
     };
     onScroll();
@@ -39,15 +42,38 @@ export function StickyMobileCta() {
     };
   }, [pathname]);
 
-  // Don't show for logged-in users — they're past the acquisition funnel
-  // and have full in-page actions (dashboard, profile).
+  // Hide the bar when the page footer enters view — Rover/Wag pattern.
+  // Stops the CTA from covering the footer nav links at the bottom of the page.
+  useEffect(() => {
+    if (!ALLOWED_PATHS.has(pathname)) return;
+
+    const footer = document.querySelector('footer');
+    if (!footer) return;
+
+    const obs = new IntersectionObserver(
+      ([entry]) => setFooterInView(entry.isIntersecting),
+      { rootMargin: '0px 0px -10% 0px' },
+    );
+    obs.observe(footer);
+    return () => obs.disconnect();
+  }, [pathname]);
+
+  // Logged-in users are past acquisition; the in-app nav has their actions.
   if (user) return null;
   if (!ALLOWED_PATHS.has(pathname)) return null;
 
+  const visible = scrolledPast && !footerInView;
+
   return (
     <div
+      // `inert` removes the bar entirely from the a11y tree + focus order
+      // when hidden, so keyboard users don't land on an invisible button.
+      // Safari/older browsers fall back to aria-hidden + tabIndex on the link.
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error -- inert is a valid HTML attribute, React 19 supports it
+      inert={visible ? undefined : ''}
       aria-hidden={!visible}
-      className={`fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(env(safe-area-inset-bottom),12px)] pt-3 transition-all duration-300 md:hidden ${
+      className={`fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(env(safe-area-inset-bottom),12px)] pt-3 motion-safe:transition-all motion-safe:duration-300 md:hidden ${
         visible ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-full opacity-0'
       }`}
       style={{
@@ -59,11 +85,12 @@ export function StickyMobileCta() {
     >
       <Link
         href="/services"
-        className="group flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-doggy font-pawprint text-base font-bold text-white shadow-2xl shadow-doggy/40 ring-1 ring-doggy/40 transition-all duration-300 active:scale-[0.98]"
+        tabIndex={visible ? 0 : -1}
+        className="group relative flex h-14 w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-doggy font-pawprint text-base font-bold text-white shadow-2xl shadow-doggy/40 ring-1 ring-doggy/40 motion-safe:transition-all motion-safe:duration-300 active:scale-[0.98]"
       >
-        <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+        <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent motion-safe:transition-transform motion-safe:duration-700 group-hover:translate-x-full" />
         <span className="relative">Book Now</span>
-        <ArrowRight className="relative size-4 transition-transform duration-300 group-hover:translate-x-1" />
+        <ArrowRight className="relative size-4 motion-safe:transition-transform motion-safe:duration-300 group-hover:translate-x-1" />
       </Link>
     </div>
   );
