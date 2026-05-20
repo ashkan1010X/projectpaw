@@ -8,8 +8,9 @@ import { useAuth } from '@/contexts/auth-context';
 
 // Marketing pages where a "Book Now" anchor at the bottom of the screen
 // gives mobile users a thumb-reach CTA without scrolling back to the hero.
-// Hidden on auth/app pages where it would duplicate in-page actions.
-const ALLOWED_PATHS = new Set(['/', '/about', '/gallery', '/services']);
+// Excludes /services because the CTA's destination IS /services — once the
+// user arrives, every card on the page is itself a booking action.
+const ALLOWED_PATHS = new Set(['/', '/about', '/gallery']);
 
 // Sentinel pixel height — once the user has scrolled past this much of the
 // viewport, the hero CTA is offscreen and we surface the sticky bar.
