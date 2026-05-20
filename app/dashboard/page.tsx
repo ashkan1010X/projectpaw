@@ -259,6 +259,8 @@ export default function DashboardPage() {
       }
       setProfile((prev) => ({ ...(prev ?? {}), phone }));
       setPhoneSheetOpen(false);
+      // Subtle haptic on mobile — gives the save action a satisfying physical tick.
+      if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(15);
       setToast({ message: 'Phone number saved 📱', variant: 'success' });
     } catch (err) {
       setPhoneError(err instanceof Error ? err.message : 'Something went wrong');
@@ -280,6 +282,7 @@ export default function DashboardPage() {
       if (!res.ok || !json.pet) throw new Error(json.message ?? 'Failed to add pet');
       setPets((prev) => [...prev, json.pet!]);
       setPetSheetOpen(false);
+      if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(15);
       setToast({ message: `${json.pet.name} added 🐾`, variant: 'success' });
     } catch (err) {
       setPetError(err instanceof Error ? err.message : 'Something went wrong');

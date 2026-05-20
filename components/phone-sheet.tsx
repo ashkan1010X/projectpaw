@@ -59,13 +59,13 @@ export function PhoneSheet({ open, initialPhone, saving, error, onClose, onSave 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-0 backdrop-blur-md animate-fade-in sm:items-center sm:p-4"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/75 p-0 backdrop-blur-md motion-safe:animate-fade-in sm:items-center sm:p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
       role="dialog"
       aria-modal="true"
       aria-labelledby="phone-sheet-title"
     >
-      <div className="relative w-full max-w-md overflow-hidden rounded-t-3xl border border-paw/15 bg-[#0f0d09] shadow-2xl animate-scale-in sm:rounded-3xl">
+      <div className="relative w-full max-w-md overflow-hidden rounded-t-3xl border border-paw/15 bg-[#0f0d09] shadow-2xl motion-safe:animate-scale-in sm:rounded-3xl">
         {/* Drag handle (mobile visual cue) */}
         <div className="flex justify-center pt-2 sm:hidden">
           <span aria-hidden className="h-1 w-10 rounded-full bg-paw/15" />
