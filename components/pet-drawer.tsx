@@ -50,18 +50,22 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 export function PetDrawer({ open, initial, saving, error, onClose, onSave, mode }: Props) {
   const { fetchWithAuth } = useAuth();
   const fileRef = useRef<HTMLInputElement>(null);
-  const [form, setForm] = useState<PetFormData>(EMPTY_FORM);
+  const [form, setForm] = useState<PetFormData>(initial ?? EMPTY_FORM);
   const [nameError, setNameError] = useState<string | null>(null);
   const [photoUploading, setPhotoUploading] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const [prevOpen, setPrevOpen] = useState(open);
 
-  useEffect(() => {
+  // Reset form when the drawer transitions from closed to open.
+  // React docs pattern — avoids cascading renders from setState-in-effect.
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setForm(initial ?? EMPTY_FORM);
       setNameError(null);
       setPhotoError(null);
     }
-  }, [open, initial]);
+  }
 
   async function handleFile(file: File) {
     setPhotoError(null);

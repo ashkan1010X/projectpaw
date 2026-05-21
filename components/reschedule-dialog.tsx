@@ -50,15 +50,18 @@ export function RescheduleDialog({
   const [newDatetime, setNewDatetime] = useState(toLocalInput(currentDatetime));
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
 
-  // Reset state when opening for a new booking
-  useEffect(() => {
+  // Reset state when the dialog transitions from closed to open.
+  // React docs pattern — avoids cascading renders from setState-in-effect.
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) {
       setNewDatetime(toLocalInput(currentDatetime));
       setError(null);
       setSubmitting(false);
     }
-  }, [isOpen, currentDatetime]);
+  }
 
   // ESC to close
   useEffect(() => {

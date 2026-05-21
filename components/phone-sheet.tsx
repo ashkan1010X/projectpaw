@@ -18,16 +18,19 @@ type Props = {
 };
 
 export function PhoneSheet({ open, initialPhone, saving, error, onClose, onSave }: Props) {
-  const [phone, setPhone] = useState<string>('');
+  const [phone, setPhone] = useState<string>(initialPhone ?? '');
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [prevOpen, setPrevOpen] = useState(open);
 
-  // Reset state every time the sheet opens
-  useEffect(() => {
+  // Reset state when the sheet transitions from closed to open.
+  // React docs pattern — avoids cascading renders from setState-in-effect.
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setPhone(initialPhone ?? '');
       setValidationError(null);
     }
-  }, [open, initialPhone]);
+  }
 
   // Esc key to close
   useEffect(() => {
