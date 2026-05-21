@@ -4,6 +4,7 @@ import twilio from 'twilio';
 import nodemailer from 'nodemailer';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { stripe } from '@/lib/stripe';
+import { sendSms } from '@/lib/twilio';
 import { escapeHtml } from '@/lib/escape-html';
 import { formatBookingDateShort } from '@/lib/format-date';
 
@@ -202,6 +203,27 @@ export async function POST(req: NextRequest) {
           });
         })
         .catch((e: unknown) => console.error('Provider cancellation email error (SMS):', e)),
+      );
+    }
+
+    // Provider SMS — fire alongside the email so Sara learns the slot is free
+    // immediately. Industry standard: notify both channels for time-sensitive events.
+    if (process.env.PROVIDER_SMS_PHONE) {
+      const providerPhone = process.env.PROVIDER_SMS_PHONE;
+      after(
+        supabaseAdmin.auth.admin
+          .getUserById(profile.user_id)
+          .then(({ data }) => {
+            const customerEmail = data.user?.email ?? '';
+            const customerName =
+              (data.user?.user_metadata?.name as string | undefined) ?? customerEmail;
+            const customerShort = customerName.split('@')[0].slice(0, 30);
+            return sendSms(
+              providerPhone,
+              `Cancelled (SMS): ${booking.service_name as string} for ${booking.dog_name as string} on ${apptTime}. Customer: ${customerShort}. Slot now open. - ProjectPaw`,
+            );
+          })
+          .catch((e: unknown) => console.error('Provider cancellation SMS error:', e)),
       );
     }
 

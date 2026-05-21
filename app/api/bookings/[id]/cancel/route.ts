@@ -246,11 +246,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       : Promise.resolve(),
   ]);
 
-  // Fire a confirmation SMS to the customer — deferred via after() so it runs
-  // post-response and doesn't slow the dashboard. Matches the SMS-reply cancel
-  // flow for parity: every cancel path now notifies via both channels.
+  // Fire customer + provider SMS — deferred via after() so they run post-response
+  // and don't slow the dashboard. Industry standard: every cancellation hits both
+  // notification channels (email + SMS) for both parties.
   after(
     (async () => {
+      const apptShort = formatBookingDateShort(booking.datetime as string);
+
+      // Customer SMS — keep under 3 segments. ASCII only (no emoji / em-dash).
       try {
         const { data: prof } = await supabaseAdmin
           .from('profiles')
@@ -258,23 +261,35 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           .eq('user_id', user.id)
           .maybeSingle();
         const phone = prof?.phone as string | undefined;
-        if (!phone) return;
-        const apptShort = formatBookingDateShort(booking.datetime as string);
-        // Keep SMS under 3 segments — Canadian carriers reject 4+ on Twilio trial.
-        // Use ASCII only (no emoji / em-dash) to stay in GSM-7 encoding (160 chars/segment).
-        const refundLine = refundNote
-          ? refundedCents > 0 && newPaymentStatus === 'refunded_full'
-            ? ` Full refund of $${(refundedCents / 100).toFixed(0)} on the way.`
-            : ` 50% refund of $${(refundedCents / 100).toFixed(0)} on the way.`
-          : manualRefundPending
-            ? ` Refund under review - we'll be in touch.`
-            : '';
-        await sendSms(
-          phone,
-          `Cancelled. Your ${booking.service_name} for ${booking.dog_name} on ${apptShort} is off.${refundLine} - ProjectPaw`,
-        );
+        if (phone) {
+          const refundLine = refundNote
+            ? refundedCents > 0 && newPaymentStatus === 'refunded_full'
+              ? ` Full refund of $${(refundedCents / 100).toFixed(0)} on the way.`
+              : ` 50% refund of $${(refundedCents / 100).toFixed(0)} on the way.`
+            : manualRefundPending
+              ? ` Refund under review - we'll be in touch.`
+              : '';
+          await sendSms(
+            phone,
+            `Cancelled. Your ${booking.service_name} for ${booking.dog_name} on ${apptShort} is off.${refundLine} - ProjectPaw`,
+          );
+        }
       } catch (err) {
-        console.error('Cancel SMS error:', err);
+        console.error('Cancel SMS (customer) error:', err);
+      }
+
+      // Provider SMS — Sara needs to know her slot just freed up. ASCII only.
+      try {
+        const providerPhone = process.env.PROVIDER_SMS_PHONE;
+        if (providerPhone) {
+          const customerShort = (customerName ?? user.email).split('@')[0].slice(0, 30);
+          await sendSms(
+            providerPhone,
+            `Cancelled: ${booking.service_name} for ${booking.dog_name} on ${apptShort}. Customer: ${customerShort}. Slot now open. - ProjectPaw`,
+          );
+        }
+      } catch (err) {
+        console.error('Cancel SMS (provider) error:', err);
       }
     })(),
   );
