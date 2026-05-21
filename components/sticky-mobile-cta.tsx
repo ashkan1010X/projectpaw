@@ -69,8 +69,6 @@ export function StickyMobileCta() {
       // `inert` removes the bar entirely from the a11y tree + focus order
       // when hidden, so keyboard users don't land on an invisible button.
       // Safari/older browsers fall back to aria-hidden + tabIndex on the link.
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error -- inert is a valid HTML attribute, React 19 supports it
       inert={visible ? undefined : true}
       aria-hidden={!visible}
       className={`fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(env(safe-area-inset-bottom),12px)] pt-3 motion-safe:transition-all motion-safe:duration-300 md:hidden ${
