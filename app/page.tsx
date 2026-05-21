@@ -507,7 +507,7 @@ export default function HomePage() {
               </Link>
             ))}
             <a
-              href="mailto:hello@projectpaw.ca"
+              href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? 'hello@projectpaw.ca'}`}
               className="inline-flex min-h-9 items-center rounded-md px-3 py-2 font-pawprint text-xs text-paw/55 transition-colors hover:text-doggy focus:outline-none focus:ring-2 focus:ring-doggy/30"
             >
               Contact

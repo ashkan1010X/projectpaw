@@ -1,9 +1,28 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, HelpCircle } from 'lucide-react';
+import { ChevronDown, HelpCircle, Mail, Phone } from 'lucide-react';
 
 export type FaqItem = { q: string; a: string };
+
+// Pulled from env so it swaps cleanly when projectpaw.ca lands —
+// no source-code edit needed, just change Vercel env vars.
+const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? 'hello@projectpaw.ca';
+const CONTACT_PHONE_E164 = process.env.NEXT_PUBLIC_CONTACT_PHONE ?? '';
+
+// Display-format a North-American E.164 number: +16134000496 -> (613) 400-0496
+function formatPhoneDisplay(e164: string): string {
+  const digits = e164.replace(/\D/g, '');
+  if (digits.length === 11 && digits.startsWith('1')) {
+    return `(${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+  return e164;
+}
+
+const CONTACT_PHONE_DISPLAY = CONTACT_PHONE_E164 ? formatPhoneDisplay(CONTACT_PHONE_E164) : '';
 
 export const FAQS: FaqItem[] = [
   {
@@ -50,6 +69,19 @@ const FAQ_JSONLD = {
   })),
 };
 
+// LocalBusiness schema gives Google a proper "knowledge panel" entry
+// with email/phone — same trick Yelp/Google Maps listings use.
+const BUSINESS_JSONLD = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: 'ProjectPaw',
+  description: 'Premium dog grooming, boarding, walking, training, and pet care in Toronto.',
+  email: CONTACT_EMAIL,
+  ...(CONTACT_PHONE_E164 ? { telephone: CONTACT_PHONE_E164 } : {}),
+  areaServed: 'Toronto, Ontario, Canada',
+  priceRange: '$20 – $80 CAD',
+};
+
 export function FaqSection() {
   // Multi-open accordion (industry standard — Stripe, Linear, GitHub all allow multi-open
   // so users can compare two answers side by side without re-clicking)
@@ -66,10 +98,14 @@ export function FaqSection() {
 
   return (
     <section id="faq" className="relative px-6 py-24 md:py-32" aria-labelledby="faq-heading">
-      {/* JSON-LD for Google rich snippets */}
+      {/* JSON-LD for Google rich snippets + knowledge panel */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSONLD) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(BUSINESS_JSONLD) }}
       />
 
       {/* Ambient background */}
@@ -98,11 +134,22 @@ export function FaqSection() {
         <p className="mx-auto mt-4 max-w-xl text-center font-pawprint text-sm text-paw/55 md:text-base">
           Everything you need to know before you book. Still have a question?{' '}
           <a
-            href="mailto:hello@projectpaw.ca"
+            href={`mailto:${CONTACT_EMAIL}`}
             className="text-doggy underline decoration-doggy/40 underline-offset-4 transition-colors hover:decoration-doggy"
           >
-            Email us
+            Email Sara
           </a>
+          {CONTACT_PHONE_DISPLAY && (
+            <>
+              {' '}or call{' '}
+              <a
+                href={`tel:${CONTACT_PHONE_E164}`}
+                className="whitespace-nowrap text-doggy underline decoration-doggy/40 underline-offset-4 transition-colors hover:decoration-doggy"
+              >
+                {CONTACT_PHONE_DISPLAY}
+              </a>
+            </>
+          )}
           .
         </p>
 
@@ -164,20 +211,30 @@ export function FaqSection() {
           })}
         </div>
 
-        {/* Bottom CTA — fallback to direct contact when FAQ didn't answer */}
-        <div className="mt-10 flex flex-col items-center gap-3 text-center">
+        {/* Bottom CTA — direct contact when FAQ didn't answer.
+           Email + phone side-by-side so users can pick their channel. */}
+        <div className="mt-10 flex flex-col items-center gap-4 text-center">
           <p className="font-pawprint text-sm text-paw/45">
-            Didn&apos;t see your question?
+            Didn&apos;t see your question? Reach out — Sara usually replies same day.
           </p>
-          <a
-            href="mailto:hello@projectpaw.ca"
-            className="group inline-flex items-center gap-2 rounded-xl border border-paw/15 bg-paw/[0.03] px-6 py-3 font-pawprint text-sm font-semibold text-paw/80 transition-all duration-300 hover:border-doggy/40 hover:bg-doggy/[0.06] hover:text-paw"
-          >
-            Email us — we usually reply same day
-            <span className="text-doggy transition-transform duration-300 group-hover:translate-x-1">
-              →
-            </span>
-          </a>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className="group inline-flex items-center justify-center gap-2 rounded-xl border border-paw/15 bg-paw/[0.03] px-6 py-3 font-pawprint text-sm font-semibold text-paw/80 transition-all duration-300 hover:border-doggy/40 hover:bg-doggy/[0.06] hover:text-paw"
+            >
+              <Mail className="size-4 text-doggy/70 transition-colors group-hover:text-doggy" strokeWidth={2} />
+              {CONTACT_EMAIL}
+            </a>
+            {CONTACT_PHONE_DISPLAY && (
+              <a
+                href={`tel:${CONTACT_PHONE_E164}`}
+                className="group inline-flex items-center justify-center gap-2 rounded-xl border border-paw/15 bg-paw/[0.03] px-6 py-3 font-pawprint text-sm font-semibold text-paw/80 transition-all duration-300 hover:border-doggy/40 hover:bg-doggy/[0.06] hover:text-paw"
+              >
+                <Phone className="size-4 text-doggy/70 transition-colors group-hover:text-doggy" strokeWidth={2} />
+                {CONTACT_PHONE_DISPLAY}
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </section>
