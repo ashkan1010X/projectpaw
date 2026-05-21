@@ -2,42 +2,41 @@
 
 import { useState } from 'react';
 import { ChevronDown, HelpCircle } from 'lucide-react';
-import Link from 'next/link';
 
 export type FaqItem = { q: string; a: string };
 
 export const FAQS: FaqItem[] = [
   {
     q: 'What services do you offer and how much do they cost?',
-    a: 'We offer 7 premium services in Toronto: Grooming ($30, 90 min), Dog Walking ($20, 60 min), Boarding ($50/night), Training ($45, 60 min), Vet Visit ($80, 45 min), Daycare ($35, full day), and Custom Service ($60). All prices are in CAD. Browse the full catalogue on our Services page.',
+    a: 'Seven services in Toronto, prices in CAD: Grooming ($30, 90 min), Dog Walking ($20, 60 min), Boarding ($50/night), Training ($45, 60 min), Vet Visit ($80, 45 min), Daycare ($35, full day), and Custom Service ($60). Full details on the Services page.',
   },
   {
     q: 'Which pets do you take care of?',
-    a: "Every service welcomes dogs. Grooming and Training also accept cats and rabbits. Boarding, Vet Visits, Daycare and Custom Service are open to dogs, cats, rabbits, birds, and other small pets. You'll see exactly which pets are eligible right inside each service card.",
+    a: 'Every service welcomes dogs. Grooming and Training also take cats and rabbits. Boarding, Vet Visits, Daycare and Custom Service are open to dogs, cats, rabbits, birds, and other small pets. Each service card shows which pets are eligible.',
   },
   {
-    q: 'How does the booking flow work?',
-    a: "It takes under a minute. Pick a service, choose a date and time between 8:00 AM and 7:30 PM, then check out with card, cash, or e-transfer. You'll get an instant email and SMS confirmation, plus a friendly reminder 24 hours before your appointment.",
+    q: 'How do I book an appointment?',
+    a: "Pick a service, pick a date and time (we book in 30-minute slots from 8 AM to 7:30 PM), and choose how you want to pay. The whole thing takes about a minute. You'll get a text and email confirmation right away, plus a reminder text the day before.",
   },
   {
     q: 'What payment methods do you accept?',
-    a: "Three options: secure credit/debit card payment online via Stripe (you're charged immediately), cash on arrival, or Interac e-Transfer. Cash and e-transfer bookings are confirmed instantly — you settle up when you show up.",
+    a: "Three options: credit or debit card online (handled by Stripe — the same processor Shopify and Lyft use), cash on arrival, or Interac e-Transfer. Card bookings are charged at checkout. Cash and e-Transfer bookings just need to be settled when you show up.",
   },
   {
     q: "What's your cancellation and refund policy?",
-    a: 'Cancel any booking free of charge from your dashboard or by replying X to your confirmation SMS. If you paid by cash or e-transfer, there is nothing to refund. If you paid online by card, refunds are: 100% if cancelled more than 24 hours before your appointment, 50% if cancelled within 24 hours. Refunds are processed automatically and reach your card in 5–10 business days.',
+    a: "Cancel any booking free from your dashboard, or just reply X to your confirmation text. If you paid by cash or e-Transfer, no money has changed hands, so nothing to refund. If you paid by card: 100% refund if you cancel more than 24 hours out, 50% if it's less than 24 hours. Refunds land back on your card automatically within 5–10 business days.",
   },
   {
     q: 'Can I reschedule instead of cancelling?',
-    a: 'Yes — rescheduling is always free, no matter the notice. Open your dashboard, tap Reschedule on the booking, and pick any open slot. We re-send your confirmation and reset the 24-hour reminder.',
+    a: "Yes, anytime, and it's always free — no late fees, no 24-hour cutoff. Open your dashboard, tap Reschedule on the booking, and pick a new slot. We'll send a fresh confirmation and reset the day-before reminder.",
   },
   {
-    q: 'Will I get reminders, and can I opt out of texts?',
-    a: 'Yes. We send one instant confirmation SMS when you book and one reminder SMS 24 hours before your appointment. To stop all texts at any time, reply STOP to any message — you can still reply START to resume.',
+    q: 'Do you send text reminders? Can I opt out?',
+    a: 'Yes — one confirmation text the moment you book, and one reminder 24 hours before your appointment. To turn texts off entirely, reply STOP to any message. Text START to turn them back on.',
   },
   {
     q: 'Is my information secure?',
-    a: 'Yes. Payments are processed by Stripe (PCI-DSS Level 1, the highest payment security standard) — we never see or store your card number. Your account is protected with industry-standard encryption, breached-password detection, and rate-limited login. Photos and personal details stay private to you and our team.',
+    a: "Yes. Your card details never touch our servers — Stripe handles every payment (same processor as Shopify and Lyft). Your account uses encrypted storage, and we block new passwords that have appeared in known data breaches so leaked credentials can't be reused. Photos and personal info are visible only to you and our team.",
   },
 ];
 
@@ -97,7 +96,7 @@ export function FaqSection() {
           Frequently asked <em className="not-italic text-doggy">questions</em>
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-center font-pawprint text-sm text-paw/55 md:text-base">
-          Everything you need to know before you book. Still stuck?{' '}
+          Everything you need to know before you book. Still have a question?{' '}
           <a
             href="mailto:hello@projectpaw.ca"
             className="text-doggy underline decoration-doggy/40 underline-offset-4 transition-colors hover:decoration-doggy"
@@ -165,20 +164,20 @@ export function FaqSection() {
           })}
         </div>
 
-        {/* Bottom CTA */}
+        {/* Bottom CTA — fallback to direct contact when FAQ didn't answer */}
         <div className="mt-10 flex flex-col items-center gap-3 text-center">
           <p className="font-pawprint text-sm text-paw/45">
-            Can&apos;t find what you&apos;re looking for?
+            Didn&apos;t see your question?
           </p>
-          <Link
-            href="/services"
+          <a
+            href="mailto:hello@projectpaw.ca"
             className="group inline-flex items-center gap-2 rounded-xl border border-paw/15 bg-paw/[0.03] px-6 py-3 font-pawprint text-sm font-semibold text-paw/80 transition-all duration-300 hover:border-doggy/40 hover:bg-doggy/[0.06] hover:text-paw"
           >
-            Browse all services
+            Email us — we usually reply same day
             <span className="text-doggy transition-transform duration-300 group-hover:translate-x-1">
               →
             </span>
-          </Link>
+          </a>
         </div>
       </div>
     </section>
