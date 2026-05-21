@@ -6,6 +6,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import { stripe } from '@/lib/stripe';
 import { sendSms } from '@/lib/twilio';
 import { escapeHtml } from '@/lib/escape-html';
+import { formatBookingDateLong, formatBookingDateShort } from '@/lib/format-date';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -168,17 +169,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ message: 'Failed to cancel booking' }, { status: 500 });
   }
 
-  const parsedDate = new Date(booking.datetime);
-  const formattedDate = isNaN(parsedDate.getTime())
-    ? booking.datetime
-    : parsedDate.toLocaleString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+  const formattedDate = formatBookingDateLong(booking.datetime as string);
 
   const customerName = (user.user_metadata?.name as string | undefined) ?? user.email;
   const dogNameSafe = escapeHtml(booking.dog_name as string);
@@ -268,13 +259,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           .maybeSingle();
         const phone = prof?.phone as string | undefined;
         if (!phone) return;
-        const apptShort = new Date(booking.datetime).toLocaleString('en-US', {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
+        const apptShort = formatBookingDateShort(booking.datetime as string);
         const refundLine = refundNote
           ? ` ${refundNote} Allow 5–10 business days.`
           : manualRefundPending

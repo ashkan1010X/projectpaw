@@ -7,6 +7,7 @@ import { sendSms } from '@/lib/twilio';
 import { isPetSpecies, SPECIES_META, type PetSpecies } from '@/lib/species';
 import { isPaymentMethod, PAYMENT_META, type PaymentMethod } from '@/lib/payment';
 import { escapeHtml } from '@/lib/escape-html';
+import { formatBookingDateLong } from '@/lib/format-date';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -279,14 +280,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Failed to save booking. Please try again.' }, { status: 500 });
   }
 
-  const formattedDate = new Date(datetime).toLocaleString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const formattedDate = formatBookingDateLong(datetime);
 
   // Fetch phone for SMS (best-effort)
   const { data: profileRow } = await supabaseAdmin

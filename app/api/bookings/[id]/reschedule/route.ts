@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendSms } from '@/lib/twilio';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
+import { formatBookingDateLong } from '@/lib/format-date';
 
 // Reschedule rate limit — legit users rarely reschedule >10/hr; abuse pattern is
 // loop-reschedule to mail-bomb customer or admin with notifications.
@@ -202,14 +203,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ message: 'Failed to reschedule. Please try again.' }, { status: 500 });
   }
 
-  const fmt = (iso: string) =>
-    new Date(iso).toLocaleString('en-US', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-      hour: '2-digit', minute: '2-digit',
-    });
-
-  const oldFormatted = fmt(oldDatetime);
-  const newFormatted = fmt(datetime);
+  const oldFormatted = formatBookingDateLong(oldDatetime);
+  const newFormatted = formatBookingDateLong(datetime);
   const customerName = (user.user_metadata?.name as string | undefined) ?? user.email;
 
   // Fetch phone for SMS

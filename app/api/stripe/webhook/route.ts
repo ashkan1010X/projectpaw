@@ -7,6 +7,7 @@ import { sendSms } from '@/lib/twilio';
 import { isPetSpecies, SPECIES_META, type PetSpecies } from '@/lib/species';
 import { PAYMENT_META } from '@/lib/payment';
 import { escapeHtml } from '@/lib/escape-html';
+import { formatBookingDateLong } from '@/lib/format-date';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -118,10 +119,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Send confirmation emails — best effort, don't block on failure
-  const formattedDate = new Date(datetime).toLocaleString('en-US', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
+  const formattedDate = formatBookingDateLong(datetime);
 
   const speciesLabel = SPECIES_META[petSpecies].label;
   const payMeta = PAYMENT_META.stripe;

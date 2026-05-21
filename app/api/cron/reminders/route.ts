@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendSms } from '@/lib/twilio';
+import { formatBookingDateShort } from '@/lib/format-date';
 
 // Runs daily at 9 AM UTC via Vercel Cron (see vercel.json).
 // Targets bookings happening 16–32 hours from now, so every appointment
@@ -55,13 +56,7 @@ export async function GET(req: NextRequest) {
   let sent = 0;
   for (const booking of bookings) {
     const phone = phoneMap.get(booking.user_id as string);
-    const apptTime = new Date(booking.datetime as string).toLocaleString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const apptTime = formatBookingDateShort(booking.datetime as string);
 
     if (phone) {
       try {

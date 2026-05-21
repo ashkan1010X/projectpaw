@@ -5,6 +5,7 @@ import nodemailer from 'nodemailer';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { stripe } from '@/lib/stripe';
 import { escapeHtml } from '@/lib/escape-html';
+import { formatBookingDateShort } from '@/lib/format-date';
 
 const { MessagingResponse } = twilio.twiml;
 
@@ -138,13 +139,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const apptTime = new Date(booking.datetime as string).toLocaleString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    const apptTime = formatBookingDateShort(booking.datetime as string);
 
     // Notify provider — fetch customer email/name from auth.
     // Wrapped in after() so the work actually runs after the TwiML response is sent
