@@ -114,10 +114,12 @@ function StripeCardSection({
 
     try {
       // 1. Create PaymentIntent server-side (server verifies price & slot, full metadata for webhook recovery)
+      // Convert datetime to UTC ISO so storage is unambiguous regardless of server/browser TZ.
+      const datetimeIso = new Date(datetime).toISOString();
       const intentRes = await fetchWithAuth('/api/bookings/payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ serviceId, serviceName, dogName, petSpecies, datetime, notes, bookingNonce }),
+        body: JSON.stringify({ serviceId, serviceName, dogName, petSpecies, datetime: datetimeIso, notes, bookingNonce }),
       });
 
       if (intentRes.status === 409) {
@@ -152,7 +154,7 @@ function StripeCardSection({
           serviceName,
           dogName,
           petSpecies,
-          datetime,
+          datetime: datetimeIso,
           notes: notes || undefined,
           paymentMethod: 'stripe',
           stripePaymentIntentId: paymentIntent.id,
@@ -393,6 +395,8 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
         ? (isPetSpecies(selected.species) ? selected.species : 'dog')
         : 'dog';
 
+      // Convert datetime to UTC ISO so storage is unambiguous regardless of server/browser TZ.
+      const datetimeIso = new Date(datetime).toISOString();
       const res = await fetchWithAuth('/api/bookings/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -401,7 +405,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
           serviceName: service.name,
           dogName,
           petSpecies,
-          datetime,
+          datetime: datetimeIso,
           notes,
           paymentMethod,
         }),

@@ -11,8 +11,13 @@ const MONTH_NAMES = [
 ];
 const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-const TIME_SLOTS = Array.from({ length: 48 }, (_, i) => {
-  const hour = Math.floor(i / 2);
+// Business hours: 8:00 AM – 7:30 PM at 30-minute increments (24 slots).
+// Industry standard for service businesses — prevents accidental late-night
+// bookings that nobody will fulfill.
+const FIRST_HOUR = 8;
+const LAST_HOUR = 19; // last slot starts at 7:30 PM
+const TIME_SLOTS = Array.from({ length: (LAST_HOUR - FIRST_HOUR + 1) * 2 }, (_, i) => {
+  const hour = FIRST_HOUR + Math.floor(i / 2);
   const minute = i % 2 === 0 ? 0 : 30;
   const period = hour < 12 ? 'AM' : 'PM';
   const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
