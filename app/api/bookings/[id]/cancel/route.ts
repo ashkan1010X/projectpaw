@@ -260,14 +260,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         const phone = prof?.phone as string | undefined;
         if (!phone) return;
         const apptShort = formatBookingDateShort(booking.datetime as string);
+        // Keep SMS under 3 segments — Canadian carriers reject 4+ on Twilio trial.
+        // Use ASCII only (no emoji / em-dash) to stay in GSM-7 encoding (160 chars/segment).
         const refundLine = refundNote
-          ? ` ${refundNote} Allow 5–10 business days.`
+          ? refundedCents > 0 && newPaymentStatus === 'refunded_full'
+            ? ` Full refund of $${(refundedCents / 100).toFixed(0)} on the way.`
+            : ` 50% refund of $${(refundedCents / 100).toFixed(0)} on the way.`
           : manualRefundPending
-            ? ` Your refund is being reviewed — we'll follow up within 1 business day.`
+            ? ` Refund under review - we'll be in touch.`
             : '';
         await sendSms(
           phone,
-          `Cancelled ✓ Your ${booking.service_name} for ${booking.dog_name} on ${apptShort} has been cancelled.${refundLine} — ProjectPaw 🐾`,
+          `Cancelled. Your ${booking.service_name} for ${booking.dog_name} on ${apptShort} is off.${refundLine} - ProjectPaw`,
         );
       } catch (err) {
         console.error('Cancel SMS error:', err);

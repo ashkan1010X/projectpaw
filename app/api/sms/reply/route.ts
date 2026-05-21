@@ -205,9 +205,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const refundLine = refundNote ? ` ${refundNote} Allow 5–10 business days.` : '';
+    // Keep SMS under 3 segments — ASCII only, no emoji / em-dash.
+    const refundLine = refundNote && refundedCents > 0
+      ? ` ${newPaymentStatus === 'refunded_full' ? 'Full' : '50%'} refund of $${(refundedCents / 100).toFixed(0)} on the way.`
+      : '';
     return twimlResponse(
-      `Cancelled ✓ Your ${booking.service_name as string} for ${booking.dog_name as string} on ${apptTime} has been cancelled.${refundLine} We hope to see you again soon! — ProjectPaw 🐾`,
+      `Cancelled. Your ${booking.service_name as string} for ${booking.dog_name as string} on ${apptTime} is off.${refundLine} - ProjectPaw`,
     );
   }
 
