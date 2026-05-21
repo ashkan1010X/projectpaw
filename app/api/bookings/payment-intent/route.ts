@@ -30,13 +30,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
   }
 
-  const { serviceId, serviceName, dogName, petSpecies: rawSpecies, datetime, notes } = (await req.json()) as {
+  const { serviceId, serviceName, dogName, petSpecies: rawSpecies, datetime, notes, bookingNonce } = (await req.json()) as {
     serviceId: string;
     serviceName?: string;
     dogName?: string;
     petSpecies?: string;
     datetime: string;
     notes?: string;
+    bookingNonce?: string;
   };
 
   // Reject if slot is already taken
@@ -61,8 +62,14 @@ export async function POST(req: NextRequest) {
 
   const petSpecies = isPetSpecies(rawSpecies) ? rawSpecies : 'dog';
 
-  // Idempotency key — collapses double-clicks into a single intent
-  const idempotencyKey = `pi-${user.id}-${serviceId}-${datetime}`;
+  // Idempotency key — collapses double-clicks within the same booking attempt.
+  // Each booking modal session generates a fresh nonce, so rebooking the same
+  // service+slot (e.g. after canceling) creates a NEW PaymentIntent instead of
+  // returning a stale one. Falls back to (user,service,datetime) for legacy
+  // clients that don't send a nonce yet.
+  const idempotencyKey = bookingNonce
+    ? `pi-${user.id}-${bookingNonce}`
+    : `pi-${user.id}-${serviceId}-${datetime}`;
 
   const intent = await stripe.paymentIntents.create(
     {

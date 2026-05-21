@@ -78,6 +78,7 @@ type StripeCardSectionProps = {
   petSpecies: PetSpecies;
   datetime: string;
   notes: string;
+  bookingNonce: string;
   onBack: () => void;
   onSuccess: () => void;
   onSlotConflict: () => void;
@@ -92,6 +93,7 @@ function StripeCardSection({
   petSpecies,
   datetime,
   notes,
+  bookingNonce,
   onBack,
   onSuccess,
   onSlotConflict,
@@ -115,7 +117,7 @@ function StripeCardSection({
       const intentRes = await fetchWithAuth('/api/bookings/payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ serviceId, serviceName, dogName, petSpecies, datetime, notes }),
+        body: JSON.stringify({ serviceId, serviceName, dogName, petSpecies, datetime, notes, bookingNonce }),
       });
 
       if (intentRes.status === 409) {
@@ -270,6 +272,14 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<BookingErrors>({});
   const [countdown, setCountdown] = useState(3);
+  // Unique nonce per modal session — used as Stripe idempotency key so
+  // rebooking the same service+slot creates a new PaymentIntent rather than
+  // returning a stale one from a prior cancelled booking.
+  const [bookingNonce] = useState(() =>
+    typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  );
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -825,6 +835,7 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                     petSpecies={selectedPetSpecies}
                     datetime={datetime}
                     notes={notes}
+                    bookingNonce={bookingNonce}
                     onBack={() => setStep('details')}
                     onSuccess={() => setSuccess(true)}
                     onSlotConflict={() => {
