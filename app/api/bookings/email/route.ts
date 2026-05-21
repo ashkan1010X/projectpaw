@@ -191,16 +191,29 @@ export async function POST(req: NextRequest) {
 
   const customerName = (user.user_metadata?.name as string | undefined) ?? user.email;
 
-  // Conflict guard — fast reject before any emails go out
+  // Conflict guard — fast reject before any emails go out.
+  // Select the stripe_payment_intent_id too so we can detect "the existing
+  // booking is actually ours (webhook beat us)" vs a real conflict from another user.
   const { data: existing } = await supabaseAdmin
     .from('bookings')
-    .select('id')
+    .select('id, stripe_payment_intent_id, user_id')
     .eq('datetime', datetime)
     .neq('status', 'cancelled')
     .limit(1);
 
   if (existing && existing.length > 0) {
-    // Slot taken — if user paid, attempt refund; honestly report success/failure
+    // If the existing booking has THIS payment intent, the Stripe webhook
+    // already created our booking + sent the confirmation email/SMS. Return
+    // success so the client modal shows the confirmed state, not an error.
+    if (
+      paymentMethod === 'stripe' &&
+      stripePaymentIntentId &&
+      existing[0].stripe_payment_intent_id === stripePaymentIntentId &&
+      existing[0].user_id === user.id
+    ) {
+      return NextResponse.json({ success: true, dedupedByWebhook: true });
+    }
+    // Real conflict — different booking holds this slot.
     if (paymentMethod === 'stripe' && stripePaymentIntentId) {
       try {
         await stripe.refunds.create({ payment_intent: stripePaymentIntentId });
@@ -240,8 +253,23 @@ export async function POST(req: NextRequest) {
   });
 
   if (insertError) {
-    // 23505 = unique_violation — race condition, another booking just won this slot
+    // 23505 = unique_violation. Could be either:
+    //  (a) the Stripe webhook beat us to inserting THIS booking (same payment intent) — fine, ignore
+    //  (b) a different user grabbed this slot — real conflict, refund + 409
     if ((insertError as { code?: string }).code === '23505') {
+      if (paymentMethod === 'stripe' && stripePaymentIntentId) {
+        const { data: ourBooking } = await supabaseAdmin
+          .from('bookings')
+          .select('id')
+          .eq('stripe_payment_intent_id', stripePaymentIntentId)
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (ourBooking) {
+          // Webhook already created our booking + sent the confirmation email/SMS.
+          // Return success so the modal shows the booking-confirmed state instead of an error.
+          return NextResponse.json({ success: true, dedupedByWebhook: true });
+        }
+      }
       return NextResponse.json(
         { message: 'That time slot was just taken. Please choose a different time.' },
         { status: 409 },
