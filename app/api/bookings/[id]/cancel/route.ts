@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { after } from 'next/server';
 import nodemailer from 'nodemailer';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { stripe } from '@/lib/stripe';
+import { sendSms } from '@/lib/twilio';
 import { escapeHtml } from '@/lib/escape-html';
 
 const transporter = nodemailer.createTransport({
@@ -108,6 +110,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   let refundedCents = 0;
   let newPaymentStatus: string | null = booking.payment_status as string | null;
   let refundNote: string | null = null;
+  let manualRefundPending = false;
 
   if (
     booking.payment_method === 'stripe' &&
@@ -143,6 +146,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       refundedCents = 0;
       newPaymentStatus = booking.payment_status as string;
       refundNote = null;
+      manualRefundPending = true;
     }
   }
 
@@ -211,6 +215,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           <p style="margin: 0; font-family: sans-serif; font-size: 14px; color: #F5CBA7;">${refundNote}</p>
           <p style="margin: 6px 0 0; font-family: sans-serif; font-size: 12px; color: rgba(245,203,167,0.55);">Refunds typically appear in 5–10 business days.</p>
         </div>` : ''}
+        ${manualRefundPending ? `
+        <div style="margin-top: 20px; padding: 16px 18px; border-radius: 12px; background: rgba(232,168,58,0.08); border: 1px solid rgba(232,168,58,0.25);">
+          <p style="margin: 0 0 4px; font-family: sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(232,168,58,0.85);">Refund Being Processed</p>
+          <p style="margin: 0; font-family: sans-serif; font-size: 14px; color: #F5CBA7;">Your refund is being reviewed by our team. We'll follow up within 1 business day with confirmation.</p>
+          <p style="margin: 6px 0 0; font-family: sans-serif; font-size: 12px; color: rgba(245,203,167,0.55);">Questions? Just reply to this email — we're here to help.</p>
+        </div>` : ''}
         <p style="margin: 32px 0 0; font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.45); text-align: center;">
           Want to rebook? Visit your dashboard anytime.
         </p>
@@ -244,6 +254,41 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         })
       : Promise.resolve(),
   ]);
+
+  // Fire a confirmation SMS to the customer — deferred via after() so it runs
+  // post-response and doesn't slow the dashboard. Matches the SMS-reply cancel
+  // flow for parity: every cancel path now notifies via both channels.
+  after(
+    (async () => {
+      try {
+        const { data: prof } = await supabaseAdmin
+          .from('profiles')
+          .select('phone')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        const phone = prof?.phone as string | undefined;
+        if (!phone) return;
+        const apptShort = new Date(booking.datetime).toLocaleString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        const refundLine = refundNote
+          ? ` ${refundNote} Allow 5–10 business days.`
+          : manualRefundPending
+            ? ` Your refund is being reviewed — we'll follow up within 1 business day.`
+            : '';
+        await sendSms(
+          phone,
+          `Cancelled ✓ Your ${booking.service_name} for ${booking.dog_name} on ${apptShort} has been cancelled.${refundLine} — ProjectPaw 🐾`,
+        );
+      } catch (err) {
+        console.error('Cancel SMS error:', err);
+      }
+    })(),
+  );
 
   return NextResponse.json({ success: true });
 }
