@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { FaqSection } from '@/components/faq-section';
 import {
   Scissors,
   Home as HomeIcon,
@@ -417,6 +418,9 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* FAQ */}
+      <FaqSection />
+
       {/* CTA BANNER */}
       <section className="px-6 pb-28">
         <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[2rem] border border-doggy/25 bg-gradient-to-br from-doggy/[0.15] via-paw/[0.03] to-[#F9D923]/[0.06] px-8 py-16 text-center md:px-16 md:py-20">
@@ -486,16 +490,28 @@ export default function HomePage() {
           <p className="font-pawprint text-xs text-paw/30">
             © 2026 ProjectPaw · Crafted with care for dogs everywhere
           </p>
-          <div className="flex gap-1">
-            {['Home', 'About', 'Gallery', 'Services'].map((l) => (
+          <div className="flex flex-wrap justify-center gap-1">
+            {[
+              { label: 'Home', href: '/' },
+              { label: 'About', href: '/about' },
+              { label: 'Gallery', href: '/gallery' },
+              { label: 'Services', href: '/services' },
+              { label: 'FAQ', href: '/#faq' },
+            ].map(({ label, href }) => (
               <Link
-                key={l}
-                href={`/${l === 'Home' ? '' : l.toLowerCase()}`}
+                key={label}
+                href={href}
                 className="inline-flex min-h-9 items-center rounded-md px-3 py-2 font-pawprint text-xs text-paw/55 transition-colors hover:text-doggy focus:outline-none focus:ring-2 focus:ring-doggy/30"
               >
-                {l}
+                {label}
               </Link>
             ))}
+            <a
+              href="mailto:hello@projectpaw.ca"
+              className="inline-flex min-h-9 items-center rounded-md px-3 py-2 font-pawprint text-xs text-paw/55 transition-colors hover:text-doggy focus:outline-none focus:ring-2 focus:ring-doggy/30"
+            >
+              Contact
+            </a>
           </div>
         </div>
       </footer>

@@ -71,7 +71,7 @@ export function StickyMobileCta() {
       // Safari/older browsers fall back to aria-hidden + tabIndex on the link.
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-expect-error -- inert is a valid HTML attribute, React 19 supports it
-      inert={visible ? undefined : ''}
+      inert={visible ? undefined : true}
       aria-hidden={!visible}
       className={`fixed inset-x-0 bottom-0 z-40 px-4 pb-[max(env(safe-area-inset-bottom),12px)] pt-3 motion-safe:transition-all motion-safe:duration-300 md:hidden ${
         visible ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-full opacity-0'
