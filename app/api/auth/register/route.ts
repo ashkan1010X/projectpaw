@@ -71,11 +71,11 @@ function buildWelcomeEmail(name: string, appUrl: string) {
                   <tr>
                     ${[
                       ['✂️', 'Grooming'],
-                      ['🏠', 'Boarding'],
-                      ['🎓', 'Training'],
                       ['🦮', 'Walking'],
-                      ['🩺', 'Vet Visits'],
-                      ['☀️', 'Daycare'],
+                      ['🏠', 'Boarding'],
+                      ['☀️', 'Drop-in'],
+                      ['🏡', 'House Sitting'],
+                      ['✨', 'Custom'],
                     ]
                       .map(
                         ([icon, label]) =>

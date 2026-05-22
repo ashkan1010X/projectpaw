@@ -3,9 +3,7 @@ import { FaqSection } from '@/components/faq-section';
 import {
   Scissors,
   Home as HomeIcon,
-  GraduationCap,
   Footprints,
-  Stethoscope,
   Sun,
   Sparkles,
   ArrowRight,
@@ -19,19 +17,21 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
+// Order + icons + gradients mirror the services table in Supabase
+// (sort_order). If services are added/removed in the admin panel, update
+// this list to keep the landing page in sync with /services.
 const SERVICES_PREVIEW: { icon: LucideIcon; label: string; price: number; color: string }[] = [
   { icon: Scissors, label: 'Grooming', price: 30, color: 'from-pink-500 to-rose-500' },
+  { icon: Footprints, label: 'Dog Walking', price: 20, color: 'from-emerald-500 to-teal-500' },
   { icon: HomeIcon, label: 'Boarding', price: 50, color: 'from-blue-500 to-indigo-500' },
-  { icon: GraduationCap, label: 'Training', price: 45, color: 'from-amber-500 to-yellow-500' },
-  { icon: Footprints, label: 'Walking', price: 20, color: 'from-emerald-500 to-teal-500' },
-  { icon: Stethoscope, label: 'Vet Visit', price: 80, color: 'from-red-500 to-orange-500' },
-  { icon: Sun, label: 'Daycare', price: 35, color: 'from-violet-500 to-purple-500' },
+  { icon: Sun, label: 'Drop-in', price: 35, color: 'from-violet-500 to-purple-500' },
   { icon: Sparkles, label: 'Custom', price: 60, color: 'from-cyan-500 to-sky-500' },
+  { icon: HomeIcon, label: 'House Sitting', price: 100, color: 'from-pink-500 to-rose-500' },
 ];
 
 const STATS = [
   { value: '400+', label: 'Happy Dogs' },
-  { value: '7', label: 'Services' },
+  { value: '6', label: 'Services' },
   { value: '4.9', label: 'Rating', suffix: '★' },
   { value: '4+ yrs', label: 'Experience' },
 ];
@@ -72,7 +72,7 @@ const HOW_IT_WORKS: { icon: LucideIcon; step: string; title: string; description
     step: '01',
     title: 'Choose a service',
     description:
-      'Browse seven premium services — grooming, boarding, training and more. Transparent prices, no surprises.',
+      'Browse six trusted services — grooming, boarding, walking, drop-ins, custom, and house sitting. Transparent prices, no surprises.',
     accent: 'from-doggy to-[#9C8FE8]',
   },
   {
@@ -258,11 +258,11 @@ export default function HomePage() {
               Everything Your Pup Needs
             </h2>
             <p className="max-w-md font-pawprint text-base text-paw/45">
-              Seven premium services, one trusted platform.
+              Six trusted services, one place to book them.
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6">
             {SERVICES_PREVIEW.map(({ icon: Icon, label, price, color }, i) => (
               <Link
                 key={label}

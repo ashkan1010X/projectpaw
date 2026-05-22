@@ -13,10 +13,9 @@ type ServiceType =
   | 'grooming'
   | 'walking'
   | 'boarding'
-  | 'training'
-  | 'vet'
   | 'daycare'
-  | 'custom';
+  | 'custom'
+  | 'house-sitting';
 type SortOption = 'relevance' | 'price-asc' | 'price-desc' | 'name';
 
 const TYPE_FILTERS: { value: ServiceType; label: string }[] = [
@@ -24,9 +23,8 @@ const TYPE_FILTERS: { value: ServiceType; label: string }[] = [
   { value: 'grooming', label: 'Grooming' },
   { value: 'walking', label: 'Walking' },
   { value: 'boarding', label: 'Boarding' },
-  { value: 'training', label: 'Training' },
-  { value: 'vet', label: 'Vet' },
-  { value: 'daycare', label: 'Daycare' },
+  { value: 'daycare', label: 'Drop-in' },
+  { value: 'house-sitting', label: 'House Sitting' },
   { value: 'custom', label: 'Custom' },
 ];
 

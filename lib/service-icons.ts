@@ -2,8 +2,6 @@ import {
   Scissors,
   Footprints,
   Home,
-  GraduationCap,
-  Stethoscope,
   Sun,
   Sparkles,
   type LucideIcon,
@@ -29,8 +27,6 @@ const SERVICE_ICONS: Record<string, LucideIcon> = {
   scissors: Scissors,
   footprints: Footprints,
   home: Home,
-  'graduation-cap': GraduationCap,
-  stethoscope: Stethoscope,
   sun: Sun,
   sparkles: Sparkles,
 };
@@ -39,6 +35,9 @@ export function getServiceIcon(iconKey: string): LucideIcon {
   return SERVICE_ICONS[iconKey] ?? Sparkles;
 }
 
+// Fallback used when Supabase is unreachable. Mirrors the live `services`
+// table — keep in sync when admin edits services so users never see a
+// stale catalogue. Last synced 2026-05-22.
 export const FALLBACK_SERVICES: ServiceRow[] = [
   {
     id: '1',
@@ -81,45 +80,19 @@ export const FALLBACK_SERVICES: ServiceRow[] = [
   },
   {
     id: '4',
-    name: 'Training',
-    type: 'training',
-    price: 45,
-    icon_key: 'graduation-cap',
-    gradient: 'from-amber-500 to-yellow-500',
-    description: 'Professional obedience and behavior training with certified trainers.',
-    duration: '60 min',
-    popular: false,
-    sort_order: 4,
-    allowed_pet_types: ['dog', 'cat', 'rabbit'],
-  },
-  {
-    id: '5',
-    name: 'Vet Visit',
-    type: 'vet',
-    price: 80,
-    icon_key: 'stethoscope',
-    gradient: 'from-red-500 to-orange-500',
-    description: 'Routine checkups and health assessments with licensed veterinarians.',
-    duration: '45 min',
-    popular: false,
-    sort_order: 5,
-    allowed_pet_types: ['dog', 'cat', 'rabbit', 'bird', 'other'],
-  },
-  {
-    id: '6',
-    name: 'Daycare',
+    name: 'Drop-in',
     type: 'daycare',
     price: 35,
     icon_key: 'sun',
     gradient: 'from-violet-500 to-purple-500',
-    description: 'Full-day supervised play and socialization in a safe group environment.',
-    duration: 'Full day',
+    description: 'Short supervised visit — playtime, snacks, potty break, and lots of love.',
+    duration: '30-60 minutes',
     popular: false,
     sort_order: 6,
     allowed_pet_types: ['dog', 'cat', 'rabbit', 'bird', 'other'],
   },
   {
-    id: '7',
+    id: '5',
     name: 'Custom Service',
     type: 'custom',
     price: 60,
@@ -130,5 +103,18 @@ export const FALLBACK_SERVICES: ServiceRow[] = [
     popular: false,
     sort_order: 7,
     allowed_pet_types: ['dog', 'cat', 'rabbit', 'bird', 'other'],
+  },
+  {
+    id: '6',
+    name: 'House Sitting',
+    type: 'house-sitting',
+    price: 100,
+    icon_key: 'home',
+    gradient: 'from-pink-500 to-rose-500',
+    description: 'Pet care in the comfort of your own home.',
+    duration: '4-24 hours',
+    popular: false,
+    sort_order: 8,
+    allowed_pet_types: ['dog'],
   },
 ];

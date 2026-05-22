@@ -27,11 +27,11 @@ const CONTACT_PHONE_DISPLAY = CONTACT_PHONE_E164 ? formatPhoneDisplay(CONTACT_PH
 export const FAQS: FaqItem[] = [
   {
     q: 'What services do you offer and how much do they cost?',
-    a: 'Seven services in Toronto, prices in CAD: Grooming ($30, 90 min), Dog Walking ($20, 60 min), Boarding ($50/night), Training ($45, 60 min), Vet Visit ($80, 45 min), Daycare ($35, full day), and Custom Service ($60). Full details on the Services page.',
+    a: 'Six services in Toronto, prices in CAD: Grooming ($30, 90 min), Dog Walking ($20, 60 min), Boarding ($50/night), Drop-in ($35, 30–60 min), Custom Service ($60), and House Sitting ($100, 4–24 hours). Full details on the Services page.',
   },
   {
     q: 'Which pets do you take care of?',
-    a: 'Every service welcomes dogs. Grooming and Training also take cats and rabbits. Boarding, Vet Visits, Daycare and Custom Service are open to dogs, cats, rabbits, birds, and other small pets. Each service card shows which pets are eligible.',
+    a: 'Every service welcomes dogs. Grooming also takes cats and rabbits. Boarding, Drop-ins, and Custom Service are open to dogs, cats, rabbits, birds, and other small pets. Dog Walking and House Sitting are dog-only. Each service card shows which pets are eligible.',
   },
   {
     q: 'How do I book an appointment?',
@@ -79,7 +79,7 @@ const BUSINESS_JSONLD = {
   email: CONTACT_EMAIL,
   ...(CONTACT_PHONE_E164 ? { telephone: CONTACT_PHONE_E164 } : {}),
   areaServed: 'Toronto, Ontario, Canada',
-  priceRange: '$20 – $80 CAD',
+  priceRange: '$20 – $100 CAD',
 };
 
 export function FaqSection() {
