@@ -1,6 +1,31 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { LegalPage, Section, Subhead, Strong } from '@/components/legal-page';
+import { LegalPage, Section, Subhead, Strong, type TocEntry } from '@/components/legal-page';
+
+const TOC: TocEntry[] = [
+  { id: 'eligibility', title: '1. Eligibility' },
+  { id: 'account', title: '2. Your Account' },
+  { id: 'services', title: '3. Services Provided' },
+  { id: 'booking', title: '4. Booking & Payment' },
+  { id: 'cancellation', title: '5. Cancellation & Refunds' },
+  { id: 'reschedule', title: '6. Rescheduling' },
+  { id: 'owner-responsibilities', title: '7. Owner Responsibilities' },
+  { id: 'emergency', title: '8. Emergency Vet Care' },
+  { id: 'refusal', title: '9. Right to Refuse Service' },
+  { id: 'photos', title: '10. Photography & Updates' },
+  { id: 'warranties', title: '11. Disclaimer of Warranties' },
+  { id: 'liability', title: '12. Limitation of Liability' },
+  { id: 'indemnify', title: '13. Indemnification' },
+  { id: 'acceptable-use', title: '14. Acceptable Use' },
+  { id: 'ip', title: '15. Intellectual Property' },
+  { id: 'termination', title: '16. Termination' },
+  { id: 'governing-law', title: '17. Governing Law' },
+  { id: 'disputes', title: '18. Dispute Resolution' },
+  { id: 'severability', title: '19. Severability' },
+  { id: 'entire-agreement', title: '20. Entire Agreement' },
+  { id: 'changes', title: '21. Changes to Terms' },
+  { id: 'contact', title: '22. Contact' },
+];
 
 export const metadata: Metadata = {
   title: 'Terms of Service — ProjectPaw',
@@ -24,6 +49,7 @@ export default function TermsPage() {
     <LegalPage
       title="Terms of Service"
       updated="22 May 2026"
+      toc={TOC}
       intro={
         'These Terms of Service ("Terms") govern your access to and use of ProjectPaw, operated by Sara Parchami ("we," "us," or "Sara") from Toronto, Ontario, Canada. By creating an account or booking a service, you agree to be bound by these Terms. If you do not agree, please do not use the Service.'
       }

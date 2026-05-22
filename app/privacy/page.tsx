@@ -1,6 +1,21 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { LegalPage, Section, Subhead, Strong } from '@/components/legal-page';
+import { LegalPage, Section, Subhead, Strong, type TocEntry } from '@/components/legal-page';
+
+const TOC: TocEntry[] = [
+  { id: 'information', title: '1. Information We Collect' },
+  { id: 'how-we-use', title: '2. How We Use Your Information' },
+  { id: 'sharing', title: '3. Service Providers' },
+  { id: 'transfers', title: '4. International Transfers' },
+  { id: 'retention', title: '5. Data Retention' },
+  { id: 'security', title: '6. Security' },
+  { id: 'rights', title: '7. Your Rights' },
+  { id: 'sms', title: '8. SMS Communications' },
+  { id: 'cookies', title: '9. Cookies & Storage' },
+  { id: 'children', title: "10. Children's Privacy" },
+  { id: 'changes', title: '11. Changes to This Policy' },
+  { id: 'contact', title: '12. Contact' },
+];
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — ProjectPaw',
@@ -24,6 +39,7 @@ export default function PrivacyPage() {
     <LegalPage
       title="Privacy Policy"
       updated="22 May 2026"
+      toc={TOC}
       intro={
         'This Privacy Policy explains how ProjectPaw, operated by Sara Parchami in Toronto, Ontario, collects, uses, and protects your personal information. It is written in plain language and complies with the Personal Information Protection and Electronic Documents Act (PIPEDA) of Canada, and incorporates principles from the General Data Protection Regulation (GDPR) for visitors from the European Union.'
       }
