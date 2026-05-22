@@ -26,6 +26,18 @@ const CONTACT_PHONE_DISPLAY = CONTACT_PHONE_E164 ? formatPhoneDisplay(CONTACT_PH
 
 export const FAQS: FaqItem[] = [
   {
+    q: 'What is ProjectPaw?',
+    a: "ProjectPaw is a Toronto-based dog services platform run by Sara, an experienced pet care provider with 4+ years caring for dogs in the community. It's a place to book grooming, walking, boarding, drop-ins, custom services, and in-home pet sitting — all in one minute, all with one trusted person. No marketplace, no surprises, no random strangers — just Sara, your dog, and a friendly text confirmation.",
+  },
+  {
+    q: 'Who will be taking care of my dog?',
+    a: "Sara — every time. Unlike marketplace apps where you get matched with a different sitter each booking, ProjectPaw is one provider with 400+ happy dogs and 4+ years of experience. She handles every service personally, so your dog sees a familiar face from grooming day to overnight boarding. Available 7 days a week.",
+  },
+  {
+    q: 'Can I book at short notice?',
+    a: "Yes — as long as a slot is open. The booking calendar shows live availability for today, tomorrow, and weeks out, so you can grab the next free time. If you don't see what you need or you're in a pinch, just text or call Sara directly — she often has flexibility that isn't in the system.",
+  },
+  {
     q: 'What services do you offer and how much do they cost?',
     a: 'Six services in Toronto, prices in CAD: Grooming ($30, 90 min), Dog Walking ($20, 60 min), Boarding ($50/night), Drop-in ($35, 30–60 min), Custom Service ($60), and House Sitting ($100, 4–24 hours). Full details on the Services page.',
   },
