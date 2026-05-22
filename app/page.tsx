@@ -497,6 +497,8 @@ export default function HomePage() {
               { label: 'Gallery', href: '/gallery' },
               { label: 'Services', href: '/services' },
               { label: 'FAQ', href: '/#faq' },
+              { label: 'Privacy', href: '/privacy' },
+              { label: 'Terms', href: '/terms' },
             ].map(({ label, href }) => (
               <Link
                 key={label}
