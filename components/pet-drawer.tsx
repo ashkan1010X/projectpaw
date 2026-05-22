@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { X, PawPrint, Camera, Loader2, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/auth-context';
+import { compressImage } from '@/lib/image-compress';
 import { PET_SPECIES, SPECIES_META, type PetSpecies } from '@/lib/species';
 
 export type PetFormData = {
@@ -44,8 +45,11 @@ const inputClass = cn(
   'focus:border-doggy/60 focus:ring-2 focus:ring-doggy/15',
 );
 
-const MAX_BYTES = 5 * 1024 * 1024;
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+// Pre-compression limit — the compressImage helper will resize anything
+// over ~800 KB to a 1920px-wide JPEG before upload, so users can pick
+// straight from their phone's photo library without "too big" errors.
+const MAX_BYTES = 25 * 1024 * 1024;
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 
 export function PetDrawer({ open, initial, saving, error, onClose, onSave, mode }: Props) {
   const { fetchWithAuth } = useAuth();
@@ -74,13 +78,16 @@ export function PetDrawer({ open, initial, saving, error, onClose, onSave, mode 
       return;
     }
     if (file.size > MAX_BYTES) {
-      setPhotoError('Photo must be under 5 MB.');
+      setPhotoError('Photo must be under 25 MB.');
       return;
     }
     setPhotoUploading(true);
     try {
+      // Resize + recompress on the client. A 12MP iPhone photo (~8 MB)
+      // typically lands around 400-800 KB after this with no visible loss.
+      const compressed = await compressImage(file);
       const fd = new FormData();
-      fd.append('file', file);
+      fd.append('file', compressed);
       const res = await fetchWithAuth('/api/pets/photo', { method: 'POST', body: fd });
       const data = (await res.json().catch(() => ({}))) as { url?: string; message?: string };
       if (!res.ok || !data.url) throw new Error(data.message ?? 'Upload failed');
