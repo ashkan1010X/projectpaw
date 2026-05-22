@@ -54,7 +54,7 @@ const TESTIMONIALS = [
   {
     name: 'Priya L.',
     role: 'Rescue mom',
-    text: 'Training transformed our rescue dog. Worth every penny — and then some.',
+    text: 'House sitting saved us on vacation — daily updates, our pup was so happy. Worth every penny.',
     stars: 5,
     initials: 'PL',
   },
@@ -171,8 +171,8 @@ export default function HomePage() {
 
           {/* Subtext */}
           <p className="max-w-xl font-pawprint text-lg leading-[1.7] text-paw/55 md:text-xl animate-fade-up delay-200">
-            Premium grooming, boarding, training and more — all in one trusted place. Give your
-            furry friend the life they deserve.
+            Grooming, walking, boarding, drop-ins and house sitting — all in one trusted place.
+            Give your furry friend the life they deserve.
           </p>
 
           {/* CTAs */}

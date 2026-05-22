@@ -15,7 +15,7 @@ function buildWelcomeEmail(name: string, appUrl: string) {
     '',
     "We're so glad you're here.",
     '',
-    'You can now browse and book grooming, boarding, training, walking, vet visits, and more — all in one place.',
+    'You can now browse and book grooming, walking, boarding, drop-ins, custom services, and house sitting — all in one place.',
     '',
     `Browse services: ${servicesUrl}`,
     '',
@@ -59,7 +59,7 @@ function buildWelcomeEmail(name: string, appUrl: string) {
                   We&rsquo;re so glad you&rsquo;re here. ProjectPaw connects you with vetted, certified professionals for every service your dog needs — all bookable in under 2 minutes.
                 </p>
                 <p style="margin:0 0 28px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:15px; line-height:1.65; color:rgba(245,203,167,0.7);">
-                  Browse grooming, boarding, training, walking, vet visits, daycare, and more below.
+                  Browse grooming, walking, boarding, drop-ins, custom services, and house sitting below.
                 </p>
               </td>
             </tr>

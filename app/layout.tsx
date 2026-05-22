@@ -29,7 +29,7 @@ const baloo2 = Baloo_2({
 
 export const metadata: Metadata = {
   title: 'ProjectPaw — Dog Services',
-  description: 'Book grooming, boarding, training, walking, vet, daycare and more for your dog.',
+  description: 'Book grooming, walking, boarding, drop-ins, custom services, and in-home pet sitting for your dog in Toronto.',
 };
 
 export default function RootLayout({

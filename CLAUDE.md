@@ -8,7 +8,7 @@ This is a dog services booking platform built with Next.js 15 App Router, TypeSc
 
 ## App Description
 
-A dog services booking platform where users can browse grooming, boarding, training, walking, vet, daycare, and custom services, create an account, and book appointments. Booking confirmation emails are sent via Nodemailer via `POST /api/bookings/email`.
+A dog services booking platform where users can browse grooming, walking, boarding, drop-ins, custom services, and in-home pet sitting, create an account, and book appointments. Booking confirmation emails are sent via Nodemailer via `POST /api/bookings/email`.
 
 ## Technical Stack
 

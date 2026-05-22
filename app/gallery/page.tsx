@@ -47,7 +47,7 @@ const DOG_IMAGES = [
     src: 'https://images.unsplash.com/photo-1583512603805-3cc6b41f3edb?w=900',
     alt: 'Adorable puppy portrait',
     label: 'New Friend',
-    service: 'Training',
+    service: 'Drop-in',
     span: '',
     height: 'h-64',
   },

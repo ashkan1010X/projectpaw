@@ -84,7 +84,7 @@ export default function AboutPage() {
             },
             {
               lead: 'Our network is carefully vetted',
-              text: ` to ensure your dog is always in safe hands. Whether you need a quick trim, expert training sessions, or a reliable daycare while you're at work, ProjectPaw's providers bring passion and expertise to every session. We believe the bond between dogs and their owners is sacred — and we're here to strengthen it.`,
+              text: ` to ensure your dog is always in safe hands. Whether you need a quick trim, an afternoon walk, or a reliable drop-in while you're at work, ProjectPaw's providers bring passion and expertise to every session. We believe the bond between dogs and their owners is sacred — and we're here to strengthen it.`,
             },
             {
               lead: 'We are always evolving',
