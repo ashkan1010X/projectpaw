@@ -1,36 +1,126 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ProjectPaw
 
-## Getting Started
+A booking platform for a Toronto-based dog care provider. Pet owners can browse services, create an account, and book grooming, walks, boarding, drop-ins, and house sitting. The provider gets SMS notifications on new bookings, and customers get email confirmations plus SMS reminders before their appointment.
 
-First, run the development server:
+This is a real production app built for an actual business, not a demo.
+
+---
+
+## What it does
+
+**For pet owners:**
+- Browse 6 services with live pricing pulled from the database
+- Create an account with email confirmation
+- Add one or more pets with photos
+- Book any service with 24/7 time slot availability (overnight services need off-hours slots)
+- Pay via Stripe at checkout
+- Get an email confirmation and SMS reminder before the appointment
+- Cancel or reschedule from the dashboard
+
+**For the provider:**
+- Gets an SMS when a new booking comes in
+- Can reply to booking SMS threads
+- Daily cron job at 9 AM sends reminders for upcoming appointments
+
+---
+
+## Tech stack
+
+- **Next.js 15** with App Router and TypeScript (strict mode)
+- **Supabase** for the database, auth, and file storage
+- **Tailwind CSS v4** with a custom design system (tan/purple/yellow palette, Playfair Display + Baloo 2 fonts)
+- **Stripe** for payment processing and webhook handling
+- **Twilio** for SMS notifications and two-way SMS threads
+- **Nodemailer** (Gmail SMTP) for transactional email
+- **Vercel** for deployment and cron jobs
+
+---
+
+## Local setup
+
+```bash
+git clone https://github.com/ashkan1010X/projectpaw.git
+cd projectpaw
+npm install
+```
+
+Copy `.env.local.example` to `.env.local` and fill in all values (see below), then:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 
-## Learn More
+# Email (Gmail SMTP)
+SMTP_USER=
+SMTP_PASS=
+FROM_ADDRESS=
 
-To learn more about Next.js, take a look at the following resources:
+# Twilio SMS
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_PHONE_NUMBER=
+PROVIDER_SMS_PHONE=        # the provider's phone number for new booking alerts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Stripe
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# App
+NEXT_PUBLIC_APP_URL=       # e.g. https://projectpaw.vercel.app
+NEXT_PUBLIC_CONTACT_EMAIL=
+NEXT_PUBLIC_CONTACT_PHONE=
 
-## Deploy on Vercel
+# Admin
+ADMIN_EMAIL=
+NEXT_PUBLIC_ADMIN_EMAIL=
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Cron (Vercel cron job auth)
+CRON_SECRET=
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Commands
+
+```bash
+npm run dev          # start dev server
+npm run build        # production build (run this before pushing)
+npm run lint         # ESLint
+npm run format       # Prettier
+```
+
+---
+
+## Project structure
+
+```
+app/
+  (routes)/          # all pages: home, services, dashboard, profile, login, etc.
+  api/               # route handlers: bookings, auth, pets, profile, stripe, sms, cron
+components/          # shared UI components
+lib/                 # supabase client, stripe, twilio, mailer, image compression
+contexts/            # auth context (JWT stored in localStorage)
+```
+
+Auth is client-side only. The token is stored in `localStorage` under the key `token` and sent as a `Bearer` header on every API request. Server routes verify it with `supabase.auth.getUser(token)`.
+
+Photos (profile + pets) go through a client-side compression step before upload: images are resized to 1920px max and re-encoded as JPEG at 85% quality. HEIC files from iPhones are supported. This keeps uploads under the 10 MB server limit regardless of what the user picks from their photo library.
+
+---
+
+## Notes
+
+- No test runner is set up yet. When adding tests, use Vitest + React Testing Library.
+- Email is currently on Gmail SMTP. Migrating to Resend is planned once the production domain is set up.
+- The Twilio account is on a trial plan, which caps outbound SMS to ~9/day. Upgrading removes that limit.
