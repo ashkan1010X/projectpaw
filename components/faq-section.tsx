@@ -75,7 +75,7 @@ const BUSINESS_JSONLD = {
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
   name: 'ProjectPaw',
-  description: 'Premium dog grooming, boarding, walking, training, and pet care in Toronto.',
+  description: 'Dog grooming, walking, boarding, drop-ins, custom services, and in-home pet sitting in Toronto.',
   email: CONTACT_EMAIL,
   ...(CONTACT_PHONE_E164 ? { telephone: CONTACT_PHONE_E164 } : {}),
   areaServed: 'Toronto, Ontario, Canada',
