@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ScrollToTopLink } from '@/components/scroll-to-top-link';
 import { FaqSection } from '@/components/faq-section';
 import {
   Scissors,
@@ -466,7 +467,7 @@ export default function HomePage() {
       {/* FOOTER */}
       <footer className="border-t border-paw/[0.06] px-6 py-10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 md:flex-row">
-          <Link
+          <ScrollToTopLink
             href="/"
             aria-label="ProjectPaw home"
             className="-mx-2 inline-flex min-h-9 items-center gap-2 rounded-md px-2 py-2 font-elegant text-base font-black text-paw/70 transition-colors hover:text-paw focus:outline-none focus:ring-2 focus:ring-doggy/30"
@@ -486,7 +487,7 @@ export default function HomePage() {
               <path d="M9 18a5 5 0 1 0 6 0c-1 0-2-2-3-2s-2 2-3 2Z" />
             </svg>
             ProjectPaw
-          </Link>
+          </ScrollToTopLink>
           <p className="font-pawprint text-xs text-paw/30">
             © 2026 ProjectPaw · Crafted with care for dogs everywhere
           </p>
@@ -500,13 +501,13 @@ export default function HomePage() {
               { label: 'Privacy', href: '/privacy' },
               { label: 'Terms', href: '/terms' },
             ].map(({ label, href }) => (
-              <Link
+              <ScrollToTopLink
                 key={label}
                 href={href}
                 className="inline-flex min-h-9 items-center rounded-md px-3 py-2 font-pawprint text-xs text-paw/55 transition-colors hover:text-doggy focus:outline-none focus:ring-2 focus:ring-doggy/30"
               >
                 {label}
-              </Link>
+              </ScrollToTopLink>
             ))}
             <a
               href={`mailto:${process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? 'hello@projectpaw.ca'}`}
