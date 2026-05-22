@@ -133,7 +133,7 @@ export default function LoginPage() {
         </div>
 
         <div className="relative flex items-center gap-6 font-pawprint text-xs text-paw/40">
-          <span>2,400+ happy dogs</span>
+          <span>400+ happy dogs</span>
           <span className="h-1 w-1 rounded-full bg-paw/30" />
           <span>4.9 average rating</span>
           <span className="h-1 w-1 rounded-full bg-paw/30" />

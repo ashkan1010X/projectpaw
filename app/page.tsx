@@ -30,10 +30,10 @@ const SERVICES_PREVIEW: { icon: LucideIcon; label: string; price: number; color:
 ];
 
 const STATS = [
-  { value: '2,400+', label: 'Happy Dogs' },
+  { value: '400+', label: 'Happy Dogs' },
   { value: '7', label: 'Services' },
   { value: '4.9', label: 'Rating', suffix: '★' },
-  { value: '5 yrs', label: 'Experience' },
+  { value: '4+ yrs', label: 'Experience' },
 ];
 
 const TESTIMONIALS = [
@@ -205,7 +205,7 @@ export default function HomePage() {
                 ))}
               </div>
               <span className="font-pawprint text-xs text-paw/50">
-                <strong className="text-paw/80">4.9</strong> from 2,400+ families
+                <strong className="text-paw/80">4.9</strong> from 400+ families
               </span>
             </div>
             {TRUST_BADGES.map(({ icon: Icon, label }) => (

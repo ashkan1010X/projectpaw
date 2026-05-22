@@ -135,7 +135,7 @@ export default function SignupPage() {
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#F9D923]/25 bg-[#F9D923]/[0.08] px-3 py-1">
             <Sparkles className="size-3 text-[#F9D923]" />
             <span className="font-pawprint text-[10px] font-bold uppercase tracking-[0.2em] text-[#F9D923]">
-              Join 2,400+ families
+              Join 400+ families
             </span>
           </div>
 
@@ -169,7 +169,7 @@ export default function SignupPage() {
               </div>
             ))}
           </div>
-          <span>Loved by 2,400+ dog families</span>
+          <span>Loved by 400+ dog families</span>
         </div>
       </aside>
 
