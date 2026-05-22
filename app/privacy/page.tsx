@@ -33,8 +33,8 @@ export default function PrivacyPage() {
         <ul className="space-y-2 pl-5 [list-style:disc] marker:text-doggy/60">
           <li>
             <Strong>Account information</Strong> — your name, email address, and password.
-            Passwords are stored only as one-way bcrypt hashes; we never see, log, or store them in
-            plain text.
+            Passwords are stored only as one-way cryptographic hashes managed by Supabase Auth; we
+            never see, log, or store them in plain text.
           </li>
           <li>
             <Strong>Profile information</Strong> — phone number (for SMS), optional home address,
@@ -46,9 +46,9 @@ export default function PrivacyPage() {
           </li>
           <li>
             <Strong>Payment information</Strong> — credit and debit card details are handled
-            directly by Stripe. We never see, store, or process your full card number. We only keep
-            an internal payment intent ID, the brand (e.g. Visa), and the last four digits for your
-            receipt.
+            entirely by Stripe. We never see, store, or process your card number. The only thing we
+            keep on our side is an internal payment intent ID that links the booking to the Stripe
+            transaction record. Stripe retains the rest under their own security controls.
           </li>
           <li>
             <Strong>Communications</Strong> — emails, SMS messages, and other messages you send us
@@ -165,8 +165,9 @@ export default function PrivacyPage() {
             <Strong>Communication logs</Strong> — 1 year.
           </li>
           <li>
-            <Strong>Inactive accounts</Strong> — automatically deleted after 3 years of no
-            activity, with 30 days' notice by email before deletion.
+            <Strong>Inactive accounts</Strong> — you may close your account at any time. We do
+            not currently auto-delete inactive accounts; if you would like your account removed
+            without logging in, email Sara and we&apos;ll process it within 30 days.
           </li>
         </ul>
         <p>You may request immediate deletion of your account at any time (see Section 7).</p>
@@ -190,7 +191,12 @@ export default function PrivacyPage() {
           <li>
             Login, signup, cancellation, and reschedule routes are rate-limited to prevent abuse.
           </li>
-          <li>Photos are stored privately and served via signed URLs.</li>
+          <li>
+            Pet and profile photos are stored on Supabase Storage and served through a public CDN
+            for fast loading. The bucket does not allow listing or enumeration, so the only way to
+            access a photo is to have its specific URL. Don&apos;t treat photos as private/secret;
+            we recommend uploading only images you&apos;re comfortable being shareable.
+          </li>
         </ul>
         <p>
           In the unlikely event of a data breach affecting your account, we will notify you within
