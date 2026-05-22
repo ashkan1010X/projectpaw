@@ -5,16 +5,17 @@ import { LegalPage, Section, Subhead, Strong, type TocEntry } from '@/components
 const TOC: TocEntry[] = [
   { id: 'information', title: '1. Information We Collect' },
   { id: 'how-we-use', title: '2. How We Use Your Information' },
-  { id: 'sharing', title: '3. Service Providers' },
-  { id: 'transfers', title: '4. International Transfers' },
-  { id: 'retention', title: '5. Data Retention' },
-  { id: 'security', title: '6. Security' },
-  { id: 'rights', title: '7. Your Rights' },
-  { id: 'sms', title: '8. SMS Communications' },
-  { id: 'cookies', title: '9. Cookies & Storage' },
-  { id: 'children', title: "10. Children's Privacy" },
-  { id: 'changes', title: '11. Changes to This Policy' },
-  { id: 'contact', title: '12. Contact' },
+  { id: 'legal-basis', title: '3. Legal Basis & Automated Decisions' },
+  { id: 'sharing', title: '4. Service Providers' },
+  { id: 'transfers', title: '5. International Transfers' },
+  { id: 'retention', title: '6. Data Retention' },
+  { id: 'security', title: '7. Security' },
+  { id: 'rights', title: '8. Your Rights' },
+  { id: 'sms', title: '9. SMS Communications' },
+  { id: 'cookies', title: '10. Cookies & Storage' },
+  { id: 'children', title: "11. Children's Privacy" },
+  { id: 'changes', title: '12. Changes to This Policy' },
+  { id: 'contact', title: '13. Contact' },
 ];
 
 export const metadata: Metadata = {
@@ -109,7 +110,44 @@ export default function PrivacyPage() {
         <p>We will never use your data for marketing without your explicit, opt-in consent.</p>
       </Section>
 
-      <Section id="sharing" title="3. Service Providers We Share Data With">
+      <Section id="legal-basis" title="3. Legal Basis and Automated Decisions">
+        <p>
+          For visitors in the European Union, the <Strong>General Data Protection Regulation
+          (GDPR)</Strong> requires us to state our legal basis for processing your personal data.
+          We rely on:
+        </p>
+        <ul className="space-y-2 pl-5 [list-style:disc] marker:text-doggy/60">
+          <li>
+            <Strong>Contractual necessity</Strong> (Article 6(1)(b)) — to fulfill the booking you
+            requested and provide the services you paid for. This covers account creation, booking
+            management, payment processing, and service delivery.
+          </li>
+          <li>
+            <Strong>Legitimate interest</Strong> (Article 6(1)(f)) — to keep the Service secure and
+            prevent fraud. This covers rate-limiting login, signup, and booking endpoints, IP-based
+            abuse detection, and breach-protection password checks.
+          </li>
+          <li>
+            <Strong>Consent</Strong> (Article 6(1)(a)) — for things you actively opt into, such as
+            SMS confirmations and reminders (you can withdraw at any time by replying STOP) and
+            uploading photos of your pet.
+          </li>
+          <li>
+            <Strong>Legal obligation</Strong> (Article 6(1)(c)) — to retain booking and payment
+            records for the period required by Canadian tax law (Canada Revenue Agency, 7 years).
+          </li>
+        </ul>
+
+        <Subhead>No automated decision-making</Subhead>
+        <p>
+          We do <Strong>not</Strong> use automated decision-making or profiling that produces legal
+          effects or similarly significant effects on you. Every booking decision, refund, and
+          account action is reviewed by a human (Sara) before it is finalized. You will never be
+          approved, denied, or charged based on an algorithm alone.
+        </p>
+      </Section>
+
+      <Section id="sharing" title="4. Service Providers We Share Data With">
         <p>
           We use a small set of carefully selected service providers. Each one only receives the
           data it needs to perform a specific function, and each is bound by a data-processing
@@ -159,7 +197,7 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
-      <Section id="transfers" title="4. International Data Transfers">
+      <Section id="transfers" title="5. International Data Transfers">
         <p>
           Some of our service providers store data outside Canada, primarily in the United States.
           When this happens, we ensure equivalent protection through Standard Contractual Clauses
@@ -168,7 +206,7 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
-      <Section id="retention" title="5. How Long We Keep Your Data">
+      <Section id="retention" title="6. How Long We Keep Your Data">
         <ul className="space-y-2 pl-5 [list-style:disc] marker:text-doggy/60">
           <li>
             <Strong>Account and profile data</Strong> — for as long as your account is active.
@@ -186,10 +224,10 @@ export default function PrivacyPage() {
             without logging in, email Sara and we&apos;ll process it within 30 days.
           </li>
         </ul>
-        <p>You may request immediate deletion of your account at any time (see Section 7).</p>
+        <p>You may request immediate deletion of your account at any time (see Section 8).</p>
       </Section>
 
-      <Section id="security" title="6. How We Protect Your Data">
+      <Section id="security" title="7. How We Protect Your Data">
         <ul className="space-y-2 pl-5 [list-style:disc] marker:text-doggy/60">
           <li>All connections are encrypted with HTTPS / TLS 1.3.</li>
           <li>
@@ -220,7 +258,7 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
-      <Section id="rights" title="7. Your Rights">
+      <Section id="rights" title="8. Your Rights">
         <p>Under PIPEDA (and GDPR for EU residents), you have the right to:</p>
         <ul className="space-y-2 pl-5 [list-style:disc] marker:text-doggy/60">
           <li>
@@ -262,7 +300,7 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
-      <Section id="sms" title="8. SMS Communications">
+      <Section id="sms" title="9. SMS Communications">
         <p>
           By providing your phone number, you consent to receive transactional SMS from ProjectPaw,
           including booking confirmations, 24-hour reminders, and cancellation notices.{' '}
@@ -272,14 +310,14 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
-      <Section id="cookies" title="9. Cookies and Local Storage">
+      <Section id="cookies" title="10. Cookies and Local Storage">
         <p>
           We use browser local storage (not third-party cookies) only to keep you signed in and
           remember your session. We do not use cookies for tracking, advertising, or analytics.
         </p>
       </Section>
 
-      <Section id="children" title="10. Children's Privacy">
+      <Section id="children" title="11. Children's Privacy">
         <p>
           ProjectPaw is intended for users 18 years of age or older. We do not knowingly collect
           personal information from anyone under 18. If you believe a minor has provided us
@@ -287,7 +325,7 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
-      <Section id="changes" title="11. Changes to This Policy">
+      <Section id="changes" title="12. Changes to This Policy">
         <p>
           If we update this policy in a way that materially affects your rights, we will notify
           you by email at least 30 days before the changes take effect. The &quot;Last updated&quot;
@@ -295,7 +333,7 @@ export default function PrivacyPage() {
         </p>
       </Section>
 
-      <Section id="contact" title="12. Contact">
+      <Section id="contact" title="13. Contact">
         <p>Questions or concerns about your privacy? Reach Sara directly:</p>
         <div className="rounded-2xl border border-paw/[0.1] bg-paw/[0.02] p-5">
           <p className="font-semibold text-paw/90">Sara Parchami — Owner, ProjectPaw</p>

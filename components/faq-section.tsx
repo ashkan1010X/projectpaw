@@ -67,7 +67,7 @@ export const FAQS: FaqItem[] = [
   },
   {
     q: 'Is my information secure?',
-    a: "Yes. Your card details never touch our servers — Stripe handles every payment (same processor as Shopify and Lyft). Your account uses encrypted storage, and we block new passwords that have appeared in known data breaches so leaked credentials can't be reused. Photos and personal info are visible only to you and our team.",
+    a: "Yes. Your card details never touch our servers — Stripe handles every payment (same processor as Shopify and Lyft). Your account uses encrypted storage, and we block new passwords that have appeared in known data breaches so leaked credentials can't be reused. Photos are shown inside your account and to Sara; the storage bucket can't be listed or browsed by outsiders. Full details in our Privacy Policy.",
   },
 ];
 

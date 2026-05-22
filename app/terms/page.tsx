@@ -19,12 +19,13 @@ const TOC: TocEntry[] = [
   { id: 'acceptable-use', title: '14. Acceptable Use' },
   { id: 'ip', title: '15. Intellectual Property' },
   { id: 'termination', title: '16. Termination' },
-  { id: 'governing-law', title: '17. Governing Law' },
-  { id: 'disputes', title: '18. Dispute Resolution' },
-  { id: 'severability', title: '19. Severability' },
-  { id: 'entire-agreement', title: '20. Entire Agreement' },
-  { id: 'changes', title: '21. Changes to Terms' },
-  { id: 'contact', title: '22. Contact' },
+  { id: 'force-majeure', title: '17. Force Majeure' },
+  { id: 'governing-law', title: '18. Governing Law' },
+  { id: 'disputes', title: '19. Dispute Resolution' },
+  { id: 'severability', title: '20. Severability' },
+  { id: 'entire-agreement', title: '21. Entire Agreement' },
+  { id: 'changes', title: '22. Changes to Terms' },
+  { id: 'contact', title: '23. Contact' },
 ];
 
 export const metadata: Metadata = {
@@ -314,14 +315,38 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section id="governing-law" title="17. Governing Law">
+      <Section id="force-majeure" title="17. Service Interruptions and Force Majeure">
+        <p>
+          Occasionally Sara may need to cancel or reschedule a confirmed booking due to
+          circumstances outside her reasonable control, including but not limited to:
+        </p>
+        <ul className="space-y-2 pl-5 [list-style:disc] marker:text-doggy/60">
+          <li>Severe weather (snowstorms, ice storms, extreme heat warnings)</li>
+          <li>Illness or family emergency affecting Sara</li>
+          <li>Power outages, internet outages, or building access issues</li>
+          <li>Government-mandated public health restrictions or municipal orders</li>
+          <li>Acts of God, war, riot, strike, or other events beyond reasonable control</li>
+        </ul>
+        <p>
+          If we need to cancel for any of these reasons, we will notify you as soon as possible
+          and offer either a full refund (regardless of how close to the appointment) or a
+          complimentary reschedule of your choosing.{' '}
+          <Strong>
+            Neither party shall be liable for damages caused by force-majeure events beyond their
+            reasonable control.
+          </Strong>{' '}
+          Our obligation in such cases is limited to the refund or reschedule described above.
+        </p>
+      </Section>
+
+      <Section id="governing-law" title="18. Governing Law">
         <p>
           These Terms are governed by the laws of the Province of Ontario and the federal laws of
           Canada applicable therein, without regard to conflict-of-law principles.
         </p>
       </Section>
 
-      <Section id="disputes" title="18. Dispute Resolution">
+      <Section id="disputes" title="19. Dispute Resolution">
         <p>
           We prefer to resolve disputes informally.{' '}
           <Strong>
@@ -333,14 +358,14 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section id="severability" title="19. Severability">
+      <Section id="severability" title="20. Severability">
         <p>
           If any provision of these Terms is found unenforceable, the remaining provisions will
           continue in full effect.
         </p>
       </Section>
 
-      <Section id="entire-agreement" title="20. Entire Agreement">
+      <Section id="entire-agreement" title="21. Entire Agreement">
         <p>
           These Terms, together with our{' '}
           <Link
@@ -354,7 +379,7 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section id="changes" title="21. Changes to These Terms">
+      <Section id="changes" title="22. Changes to These Terms">
         <p>
           We may update these Terms from time to time. We will notify you of material changes by
           email at least 30 days before they take effect. Your continued use of the Service after
@@ -362,7 +387,7 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section id="contact" title="22. Contact">
+      <Section id="contact" title="23. Contact">
         <p>Questions about these Terms? Reach Sara directly:</p>
         <div className="rounded-2xl border border-paw/[0.1] bg-paw/[0.02] p-5">
           <p className="font-semibold text-paw/90">Sara Parchami — Owner, ProjectPaw</p>
