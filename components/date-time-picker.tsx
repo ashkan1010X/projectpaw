@@ -11,11 +11,13 @@ const MONTH_NAMES = [
 ];
 const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-// Business hours: 8:00 AM – 7:30 PM at 30-minute increments (24 slots).
-// Industry standard for service businesses — prevents accidental late-night
-// bookings that nobody will fulfill.
-const FIRST_HOUR = 8;
-const LAST_HOUR = 19; // last slot starts at 7:30 PM
+// 24-hour booking window in 30-minute increments (48 slots).
+// Sara handles overnight boarding + house sitting, so early-morning
+// drop-offs (e.g. 5 AM before a flight) and late-night pickups need
+// to be bookable. The slot list reflects the catalogue, not arbitrary
+// business hours.
+const FIRST_HOUR = 0;
+const LAST_HOUR = 23;
 const TIME_SLOTS = Array.from({ length: (LAST_HOUR - FIRST_HOUR + 1) * 2 }, (_, i) => {
   const hour = FIRST_HOUR + Math.floor(i / 2);
   const minute = i % 2 === 0 ? 0 : 30;

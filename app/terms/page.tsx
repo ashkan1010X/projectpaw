@@ -94,9 +94,13 @@ export default function TermsPage() {
       <Section id="booking" title="4. Booking and Payment">
         <Subhead>Booking</Subhead>
         <p>
-          You may book any open time slot between 8:00 AM and 7:30 PM Toronto time, in 30-minute
-          increments. A booking is confirmed once you receive both an email and an SMS
-          confirmation.
+          You may book any open 30-minute time slot, around the clock, in Toronto local time. A
+          booking is confirmed once you receive both an email and an SMS confirmation.
+        </p>
+        <p>
+          Some services (notably overnight boarding and in-home pet sitting) extend beyond the
+          start slot; the booking time you select is the agreed start time, and the service
+          duration follows the schedule for that service.
         </p>
 
         <Subhead>Payment options</Subhead>

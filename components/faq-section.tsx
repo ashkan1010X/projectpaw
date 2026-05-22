@@ -47,7 +47,7 @@ export const FAQS: FaqItem[] = [
   },
   {
     q: 'How do I book an appointment?',
-    a: "Pick a service, pick a date and time (we book in 30-minute slots from 8 AM to 7:30 PM), and choose how you want to pay. The whole thing takes about a minute. You'll get a text and email confirmation right away, plus a reminder text the day before.",
+    a: "Pick a service, pick any open 30-minute slot (we book around the clock so early-morning drop-offs and late-night pickups are no problem), and choose how you want to pay. The whole thing takes about a minute. You'll get a text and email confirmation right away, plus a reminder text the day before.",
   },
   {
     q: 'What payment methods do you accept?',
