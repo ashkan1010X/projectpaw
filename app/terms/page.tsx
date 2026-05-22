@@ -25,7 +25,7 @@ export default function TermsPage() {
       title="Terms of Service"
       updated="22 May 2026"
       intro={
-        'These Terms of Service ("Terms") govern your access to and use of ProjectPaw, operated by Sara Pacdn ("we," "us," or "Sara") from Toronto, Ontario, Canada. By creating an account or booking a service, you agree to be bound by these Terms. If you do not agree, please do not use the Service.'
+        'These Terms of Service ("Terms") govern your access to and use of ProjectPaw, operated by Sara Parchami ("we," "us," or "Sara") from Toronto, Ontario, Canada. By creating an account or booking a service, you agree to be bound by these Terms. If you do not agree, please do not use the Service.'
       }
     >
       <Section id="eligibility" title="1. Eligibility">
@@ -241,7 +241,7 @@ export default function TermsPage() {
 
       <Section id="indemnify" title="13. Indemnification">
         <p>
-          You agree to indemnify, defend, and hold harmless ProjectPaw and Sara Pacdn from any
+          You agree to indemnify, defend, and hold harmless ProjectPaw and Sara Parchami from any
           claims, damages, losses, liabilities, costs, and expenses (including reasonable legal
           fees) arising out of or related to:
         </p>
@@ -270,7 +270,7 @@ export default function TermsPage() {
       <Section id="ip" title="15. Intellectual Property">
         <p>
           All content on ProjectPaw — including the name, logo, text, graphics, and software — is
-          the property of Sara Pacdn or licensed to her. You may not copy, modify, distribute, or
+          the property of Sara Parchami or licensed to her. You may not copy, modify, distribute, or
           create derivative works without written permission.
         </p>
         <p>
@@ -339,7 +339,7 @@ export default function TermsPage() {
       <Section id="contact" title="22. Contact">
         <p>Questions about these Terms? Reach Sara directly:</p>
         <div className="rounded-2xl border border-paw/[0.1] bg-paw/[0.02] p-5">
-          <p className="font-semibold text-paw/90">Sara Pacdn — Owner, ProjectPaw</p>
+          <p className="font-semibold text-paw/90">Sara Parchami — Owner, ProjectPaw</p>
           <p className="mt-1">
             <a
               href={`mailto:${CONTACT_EMAIL}`}

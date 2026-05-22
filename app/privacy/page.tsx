@@ -25,7 +25,7 @@ export default function PrivacyPage() {
       title="Privacy Policy"
       updated="22 May 2026"
       intro={
-        'This Privacy Policy explains how ProjectPaw, operated by Sara Pacdn in Toronto, Ontario, collects, uses, and protects your personal information. It is written in plain language and complies with the Personal Information Protection and Electronic Documents Act (PIPEDA) of Canada, and incorporates principles from the General Data Protection Regulation (GDPR) for visitors from the European Union.'
+        'This Privacy Policy explains how ProjectPaw, operated by Sara Parchami in Toronto, Ontario, collects, uses, and protects your personal information. It is written in plain language and complies with the Personal Information Protection and Electronic Documents Act (PIPEDA) of Canada, and incorporates principles from the General Data Protection Regulation (GDPR) for visitors from the European Union.'
       }
     >
       <Section id="information" title="1. Information We Collect">
@@ -282,7 +282,7 @@ export default function PrivacyPage() {
       <Section id="contact" title="12. Contact">
         <p>Questions or concerns about your privacy? Reach Sara directly:</p>
         <div className="rounded-2xl border border-paw/[0.1] bg-paw/[0.02] p-5">
-          <p className="font-semibold text-paw/90">Sara Pacdn — Owner, ProjectPaw</p>
+          <p className="font-semibold text-paw/90">Sara Parchami — Owner, ProjectPaw</p>
           <p className="mt-1">
             <a
               href={`mailto:${CONTACT_EMAIL}`}
