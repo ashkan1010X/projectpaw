@@ -7,6 +7,7 @@ import { stripe } from '@/lib/stripe';
 import { sendSms } from '@/lib/twilio';
 import { escapeHtml } from '@/lib/escape-html';
 import { formatBookingDateLong, formatBookingDateShort } from '@/lib/format-date';
+import { computeRefund } from '@/lib/refund-policy';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -91,7 +92,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data: booking, error: fetchError } = await supabaseAdmin
     .from('bookings')
-    .select('id, user_id, service_name, dog_name, datetime, status, payment_method, stripe_payment_intent_id, amount_cents, payment_status')
+    .select(
+      'id, user_id, service_name, dog_name, datetime, created_at, status, payment_method, stripe_payment_intent_id, amount_cents, payment_status',
+    )
     .eq('id', id)
     .single();
 
@@ -119,20 +122,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     booking.payment_status === 'paid' &&
     booking.amount_cents
   ) {
-    const hoursUntilService = (new Date(booking.datetime).getTime() - Date.now()) / 3_600_000;
-    const amountCents = booking.amount_cents as number;
-
-    if (hoursUntilService > 24) {
-      // Full refund — more than 24 hours notice
-      refundedCents = amountCents;
-      newPaymentStatus = 'refunded_full';
-      refundNote = `Full refund of $${(amountCents / 100).toFixed(2)} CAD issued — more than 24 hours notice.`;
-    } else {
-      // 50% refund — within 24 hours
-      refundedCents = Math.round(amountCents / 2);
-      newPaymentStatus = 'refunded_partial';
-      refundNote = `50% refund of $${(refundedCents / 100).toFixed(2)} CAD issued — cancelled within 24 hours.`;
-    }
+    const decision = computeRefund({
+      amountCents: booking.amount_cents as number,
+      bookingCreatedAt: booking.created_at as string,
+      appointmentDatetime: booking.datetime as string,
+    });
+    refundedCents = decision.refundedCents;
+    newPaymentStatus = decision.paymentStatus;
+    refundNote = `${decision.amountLabel} of $${(refundedCents / 100).toFixed(2)} CAD issued — ${decision.reason}.`;
 
     try {
       await stripe.refunds.create({
@@ -155,11 +152,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     .from('bookings')
     .update({
       status: 'cancelled',
-      ...(newPaymentStatus !== booking.payment_status ? {
-        payment_status: newPaymentStatus,
-        refunded_cents: refundedCents,
-        refunded_at: new Date().toISOString(),
-      } : {}),
+      ...(newPaymentStatus !== booking.payment_status
+        ? {
+            payment_status: newPaymentStatus,
+            refunded_cents: refundedCents,
+            refunded_at: new Date().toISOString(),
+          }
+        : {}),
     })
     .eq('id', id)
     .eq('user_id', user.id);
@@ -200,18 +199,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
             <td style="padding: 12px 0; ${refundNote ? 'border-bottom: 1px solid rgba(245,203,167,0.1);' : ''} font-family: sans-serif; font-size: 14px; color: #F5CBA7; font-weight: bold;">${formattedDate}</td>
           </tr>
         </table>
-        ${refundNote ? `
+        ${
+          refundNote
+            ? `
         <div style="margin-top: 20px; padding: 16px 18px; border-radius: 12px; background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);">
           <p style="margin: 0 0 4px; font-family: sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(16,185,129,0.7);">Refund</p>
           <p style="margin: 0; font-family: sans-serif; font-size: 14px; color: #F5CBA7;">${refundNote}</p>
           <p style="margin: 6px 0 0; font-family: sans-serif; font-size: 12px; color: rgba(245,203,167,0.55);">Refunds typically appear in 5–10 business days.</p>
-        </div>` : ''}
-        ${manualRefundPending ? `
+        </div>`
+            : ''
+        }
+        ${
+          manualRefundPending
+            ? `
         <div style="margin-top: 20px; padding: 16px 18px; border-radius: 12px; background: rgba(232,168,58,0.08); border: 1px solid rgba(232,168,58,0.25);">
           <p style="margin: 0 0 4px; font-family: sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(232,168,58,0.85);">Refund Being Processed</p>
           <p style="margin: 0; font-family: sans-serif; font-size: 14px; color: #F5CBA7;">Your refund is being reviewed by our team. We'll follow up within 1 business day with confirmation.</p>
           <p style="margin: 6px 0 0; font-family: sans-serif; font-size: 12px; color: rgba(245,203,167,0.55);">Questions? Just reply to this email — we're here to help.</p>
-        </div>` : ''}
+        </div>`
+            : ''
+        }
         <p style="margin: 32px 0 0; font-family: sans-serif; font-size: 13px; color: rgba(245,203,167,0.45); text-align: center;">
           Want to rebook? Visit your dashboard anytime.
         </p>

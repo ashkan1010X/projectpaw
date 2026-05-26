@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabase';
 import { FALLBACK_SERVICES, type ServiceRow } from '@/lib/service-icons';
 import { SPECIES_META, isPetSpecies, type PetSpecies } from '@/lib/species';
 import { PAYMENT_META, isPaymentMethod } from '@/lib/payment';
+import { computeRefund } from '@/lib/refund-policy';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { RescheduleDialog } from '@/components/reschedule-dialog';
 import { AddToCalendar } from '@/components/add-to-calendar';
@@ -29,7 +30,35 @@ type Booking = {
   datetime: string;
   notes: string | null;
   status: string;
+  created_at: string;
+  amount_cents: number | null;
+  payment_status: string | null;
 };
+
+// Refund preview shown in the cancel dialog before the user confirms.
+// Uses the same computeRefund() the server uses, so the estimate matches what
+// actually gets refunded (barring a cancel landing on the exact boundary second).
+function refundPreview(booking: Booking) {
+  if (
+    booking.payment_method !== 'stripe' ||
+    booking.payment_status !== 'paid' ||
+    !booking.amount_cents
+  ) {
+    return <>No payment was taken for this booking, so there&apos;s nothing to refund.</>;
+  }
+  const decision = computeRefund({
+    amountCents: booking.amount_cents,
+    bookingCreatedAt: booking.created_at,
+    appointmentDatetime: booking.datetime,
+  });
+  return (
+    <>
+      You&apos;ll be refunded{' '}
+      <strong className="text-paw">${(decision.refundedCents / 100).toFixed(2)} CAD</strong> —{' '}
+      {decision.reason}. Refunds typically arrive in 5–10 business days.
+    </>
+  );
+}
 
 function BookingPaymentBadge({ method }: { method: string | null }) {
   if (!isPaymentMethod(method)) return null;
@@ -79,9 +108,7 @@ function statusBadge(booking: Booking, now: Date) {
 }
 
 function daysAway(datetime: string, now: Date): string {
-  const diff = Math.floor(
-    (new Date(datetime).getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
-  );
+  const diff = Math.floor((new Date(datetime).getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   if (diff <= 0) return 'Today';
   if (diff === 1) return 'Tomorrow';
   return `${diff} days away`;
@@ -102,9 +129,7 @@ function formatBookingDate(datetime: string): { date: string; time: string } {
   };
 }
 
-function topServices(
-  bookings: Booking[],
-): { id: string; name: string; count: number }[] {
+function topServices(bookings: Booking[]): { id: string; name: string; count: number }[] {
   const counts = new Map<string, { id: string; name: string; count: number }>();
   for (const b of bookings) {
     if (b.status === 'cancelled') continue;
@@ -184,7 +209,9 @@ export default function DashboardPage() {
   const [petSheetOpen, setPetSheetOpen] = useState(false);
   const [petSaving, setPetSaving] = useState(false);
   const [petError, setPetError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(null);
+  const [toast, setToast] = useState<{ message: string; variant: 'success' | 'error' } | null>(
+    null,
+  );
   const [photoError, setPhotoError] = useState(false);
 
   // Fetch services once on mount — public read RLS, no auth needed.
@@ -367,9 +394,8 @@ export default function DashboardPage() {
   const favoriteName = usual[0]?.name ?? null;
   const hasPhone = Boolean(profile?.phone);
   const primaryPet = pets[0] ?? null;
-  const primarySpecies: PetSpecies = primaryPet && isPetSpecies(primaryPet.species)
-    ? primaryPet.species
-    : 'dog';
+  const primarySpecies: PetSpecies =
+    primaryPet && isPetSpecies(primaryPet.species) ? primaryPet.species : 'dog';
   const dogName = primaryPet?.name || 'Your Pet';
   const dogPhotoUrl = primaryPet?.photo_url ?? null;
   const dogBreed = primaryPet?.breed ?? null;
@@ -379,9 +405,7 @@ export default function DashboardPage() {
   // Smart re-engagement: when favorite service hasn't been booked in 28+ days
   // and there's nothing upcoming for it, prompt the user to rebook.
   const favorite = usual[0];
-  const hasUpcomingFavorite = favorite
-    ? upcoming.some((b) => b.service_id === favorite.id)
-    : false;
+  const hasUpcomingFavorite = favorite ? upcoming.some((b) => b.service_id === favorite.id) : false;
   const lastFavoriteCompleted = favorite
     ? completed.find((b) => b.service_id === favorite.id)
     : undefined;
@@ -441,38 +465,45 @@ export default function DashboardPage() {
           paw + "Your Pet's Dashboard" which clashes with the checklist's
           "add your first pet" step. */}
       {hasPet && (
-      <div className="mb-8 overflow-hidden rounded-2xl border border-doggy/15 bg-gradient-to-br from-doggy/[0.10] via-paw/[0.03] to-transparent p-5 sm:p-7 animate-fade-in">
-        <div className="flex items-center gap-4 sm:gap-6">
-          {dogPhotoUrl && !photoError ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={dogPhotoUrl}
-              alt={dogName}
-              onError={() => setPhotoError(true)}
-              className="size-16 shrink-0 rounded-full object-cover ring-2 ring-doggy/30 sm:size-24"
-            />
-          ) : (
-            <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-doggy/15 ring-2 ring-doggy/20 sm:size-24" aria-label={SPECIES_META[primarySpecies].label}>
-              <HeroIcon className="size-8 text-doggy/70 sm:size-12" strokeWidth={1.5} aria-hidden />
-            </div>
-          )}
-          <div className="min-w-0 flex-1">
-            <p className="font-pawprint text-[10px] font-bold uppercase tracking-[0.18em] text-paw/45 sm:text-xs">
-              Hi, {user?.name} 👋
-            </p>
-            <h1 className="mt-1 break-words font-elegant text-xl font-black leading-tight text-paw sm:text-4xl">
-              {dogName}&apos;s Dashboard
-            </h1>
-            {(dogBreed || dogAge) && (
-              <p className="mt-1 font-pawprint text-xs text-paw/55 sm:text-sm">
-                {dogBreed}
-                {dogBreed && dogAge && ' · '}
-                {dogAge}
-              </p>
+        <div className="mb-8 overflow-hidden rounded-2xl border border-doggy/15 bg-gradient-to-br from-doggy/[0.10] via-paw/[0.03] to-transparent p-5 sm:p-7 animate-fade-in">
+          <div className="flex items-center gap-4 sm:gap-6">
+            {dogPhotoUrl && !photoError ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={dogPhotoUrl}
+                alt={dogName}
+                onError={() => setPhotoError(true)}
+                className="size-16 shrink-0 rounded-full object-cover ring-2 ring-doggy/30 sm:size-24"
+              />
+            ) : (
+              <div
+                className="flex size-16 shrink-0 items-center justify-center rounded-full bg-doggy/15 ring-2 ring-doggy/20 sm:size-24"
+                aria-label={SPECIES_META[primarySpecies].label}
+              >
+                <HeroIcon
+                  className="size-8 text-doggy/70 sm:size-12"
+                  strokeWidth={1.5}
+                  aria-hidden
+                />
+              </div>
             )}
+            <div className="min-w-0 flex-1">
+              <p className="font-pawprint text-[10px] font-bold uppercase tracking-[0.18em] text-paw/45 sm:text-xs">
+                Hi, {user?.name} 👋
+              </p>
+              <h1 className="mt-1 break-words font-elegant text-xl font-black leading-tight text-paw sm:text-4xl">
+                {dogName}&apos;s Dashboard
+              </h1>
+              {(dogBreed || dogAge) && (
+                <p className="mt-1 font-pawprint text-xs text-paw/55 sm:text-sm">
+                  {dogBreed}
+                  {dogBreed && dogAge && ' · '}
+                  {dogAge}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-      </div>
       )}
 
       {/* ════════════════════  INSIGHT STATS  ════════════════════ */}
@@ -499,10 +530,10 @@ export default function DashboardPage() {
             {daysSinceLast === null
               ? 'None yet'
               : daysSinceLast === 0
-              ? 'Today'
-              : daysSinceLast === 1
-              ? '1d ago'
-              : `${daysSinceLast}d ago`}
+                ? 'Today'
+                : daysSinceLast === 1
+                  ? '1d ago'
+                  : `${daysSinceLast}d ago`}
           </div>
         </div>
         <div className="rounded-xl border border-paw/10 bg-[#1a1612] p-4 sm:p-5">
@@ -684,9 +715,7 @@ export default function DashboardPage() {
           ) : (
             /* Empty upcoming state — has past bookings but nothing upcoming */
             <div className="rounded-2xl border border-paw/[0.08] bg-gradient-to-br from-paw/[0.04] to-transparent px-6 py-10 text-center">
-              <p className="mb-1 font-elegant text-2xl text-paw/75">
-                You&apos;re all clear 🐾
-              </p>
+              <p className="mb-1 font-elegant text-2xl text-paw/75">You&apos;re all clear 🐾</p>
               <p className="mb-6 font-pawprint text-sm text-paw/45">
                 Nothing on the schedule — time to treat {dogName}!
               </p>
@@ -935,6 +964,7 @@ export default function DashboardPage() {
           isOpen
           title="Cancel Booking"
           message={`Cancel ${pendingCancelBooking.service_name} for ${pendingCancelBooking.dog_name}? This cannot be undone.`}
+          details={refundPreview(pendingCancelBooking)}
           confirmLabel="Yes, Cancel"
           cancelLabel="Keep it"
           destructive
@@ -948,11 +978,7 @@ export default function DashboardPage() {
 
       {/* Toast */}
       {toast && (
-        <Toast
-          message={toast.message}
-          variant={toast.variant}
-          onDismiss={() => setToast(null)}
-        />
+        <Toast message={toast.message} variant={toast.variant} onDismiss={() => setToast(null)} />
       )}
 
       {/* Reschedule modal */}
@@ -968,21 +994,22 @@ export default function DashboardPage() {
       )}
 
       {/* Rebook modal */}
-      {rebookTarget && (() => {
-        const matched = services.find((s) => s.id === rebookTarget.serviceId);
-        return (
-          <BookingModal
-            service={{
-              id: rebookTarget.serviceId,
-              name: rebookTarget.serviceName,
-              price: matched?.price ?? 0,
-              allowed_pet_types: matched?.allowed_pet_types,
-            }}
-            initialDogName={rebookTarget.dogName}
-            onClose={() => setRebookTarget(null)}
-          />
-        );
-      })()}
+      {rebookTarget &&
+        (() => {
+          const matched = services.find((s) => s.id === rebookTarget.serviceId);
+          return (
+            <BookingModal
+              service={{
+                id: rebookTarget.serviceId,
+                name: rebookTarget.serviceName,
+                price: matched?.price ?? 0,
+                allowed_pet_types: matched?.allowed_pet_types,
+              }}
+              initialDogName={rebookTarget.dogName}
+              onClose={() => setRebookTarget(null)}
+            />
+          );
+        })()}
     </main>
   );
 }

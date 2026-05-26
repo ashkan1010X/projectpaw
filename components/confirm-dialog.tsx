@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { AlertTriangle, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -8,6 +8,8 @@ interface ConfirmDialogProps {
   isOpen: boolean;
   title: string;
   message: string;
+  /** Optional highlighted block under the message (e.g. a refund preview). */
+  details?: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   destructive?: boolean;
@@ -19,6 +21,7 @@ export function ConfirmDialog({
   isOpen,
   title,
   message,
+  details,
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   destructive = false,
@@ -74,9 +77,7 @@ export function ConfirmDialog({
             <div
               className={cn(
                 'flex size-10 shrink-0 items-center justify-center rounded-full border',
-                destructive
-                  ? 'border-red-500/20 bg-red-500/10'
-                  : 'border-doggy/20 bg-doggy/10',
+                destructive ? 'border-red-500/20 bg-red-500/10' : 'border-doggy/20 bg-doggy/10',
               )}
             >
               {destructive ? (
@@ -100,6 +101,13 @@ export function ConfirmDialog({
               </p>
             </div>
           </div>
+
+          {/* Optional details block (e.g. refund preview) */}
+          {details && (
+            <div className="mt-4 rounded-xl border border-paw/[0.1] bg-white/[0.03] px-4 py-3 font-pawprint text-sm text-paw/75">
+              {details}
+            </div>
+          )}
 
           {/* Actions — stacked on mobile (primary on top), row on sm+ */}
           <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:gap-3">

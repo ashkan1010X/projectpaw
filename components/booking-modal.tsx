@@ -2,7 +2,17 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Calendar, Dog, FileText, Check, Plus, ArrowLeft, ShieldCheck, type LucideIcon } from 'lucide-react';
+import {
+  X,
+  Calendar,
+  Dog,
+  FileText,
+  Check,
+  Plus,
+  ArrowLeft,
+  ShieldCheck,
+  type LucideIcon,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
@@ -119,7 +129,15 @@ function StripeCardSection({
       const intentRes = await fetchWithAuth('/api/bookings/payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ serviceId, serviceName, dogName, petSpecies, datetime: datetimeIso, notes, bookingNonce }),
+        body: JSON.stringify({
+          serviceId,
+          serviceName,
+          dogName,
+          petSpecies,
+          datetime: datetimeIso,
+          notes,
+          bookingNonce,
+        }),
       });
 
       if (intentRes.status === 409) {
@@ -142,7 +160,8 @@ function StripeCardSection({
       });
 
       if (stripeErr) throw new Error(stripeErr.message ?? 'Payment declined.');
-      if (paymentIntent?.status !== 'succeeded') throw new Error('Payment not completed. Please try again.');
+      if (paymentIntent?.status !== 'succeeded')
+        throw new Error('Payment not completed. Please try again.');
 
       // 3. Finalize booking (email route verifies intent server-side; webhook is the safety net)
       setStage('finalizing');
@@ -181,10 +200,13 @@ function StripeCardSection({
   }
 
   const buttonLabel =
-    stage === 'authorizing' ? 'Preparing payment…' :
-    stage === 'charging' ? 'Charging card…' :
-    stage === 'finalizing' ? 'Confirming booking…' :
-    `Pay $${amount} Now →`;
+    stage === 'authorizing'
+      ? 'Preparing payment…'
+      : stage === 'charging'
+        ? 'Charging card…'
+        : stage === 'finalizing'
+          ? 'Confirming booking…'
+          : `Pay $${amount} Now →`;
 
   return (
     <div className="flex flex-col gap-4">
@@ -214,14 +236,20 @@ function StripeCardSection({
       {/* Powered by Stripe badge */}
       <div className="flex items-center gap-1.5">
         <ShieldCheck className="size-3.5 text-paw/30" strokeWidth={1.5} />
-        <span className="font-pawprint text-[11px] text-paw/35">Secured by Stripe · 256-bit TLS encryption</span>
+        <span className="font-pawprint text-[11px] text-paw/35">
+          Secured by Stripe · 256-bit TLS encryption
+        </span>
       </div>
 
       {/* Cancellation policy */}
       <div className="flex items-start gap-2.5 rounded-xl border border-doggy/15 bg-doggy/[0.05] px-4 py-3">
-        <span className="mt-0.5 text-sm leading-none" aria-hidden>📋</span>
+        <span className="mt-0.5 text-sm leading-none" aria-hidden>
+          📋
+        </span>
         <p className="font-pawprint text-[11px] leading-relaxed text-paw/60">
-          <strong className="text-paw/80">Cancellation policy:</strong> Full refund if cancelled more than 24 hours before your appointment. 50% refund within 24 hours.
+          <strong className="text-paw/80">Cancellation policy:</strong> Full refund if cancelled
+          within an hour of booking or more than 24 hours before your appointment. 50% refund within
+          24 hours.
         </p>
       </div>
 
@@ -303,9 +331,10 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
   }, [success, countdown, onClose, router]);
 
   const allowed = useMemo<PetSpecies[]>(
-    () => (service.allowed_pet_types && service.allowed_pet_types.length > 0
-      ? service.allowed_pet_types
-      : [...PET_SPECIES]),
+    () =>
+      service.allowed_pet_types && service.allowed_pet_types.length > 0
+        ? service.allowed_pet_types
+        : [...PET_SPECIES],
     [service.allowed_pet_types],
   );
 
@@ -392,7 +421,9 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     try {
       const selected = pets.find((p) => p.id === selectedPetId);
       const petSpecies: PetSpecies = selected
-        ? (isPetSpecies(selected.species) ? selected.species : 'dog')
+        ? isPetSpecies(selected.species)
+          ? selected.species
+          : 'dog'
         : 'dog';
 
       // Convert datetime to UTC ISO so storage is unambiguous regardless of server/browser TZ.
@@ -413,7 +444,10 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
 
       if (res.status === 409) {
         const data = (await res.json().catch(() => ({}))) as { message?: string };
-        setFieldErrors((fe) => ({ ...fe, datetime: data.message ?? 'That slot is no longer available. Please pick another time.' }));
+        setFieldErrors((fe) => ({
+          ...fe,
+          datetime: data.message ?? 'That slot is no longer available. Please pick another time.',
+        }));
         setStep('details');
         return;
       }
@@ -436,7 +470,9 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
   const selectedPet = pets.find((p) => p.id === selectedPetId) ?? null;
   const allowsAllSpecies = allowed.length === PET_SPECIES.length;
   const reviewSpecies: PetSpecies = selectedPet
-    ? (isPetSpecies(selectedPet.species) ? selectedPet.species : 'dog')
+    ? isPetSpecies(selectedPet.species)
+      ? selectedPet.species
+      : 'dog'
     : 'dog';
   const ReviewSpeciesIcon = SPECIES_META[reviewSpecies].Icon;
 
@@ -451,7 +487,9 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
     : '';
 
   const selectedPetSpecies: PetSpecies = selectedPet
-    ? (isPetSpecies(selectedPet.species) ? selectedPet.species : 'dog')
+    ? isPetSpecies(selectedPet.species)
+      ? selectedPet.species
+      : 'dog'
     : 'dog';
 
   const stripeAppearance = {
@@ -485,7 +523,11 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
 
           <div className="relative">
             <div className="mb-1 inline-block rounded-full bg-white/15 px-2.5 py-0.5 font-pawprint text-[10px] font-bold uppercase tracking-widest text-white/90 backdrop-blur-sm">
-              {success ? 'Confirmed' : step === 'details' ? 'Step 1 of 2 · Details' : 'Step 2 of 2 · Review'}
+              {success
+                ? 'Confirmed'
+                : step === 'details'
+                  ? 'Step 1 of 2 · Details'
+                  : 'Step 2 of 2 · Review'}
             </div>
             <h2 className="font-elegant text-2xl font-black leading-none text-white">
               {service.name}
@@ -509,8 +551,18 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
         {/* Step dots (hidden on success) */}
         {!success && (
           <div className="flex shrink-0 justify-center gap-1.5 border-b border-paw/[0.04] bg-paw/[0.02] py-2.5">
-            <span className={cn('h-1.5 rounded-full transition-all duration-300', step === 'details' ? 'w-8 bg-doggy' : 'w-1.5 bg-paw/20')} />
-            <span className={cn('h-1.5 rounded-full transition-all duration-300', step === 'review' ? 'w-8 bg-doggy' : 'w-1.5 bg-paw/20')} />
+            <span
+              className={cn(
+                'h-1.5 rounded-full transition-all duration-300',
+                step === 'details' ? 'w-8 bg-doggy' : 'w-1.5 bg-paw/20',
+              )}
+            />
+            <span
+              className={cn(
+                'h-1.5 rounded-full transition-all duration-300',
+                step === 'review' ? 'w-8 bg-doggy' : 'w-1.5 bg-paw/20',
+              )}
+            />
           </div>
         )}
 
@@ -556,9 +608,11 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
             </div>
           ) : step === 'details' ? (
             <div className="flex flex-col gap-5">
-
               {hasPets && hasCompatible ? (
-                <FieldWrapper label={compatiblePets.length === 1 ? 'Booking For' : 'Pick a Pet'} icon={Dog}>
+                <FieldWrapper
+                  label={compatiblePets.length === 1 ? 'Booking For' : 'Pick a Pet'}
+                  icon={Dog}
+                >
                   <div className="flex flex-wrap gap-2">
                     {compatiblePets.map((pet) => {
                       const active = selectedPetId === pet.id;
@@ -589,17 +643,27 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                               style={{ width: 28, height: 28 }}
                             />
                           ) : (
-                            <span className={cn(
-                              'flex size-7 items-center justify-center rounded-full border',
-                              active ? 'border-doggy/40 bg-doggy/[0.18]' : 'border-paw/15 bg-paw/[0.05]',
-                            )} aria-hidden>
-                              <SpeciesIcon className={cn('size-3.5', active ? 'text-doggy' : 'text-paw/55')} strokeWidth={1.8} />
+                            <span
+                              className={cn(
+                                'flex size-7 items-center justify-center rounded-full border',
+                                active
+                                  ? 'border-doggy/40 bg-doggy/[0.18]'
+                                  : 'border-paw/15 bg-paw/[0.05]',
+                              )}
+                              aria-hidden
+                            >
+                              <SpeciesIcon
+                                className={cn('size-3.5', active ? 'text-doggy' : 'text-paw/55')}
+                                strokeWidth={1.8}
+                              />
                             </span>
                           )}
-                          <span className={cn(
-                            'font-pawprint text-sm font-semibold transition-colors',
-                            active ? 'text-paw' : 'text-paw/65 group-hover:text-paw/90',
-                          )}>
+                          <span
+                            className={cn(
+                              'font-pawprint text-sm font-semibold transition-colors',
+                              active ? 'text-paw' : 'text-paw/65 group-hover:text-paw/90',
+                            )}
+                          >
                             {pet.name}
                           </span>
                           {active && (
@@ -621,13 +685,23 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
 
                   {selectedPet && (selectedPet.breed || selectedPet.age) && (
                     <p className="mt-1 font-pawprint text-xs text-paw/40 animate-fade-in">
-                      {[SPECIES_META[isPetSpecies(selectedPet.species) ? selectedPet.species : 'dog'].label, selectedPet.breed, selectedPet.age].filter(Boolean).join(' · ')}
+                      {[
+                        SPECIES_META[
+                          isPetSpecies(selectedPet.species) ? selectedPet.species : 'dog'
+                        ].label,
+                        selectedPet.breed,
+                        selectedPet.age,
+                      ]
+                        .filter(Boolean)
+                        .join(' · ')}
                     </p>
                   )}
 
                   {!allowsAllSpecies && pets.length > compatiblePets.length && (
                     <p className="mt-1 font-pawprint text-[11px] text-paw/40">
-                      Hiding {pets.length - compatiblePets.length} pet{pets.length - compatiblePets.length === 1 ? '' : 's'} — this service only accepts {allowed.map((a) => SPECIES_META[a].label).join(', ')}.
+                      Hiding {pets.length - compatiblePets.length} pet
+                      {pets.length - compatiblePets.length === 1 ? '' : 's'} — this service only
+                      accepts {allowed.map((a) => SPECIES_META[a].label).join(', ')}.
                     </p>
                   )}
 
@@ -642,7 +716,8 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                       None of your pets can book this service.
                     </p>
                     <p className="mt-1 font-pawprint text-xs text-amber-200/70">
-                      <strong>{service.name}</strong> only accepts {allowed.map((a) => SPECIES_META[a].label).join(', ')}.
+                      <strong>{service.name}</strong> only accepts{' '}
+                      {allowed.map((a) => SPECIES_META[a].label).join(', ')}.
                     </p>
                     <Link
                       href="/profile"
@@ -664,17 +739,27 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                       setFieldErrors((fe) => ({ ...fe, dogName: undefined }));
                     }}
                     onBlur={(e) => {
-                      const err = e.target.value.trim() ? undefined : "Your pet's name is required.";
+                      const err = e.target.value.trim()
+                        ? undefined
+                        : "Your pet's name is required.";
                       setFieldErrors((fe) => ({ ...fe, dogName: err }));
                     }}
                     placeholder="e.g. Buddy"
                     className={cn(
                       inputClass,
-                      fieldErrors.dogName && 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/10',
+                      fieldErrors.dogName &&
+                        'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/10',
                     )}
                   />
                   <p className="font-pawprint text-[11px] text-paw/40">
-                    💡 <Link href="/profile" className="text-doggy/80 hover:text-doggy underline underline-offset-2">Save your pets to your profile</Link> to skip this next time.
+                    💡{' '}
+                    <Link
+                      href="/profile"
+                      className="text-doggy/80 hover:text-doggy underline underline-offset-2"
+                    >
+                      Save your pets to your profile
+                    </Link>{' '}
+                    to skip this next time.
                   </p>
                   {fieldErrors.dogName && (
                     <p className="font-pawprint text-xs text-red-400">{fieldErrors.dogName}</p>
@@ -744,14 +829,17 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
           ) : (
             /* STEP 2 — REVIEW & PAYMENT */
             <div className="flex flex-col gap-5 animate-fade-in">
-
               {/* Order summary card */}
               <div className="rounded-2xl border border-paw/[0.1] bg-gradient-to-br from-paw/[0.05] to-doggy/[0.04] p-5">
-                <p className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.18em] text-paw/40">Your Booking</p>
+                <p className="mb-3 font-pawprint text-[10px] font-bold uppercase tracking-[0.18em] text-paw/40">
+                  Your Booking
+                </p>
 
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className="font-elegant text-xl font-black leading-tight text-paw">{service.name}</p>
+                    <p className="font-elegant text-xl font-black leading-tight text-paw">
+                      {service.name}
+                    </p>
                     <p className="mt-1 flex items-center gap-1.5 font-pawprint text-sm text-paw/65">
                       <ReviewSpeciesIcon className="size-3.5 text-doggy/80" strokeWidth={1.8} />
                       <span className="font-semibold">{dogName}</span>
@@ -760,14 +848,20 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="font-elegant text-2xl font-black leading-none text-doggy">${service.price}</p>
-                    <p className="mt-0.5 font-pawprint text-[10px] uppercase tracking-wider text-paw/35">Total</p>
+                    <p className="font-elegant text-2xl font-black leading-none text-doggy">
+                      ${service.price}
+                    </p>
+                    <p className="mt-0.5 font-pawprint text-[10px] uppercase tracking-wider text-paw/35">
+                      Total
+                    </p>
                   </div>
                 </div>
 
                 <div className="mt-4 flex items-center gap-2 rounded-xl border border-paw/[0.08] bg-[#0f0d09]/40 px-3 py-2.5">
                   <Calendar className="size-3.5 text-doggy/70" strokeWidth={1.8} />
-                  <span className="font-pawprint text-sm font-semibold text-paw">{formattedReviewDate}</span>
+                  <span className="font-pawprint text-sm font-semibold text-paw">
+                    {formattedReviewDate}
+                  </span>
                 </div>
 
                 {notes && (
@@ -803,23 +897,35 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                             : 'border-paw/[0.1] bg-paw/[0.03] hover:border-doggy/30 hover:bg-doggy/[0.04]',
                         )}
                       >
-                        <span className={cn(
-                          'flex size-9 shrink-0 items-center justify-center rounded-lg border',
-                          active ? 'border-doggy/40 bg-doggy/[0.18] text-doggy' : 'border-paw/15 bg-paw/[0.05] text-paw/55',
-                        )}>
+                        <span
+                          className={cn(
+                            'flex size-9 shrink-0 items-center justify-center rounded-lg border',
+                            active
+                              ? 'border-doggy/40 bg-doggy/[0.18] text-doggy'
+                              : 'border-paw/15 bg-paw/[0.05] text-paw/55',
+                          )}
+                        >
                           <Icon className="size-4" strokeWidth={1.8} />
                         </span>
                         <span className="min-w-0 flex-1">
-                          <span className={cn(
-                            'block font-pawprint text-sm font-bold',
-                            active ? 'text-paw' : 'text-paw/80',
-                          )}>{meta.label}</span>
-                          <span className="block font-pawprint text-[11px] text-paw/45">{meta.hint}</span>
+                          <span
+                            className={cn(
+                              'block font-pawprint text-sm font-bold',
+                              active ? 'text-paw' : 'text-paw/80',
+                            )}
+                          >
+                            {meta.label}
+                          </span>
+                          <span className="block font-pawprint text-[11px] text-paw/45">
+                            {meta.hint}
+                          </span>
                         </span>
-                        <span className={cn(
-                          'flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-all',
-                          active ? 'border-doggy bg-doggy' : 'border-paw/20',
-                        )}>
+                        <span
+                          className={cn(
+                            'flex size-5 shrink-0 items-center justify-center rounded-full border-2 transition-all',
+                            active ? 'border-doggy bg-doggy' : 'border-paw/20',
+                          )}
+                        >
                           {active && <Check className="size-3 text-white" strokeWidth={3} />}
                         </span>
                       </button>
@@ -843,7 +949,10 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                     onBack={() => setStep('details')}
                     onSuccess={() => setSuccess(true)}
                     onSlotConflict={() => {
-                      setFieldErrors((fe) => ({ ...fe, datetime: 'That slot is no longer available. Please pick another time.' }));
+                      setFieldErrors((fe) => ({
+                        ...fe,
+                        datetime: 'That slot is no longer available. Please pick another time.',
+                      }));
                       setStep('details');
                     }}
                     fetchWithAuth={fetchWithAuth}
@@ -853,9 +962,12 @@ export function BookingModal({ service, onClose, initialDogName }: BookingModalP
                 <>
                   {/* No-payment callout for cash/etransfer */}
                   <div className="flex items-start gap-2.5 rounded-xl border border-amber-500/20 bg-amber-500/[0.05] px-4 py-3">
-                    <span className="mt-0.5 text-base leading-none" aria-hidden>💡</span>
+                    <span className="mt-0.5 text-base leading-none" aria-hidden>
+                      💡
+                    </span>
                     <p className="font-pawprint text-xs leading-relaxed text-amber-200/85">
-                      <strong className="font-bold text-amber-200">No payment needed now.</strong> Your provider will collect payment at the time of service.
+                      <strong className="font-bold text-amber-200">No payment needed now.</strong>{' '}
+                      Your provider will collect payment at the time of service.
                     </p>
                   </div>
 

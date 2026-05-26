@@ -7,6 +7,7 @@ import { stripe } from '@/lib/stripe';
 import { sendSms } from '@/lib/twilio';
 import { escapeHtml } from '@/lib/escape-html';
 import { formatBookingDateShort } from '@/lib/format-date';
+import { computeRefund } from '@/lib/refund-policy';
 
 const { MessagingResponse } = twilio.twiml;
 
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
     const { data: booking } = await supabaseAdmin
       .from('bookings')
       .select(
-        'id, user_id, service_name, dog_name, datetime, payment_method, stripe_payment_intent_id, amount_cents, payment_status',
+        'id, user_id, service_name, dog_name, datetime, created_at, payment_method, stripe_payment_intent_id, amount_cents, payment_status',
       )
       .in('user_id', userIds)
       .eq('status', 'upcoming')
@@ -100,14 +101,14 @@ export async function POST(req: NextRequest) {
       booking.payment_status === 'paid' &&
       booking.amount_cents
     ) {
-      const hoursUntil = (new Date(booking.datetime as string).getTime() - Date.now()) / 3_600_000;
-      const amountCents = booking.amount_cents as number;
-      refundedCents = hoursUntil > 24 ? amountCents : Math.round(amountCents / 2);
-      newPaymentStatus = hoursUntil > 24 ? 'refunded_full' : 'refunded_partial';
-      refundNote =
-        hoursUntil > 24
-          ? `Full refund of $${(refundedCents / 100).toFixed(2)} CAD issued.`
-          : `50% refund of $${(refundedCents / 100).toFixed(2)} CAD issued (cancelled within 24h).`;
+      const decision = computeRefund({
+        amountCents: booking.amount_cents as number,
+        bookingCreatedAt: booking.created_at as string,
+        appointmentDatetime: booking.datetime as string,
+      });
+      refundedCents = decision.refundedCents;
+      newPaymentStatus = decision.paymentStatus;
+      refundNote = `${decision.amountLabel} of $${(refundedCents / 100).toFixed(2)} CAD issued (${decision.reason}).`;
       try {
         await stripe.refunds.create({
           payment_intent: booking.stripe_payment_intent_id as string,

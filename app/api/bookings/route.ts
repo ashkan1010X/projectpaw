@@ -11,6 +11,9 @@ type Booking = {
   notes: string | null;
   status: string;
   created_at: string;
+  amount_cents: number | null;
+  payment_method: string | null;
+  payment_status: string | null;
 };
 
 export async function GET(req: NextRequest) {
@@ -32,7 +35,9 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabaseAdmin
     .from('bookings')
-    .select('id, service_id, service_name, dog_name, datetime, notes, status, created_at')
+    .select(
+      'id, service_id, service_name, dog_name, datetime, notes, status, created_at, amount_cents, payment_method, payment_status',
+    )
     .eq('user_id', user.id)
     .order('datetime', { ascending: false });
 

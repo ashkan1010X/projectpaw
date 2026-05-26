@@ -64,7 +64,10 @@ export default function TermsPage() {
       </Section>
 
       <Section id="account" title="2. Your Account">
-        <p>You are responsible for maintaining the confidentiality of your account credentials. You agree:</p>
+        <p>
+          You are responsible for maintaining the confidentiality of your account credentials. You
+          agree:
+        </p>
         <ul className="space-y-2 pl-5 [list-style:disc] marker:text-doggy/60">
           <li>To provide accurate, current information when you sign up</li>
           <li>To keep your password secure and not share it with anyone</li>
@@ -75,7 +78,10 @@ export default function TermsPage() {
       </Section>
 
       <Section id="services" title="3. Services Provided">
-        <p>ProjectPaw offers six dog care services in the Toronto area, all delivered personally by Sara:</p>
+        <p>
+          ProjectPaw offers six dog care services in the Toronto area, all delivered personally by
+          Sara:
+        </p>
         <ul className="space-y-2 pl-5 [list-style:disc] marker:text-doggy/60">
           <li>Grooming — $30, 90 minutes</li>
           <li>Dog Walking — $20, 60 minutes</li>
@@ -98,9 +104,9 @@ export default function TermsPage() {
           booking is confirmed once you receive both an email and an SMS confirmation.
         </p>
         <p>
-          Some services (notably overnight boarding and in-home pet sitting) extend beyond the
-          start slot; the booking time you select is the agreed start time, and the service
-          duration follows the schedule for that service.
+          Some services (notably overnight boarding and in-home pet sitting) extend beyond the start
+          slot; the booking time you select is the agreed start time, and the service duration
+          follows the schedule for that service.
         </p>
 
         <Subhead>Payment options</Subhead>
@@ -115,18 +121,26 @@ export default function TermsPage() {
             <Strong>Interac e-Transfer</Strong> — paid before or at the time of service
           </li>
         </ul>
-        <p>You agree to settle cash and e-Transfer bookings on or before the scheduled service time.</p>
+        <p>
+          You agree to settle cash and e-Transfer bookings on or before the scheduled service time.
+        </p>
       </Section>
 
       <Section id="cancellation" title="5. Cancellation and Refunds">
-        <p>You may cancel any booking from your dashboard or by replying X to your confirmation SMS.</p>
+        <p>
+          You may cancel any booking from your dashboard or by replying X to your confirmation SMS.
+        </p>
         <ul className="space-y-2 pl-5 [list-style:disc] marker:text-doggy/60">
           <li>
             <Strong>Cash / e-Transfer bookings</Strong> — no charge, no refund needed.
           </li>
           <li>
-            <Strong>Card bookings cancelled more than 24 hours before service</Strong> — full
-            refund (100%).
+            <Strong>Card bookings cancelled within 1 hour of booking</Strong> — full refund (100%),
+            regardless of how close the appointment is.
+          </li>
+          <li>
+            <Strong>Card bookings cancelled more than 24 hours before service</Strong> — full refund
+            (100%).
           </li>
           <li>
             <Strong>Card bookings cancelled within 24 hours of service</Strong> — partial refund
@@ -243,8 +257,8 @@ export default function TermsPage() {
         <p className="text-paw/55">
           THE SERVICE IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE.&quot; TO THE FULLEST
           EXTENT PERMITTED BY APPLICABLE LAW, WE DISCLAIM ALL WARRANTIES, EXPRESS OR IMPLIED,
-          INCLUDING ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
-          AND NON-INFRINGEMENT.
+          INCLUDING ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+          NON-INFRINGEMENT.
         </p>
         <p>
           We do our best to ensure the Service operates reliably, but we do not warrant
@@ -332,9 +346,9 @@ export default function TermsPage() {
           <li>Acts of God, war, riot, strike, or other events beyond reasonable control</li>
         </ul>
         <p>
-          If we need to cancel for any of these reasons, we will notify you as soon as possible
-          and offer either a full refund (regardless of how close to the appointment) or a
-          complimentary reschedule of your choosing.{' '}
+          If we need to cancel for any of these reasons, we will notify you as soon as possible and
+          offer either a full refund (regardless of how close to the appointment) or a complimentary
+          reschedule of your choosing.{' '}
           <Strong>
             Neither party shall be liable for damages caused by force-majeure events beyond their
             reasonable control.
