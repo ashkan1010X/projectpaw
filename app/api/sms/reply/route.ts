@@ -53,27 +53,30 @@ export async function POST(req: NextRequest) {
   const from = params['From'] ?? ''; // user's E.164 phone number
   const body = (params['Body'] ?? '').trim().toUpperCase();
 
-  // Find the profile matching this phone number
-  const { data: profile } = await supabaseAdmin
+  // A phone can be linked to more than one account (e.g. family members sharing
+  // a number). Fetch every matching profile — using .maybeSingle() here would
+  // error on >1 row and make us wrongly reply "no account found".
+  const { data: profiles } = await supabaseAdmin
     .from('profiles')
     .select('user_id')
-    .eq('phone', from)
-    .maybeSingle();
+    .eq('phone', from);
+  const userIds = (profiles ?? []).map((p) => p.user_id as string);
 
   if (body === 'X') {
-    if (!profile) {
+    if (userIds.length === 0) {
       return twimlResponse(
         `We couldn't find an account linked to this number. Need help? Email ${SUPPORT_EMAIL} — ProjectPaw 🐾`,
       );
     }
 
-    // Find their next upcoming booking
+    // Next upcoming booking across every account on this phone — "cancel my next
+    // appointment", whichever account it belongs to.
     const { data: booking } = await supabaseAdmin
       .from('bookings')
       .select(
-        'id, service_name, dog_name, datetime, payment_method, stripe_payment_intent_id, amount_cents, payment_status',
+        'id, user_id, service_name, dog_name, datetime, payment_method, stripe_payment_intent_id, amount_cents, payment_status',
       )
-      .eq('user_id', profile.user_id)
+      .in('user_id', userIds)
       .eq('status', 'upcoming')
       .gte('datetime', new Date().toISOString())
       .order('datetime', { ascending: true })
@@ -148,16 +151,16 @@ export async function POST(req: NextRequest) {
     if (ADMIN_EMAIL) {
       after(
         supabaseAdmin.auth.admin
-        .getUserById(profile.user_id)
-        .then(({ data }) => {
-          const customerEmail = data.user?.email ?? '';
-          const customerName =
-            (data.user?.user_metadata?.name as string | undefined) ?? customerEmail;
-          const customerNameSafe = escapeHtml(customerName);
-          const customerEmailSafe = escapeHtml(customerEmail);
-          const dogNameSafe = escapeHtml(booking.dog_name as string);
-          const serviceNameSafe = escapeHtml(booking.service_name as string);
-          const providerHtml = `
+          .getUserById(booking.user_id as string)
+          .then(({ data }) => {
+            const customerEmail = data.user?.email ?? '';
+            const customerName =
+              (data.user?.user_metadata?.name as string | undefined) ?? customerEmail;
+            const customerNameSafe = escapeHtml(customerName);
+            const customerEmailSafe = escapeHtml(customerEmail);
+            const dogNameSafe = escapeHtml(booking.dog_name as string);
+            const serviceNameSafe = escapeHtml(booking.service_name as string);
+            const providerHtml = `
           <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; background: #0f0d09; color: #F5CBA7; border-radius: 16px; overflow: hidden;">
             <div style="background: linear-gradient(135deg, #ef4444, #b91c1c); padding: 32px; text-align: center;">
               <div style="display: inline-block; background: rgba(255,255,255,0.15); border-radius: 100px; padding: 4px 14px; font-family: sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: white; margin-bottom: 12px;">Staff Notification</div>
@@ -194,15 +197,15 @@ export async function POST(req: NextRequest) {
             </div>
           </div>
         `;
-          return transporter.sendMail({
-            from: `"ProjectPaw" <${process.env.SMTP_USER}>`,
-            to: ADMIN_EMAIL,
-            replyTo: customerEmail,
-            subject: `Booking Cancelled: ${booking.service_name as string} for ${booking.dog_name as string} — ${apptTime}`,
-            html: providerHtml,
-          });
-        })
-        .catch((e: unknown) => console.error('Provider cancellation email error (SMS):', e)),
+            return transporter.sendMail({
+              from: `"ProjectPaw" <${process.env.SMTP_USER}>`,
+              to: ADMIN_EMAIL,
+              replyTo: customerEmail,
+              subject: `Booking Cancelled: ${booking.service_name as string} for ${booking.dog_name as string} — ${apptTime}`,
+              html: providerHtml,
+            });
+          })
+          .catch((e: unknown) => console.error('Provider cancellation email error (SMS):', e)),
       );
     }
 
@@ -212,7 +215,7 @@ export async function POST(req: NextRequest) {
       const providerPhone = process.env.PROVIDER_SMS_PHONE;
       after(
         supabaseAdmin.auth.admin
-          .getUserById(profile.user_id)
+          .getUserById(booking.user_id as string)
           .then(({ data }) => {
             const customerEmail = data.user?.email ?? '';
             const customerName =
@@ -228,9 +231,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Keep SMS under 3 segments — ASCII only, no emoji / em-dash.
-    const refundLine = refundNote && refundedCents > 0
-      ? ` ${newPaymentStatus === 'refunded_full' ? 'Full' : '50%'} refund of $${(refundedCents / 100).toFixed(0)} on the way.`
-      : '';
+    const refundLine =
+      refundNote && refundedCents > 0
+        ? ` ${newPaymentStatus === 'refunded_full' ? 'Full' : '50%'} refund of $${(refundedCents / 100).toFixed(0)} on the way.`
+        : '';
     return twimlResponse(
       `Cancelled. Your ${booking.service_name as string} for ${booking.dog_name as string} on ${apptTime} is off.${refundLine} - ProjectPaw`,
     );
