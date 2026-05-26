@@ -91,8 +91,10 @@ export async function POST(req: NextRequest) {
         await alertAdminRefundFailed({
           paymentIntentId: intent.id,
           amountCents: intent.amount,
+          userId,
           customerEmail: userEmail,
           datetime,
+          source: 'webhook_past_slot',
           reason:
             'Automated refund failed after the booked slot fell into the past (delayed payment).',
         });
@@ -119,8 +121,10 @@ export async function POST(req: NextRequest) {
         await alertAdminRefundFailed({
           paymentIntentId: intent.id,
           amountCents: intent.amount,
+          userId,
           customerEmail: userEmail,
           datetime,
+          source: 'webhook_conflict',
           reason: 'Automated refund failed after a slot conflict was detected at webhook time.',
         });
       }

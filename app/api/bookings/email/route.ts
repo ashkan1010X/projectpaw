@@ -269,8 +269,10 @@ export async function POST(req: NextRequest) {
         await alertAdminRefundFailed({
           paymentIntentId: stripePaymentIntentId,
           amountCents: verifiedAmountCents,
+          userId: user.id,
           customerEmail: user.email,
           datetime,
+          source: 'client_finalize_conflict',
           reason:
             'Automated refund failed after a slot conflict during client booking finalization.',
         });

@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export const mailer = nodemailer.createTransport({
   service: 'gmail',
@@ -15,31 +16,51 @@ export const FROM_ADDRESS = `"ProjectPaw 🐾" <${process.env.SMTP_USER}>`;
  * past-slot at webhook time). Without this, a charged-but-unbooked customer only
  * ever surfaces in server logs — nobody reads those, so the money sits stuck.
  *
- * This emails the admin a one-click recovery: a deep link straight to the
- * PaymentIntent in the Stripe dashboard, plus everything needed to refund by
- * hand. It never throws — alerting is best-effort and must not mask the original
- * failure in the calling route.
+ * Two layers of durability:
+ *  1. A row in `failed_refunds` (queryable dead-letter log, survives a missed email).
+ *  2. An email to the admin with a one-click deep link to the PaymentIntent in
+ *     the Stripe dashboard, plus everything needed to refund by hand.
  *
- * Follow-up (tracked in memory): persist these to a `failed_refunds` dead-letter
- * table so they're queryable, not just an email that can be missed.
+ * Both layers are best-effort and independently wrapped — neither can throw or
+ * mask the original refund failure in the calling route.
  */
 export async function alertAdminRefundFailed(params: {
   paymentIntentId: string;
   amountCents: number | null;
+  userId?: string | null;
   customerEmail?: string | null;
   datetime?: string | null;
+  source: string;
   reason: string;
 }): Promise<void> {
+  const { paymentIntentId, amountCents, userId, customerEmail, datetime, source, reason } = params;
+
+  // Layer 1 — durable record. Unique PI means a retried failure won't duplicate.
+  try {
+    await supabaseAdmin.from('failed_refunds').upsert(
+      {
+        stripe_payment_intent_id: paymentIntentId,
+        amount_cents: amountCents,
+        user_id: userId ?? null,
+        customer_email: customerEmail ?? null,
+        booking_datetime: datetime ?? null,
+        source,
+        reason,
+      },
+      { onConflict: 'stripe_payment_intent_id', ignoreDuplicates: true },
+    );
+  } catch (err) {
+    console.error('[alertAdminRefundFailed] failed_refunds insert failed for', paymentIntentId, err);
+  }
+
+  // Layer 2 — admin email.
   const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? '';
   if (!adminEmail) {
-    console.error(
-      '[alertAdminRefundFailed] NEXT_PUBLIC_ADMIN_EMAIL not set — cannot alert',
-      params,
-    );
+    console.error('[alertAdminRefundFailed] NEXT_PUBLIC_ADMIN_EMAIL not set — cannot email', params);
     return;
   }
 
-  const { paymentIntentId, amountCents, customerEmail, datetime, reason } = params;
+
   const amount = amountCents != null ? `$${(amountCents / 100).toFixed(2)} CAD` : 'unknown amount';
   const stripeUrl = `https://dashboard.stripe.com/payments/${paymentIntentId}`;
 
