@@ -72,8 +72,18 @@ export function computeRefund(params: {
 }): RefundDecision;
 ```
 
-Pure, deterministic, no I/O — directly unit-testable (the genuine verification,
-same approach as `isValidFutureDatetime`).
+Pure, deterministic, no I/O, **no server-only imports** — so it runs identically
+on the server (the routes) and the client (the cancel dialog preview, below).
+Directly unit-testable (the genuine verification, same approach as
+`isValidFutureDatetime`).
+
+### Grace clock & rescheduling (explicit, to avoid a loophole)
+
+Grace is anchored to the booking's original `created_at`. **Rescheduling does
+NOT reset it** — `reschedule` already leaves `created_at` untouched, and that is
+deliberate: resetting the clock on reschedule would let a customer refresh their
+free-cancel window indefinitely by rescheduling. The implementer must not "helpfully"
+re-anchor grace to the reschedule time.
 
 Only meaningful for Stripe-paid bookings; callers still gate on
 `payment_method === 'stripe' && payment_status === 'paid' && amount_cents`
@@ -95,6 +105,32 @@ Both cancel paths change identically:
 `payment_status = 'refunded_full'` (the DB constraint only allows
 `refunded_full` / `refunded_partial`, so the grace tier reuses `refunded_full`
 at the DB level — the distinction lives only in the customer-facing copy).
+
+### Refund preview in the cancel dialog (transparency — the 10/10 UX touch)
+
+Top-tier flows (Rover, airlines, Stripe) tell the customer the refund amount
+*before* they confirm. Today the dashboard `ConfirmDialog` only says "This cannot
+be undone" with no number.
+
+- `GET /api/bookings` (`app/api/bookings/route.ts`) currently returns
+  `created_at` but NOT the payment fields. Add `amount_cents, payment_method,
+  payment_status` to the SELECT and the `Booking` type (server + the dashboard's
+  client-side `Booking` type).
+- The dashboard calls the shared `computeRefund()` for the booking being
+  cancelled and passes a preview line into the dialog, e.g.
+  *"You'll be refunded $20.00 — cancelled within an hour of booking."* For
+  cash/e-transfer, show "No payment was taken — nothing to refund." For a 50%
+  case, show the half amount.
+- `ConfirmDialog` (`components/confirm-dialog.tsx`) gains an optional
+  `details?: ReactNode` slot rendered under `message` (styled as a highlighted
+  refund box), so the preview is visually distinct, not jammed into the sentence.
+- The client and server compute `now` a few seconds apart, so the preview is an
+  **estimate**; the server remains the source of truth at execution time. The
+  only case that could differ is a cancel landing within seconds of the exact
+  1-hour or 24-hour boundary — acceptable, and the customer-facing copy says the
+  amount they actually got in the confirmation email/SMS.
+- The SMS-reply cancel has no pre-confirm step (it's a one-shot text), so there
+  is no preview there — unchanged.
 
 ### Policy text (must stay in sync with behaviour)
 
@@ -134,6 +170,9 @@ set the manual-refund-pending path, and fire `alertAdminRefundFailed`. The
 - **Build:** `npm run build` green.
 - **Live math check:** confirm refunded_cents in the DB matches the tier for a
   test booking (Stripe test mode).
+- **Preview parity:** the dialog preview and the server result come from the same
+  `computeRefund`, so they agree except at the rare boundary second. Spot-check
+  the preview text matches the confirmation email/SMS amount for a test cancel.
 
 ## Out of scope (deliberately)
 
@@ -143,9 +182,12 @@ set the manual-refund-pending path, and fire `alertAdminRefundFailed`. The
 
 ## Files touched
 
-- `lib/refund-policy.ts` (new)
-- `app/api/bookings/[id]/cancel/route.ts`
-- `app/api/sms/reply/route.ts`
-- `components/faq-section.tsx`
-- `app/terms/page.tsx`
-- `components/booking-modal.tsx`
+- `lib/refund-policy.ts` (new — pure, isomorphic)
+- `app/api/bookings/[id]/cancel/route.ts` (use `computeRefund`, add `created_at` to SELECT)
+- `app/api/sms/reply/route.ts` (use `computeRefund`, add `created_at` to SELECT)
+- `app/api/bookings/route.ts` (return `amount_cents, payment_method, payment_status`)
+- `components/confirm-dialog.tsx` (optional `details` slot)
+- `app/dashboard/page.tsx` (refund preview via `computeRefund`; extend `Booking` type)
+- `components/faq-section.tsx` (grace wording)
+- `app/terms/page.tsx` (grace clause)
+- `components/booking-modal.tsx` (grace wording)
