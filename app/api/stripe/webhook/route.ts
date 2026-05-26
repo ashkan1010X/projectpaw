@@ -7,7 +7,8 @@ import { sendSms } from '@/lib/twilio';
 import { isPetSpecies, SPECIES_META, type PetSpecies } from '@/lib/species';
 import { PAYMENT_META } from '@/lib/payment';
 import { escapeHtml } from '@/lib/escape-html';
-import { formatBookingDateLong } from '@/lib/format-date';
+import { formatBookingDateLong, isValidFutureDatetime } from '@/lib/format-date';
+import { alertAdminRefundFailed } from '@/lib/mailer';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -76,6 +77,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true, skipped: 'missing_metadata' });
   }
 
+  // Past-slot guard. The slot was valid when the PaymentIntent was created, but
+  // a payment can complete much later (delayed 3DS, customer returns hours after
+  // leaving the modal open). Never book a slot that's now in the past — refund
+  // and exit, same treatment as a conflict.
+  if (!isValidFutureDatetime(datetime)) {
+    try {
+      await stripe.refunds.create({ payment_intent: intent.id });
+      console.warn('Webhook: refunded payment for now-past slot', intent.id);
+    } catch (e) {
+      console.error('Webhook: CRITICAL refund failure (past slot) for', intent.id, e);
+      await alertAdminRefundFailed({
+        paymentIntentId: intent.id,
+        amountCents: intent.amount,
+        customerEmail: userEmail,
+        datetime,
+        reason:
+          'Automated refund failed after the booked slot fell into the past (delayed payment).',
+      });
+    }
+    return NextResponse.json({ received: true, action: 'refunded_past_slot' });
+  }
+
   // Slot conflict at webhook time → refund and exit
   const { data: slotTaken } = await supabaseAdmin
     .from('bookings')
@@ -90,6 +113,13 @@ export async function POST(req: NextRequest) {
       console.warn('Webhook: refunded conflicting payment', intent.id);
     } catch (e) {
       console.error('Webhook: CRITICAL refund failure for', intent.id, e);
+      await alertAdminRefundFailed({
+        paymentIntentId: intent.id,
+        amountCents: intent.amount,
+        customerEmail: userEmail,
+        datetime,
+        reason: 'Automated refund failed after a slot conflict was detected at webhook time.',
+      });
     }
     return NextResponse.json({ received: true, action: 'refunded_conflict' });
   }

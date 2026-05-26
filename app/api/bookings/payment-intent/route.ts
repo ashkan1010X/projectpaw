@@ -4,6 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin';
 import { stripe } from '@/lib/stripe';
 import { FALLBACK_SERVICES } from '@/lib/service-icons';
 import { isPetSpecies } from '@/lib/species';
+import { isValidFutureDatetime } from '@/lib/format-date';
 
 async function resolveServicePriceCents(serviceId: string): Promise<number | null> {
   const { data } = await supabaseAdmin
@@ -30,7 +31,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
   }
 
-  const { serviceId, serviceName, dogName, petSpecies: rawSpecies, datetime, notes, bookingNonce } = (await req.json()) as {
+  const {
+    serviceId,
+    serviceName,
+    dogName,
+    petSpecies: rawSpecies,
+    datetime,
+    notes,
+    bookingNonce,
+  } = (await req.json()) as {
     serviceId: string;
     serviceName?: string;
     dogName?: string;
@@ -39,6 +48,12 @@ export async function POST(req: NextRequest) {
     notes?: string;
     bookingNonce?: string;
   };
+
+  // Never create a charge for a slot in the past. The picker enforces this
+  // client-side, but the API must validate independently.
+  if (!isValidFutureDatetime(datetime)) {
+    return NextResponse.json({ message: 'Please choose a future date and time.' }, { status: 400 });
+  }
 
   // Reject if slot is already taken
   const { data: existing } = await supabaseAdmin

@@ -7,7 +7,8 @@ import { sendSms } from '@/lib/twilio';
 import { isPetSpecies, SPECIES_META, type PetSpecies } from '@/lib/species';
 import { isPaymentMethod, PAYMENT_META, type PaymentMethod } from '@/lib/payment';
 import { escapeHtml } from '@/lib/escape-html';
-import { formatBookingDateLong } from '@/lib/format-date';
+import { formatBookingDateLong, isValidFutureDatetime } from '@/lib/format-date';
+import { alertAdminRefundFailed } from '@/lib/mailer';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -20,7 +21,14 @@ const transporter = nodemailer.createTransport({
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? '';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://projectpaw.vercel.app';
 
-function buildCustomerHtml(dogName: string, serviceName: string, formattedDate: string, petSpecies: PetSpecies, paymentMethod: PaymentMethod, notes?: string) {
+function buildCustomerHtml(
+  dogName: string,
+  serviceName: string,
+  formattedDate: string,
+  petSpecies: PetSpecies,
+  paymentMethod: PaymentMethod,
+  notes?: string,
+) {
   const meta = SPECIES_META[petSpecies];
   const pay = PAYMENT_META[paymentMethod];
   const dogNameSafe = escapeHtml(dogName);
@@ -147,7 +155,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
   }
 
-  const { serviceId, serviceName, dogName, petSpecies: rawSpecies, datetime, notes, paymentMethod: rawPayment, stripePaymentIntentId } = (await req.json()) as {
+  const {
+    serviceId,
+    serviceName,
+    dogName,
+    petSpecies: rawSpecies,
+    datetime,
+    notes,
+    paymentMethod: rawPayment,
+    stripePaymentIntentId,
+  } = (await req.json()) as {
     serviceId: string;
     serviceName: string;
     dogName: string;
@@ -157,6 +174,13 @@ export async function POST(req: NextRequest) {
     paymentMethod?: string;
     stripePaymentIntentId?: string;
   };
+
+  // Reject past slots regardless of what the client sends. For Stripe payments
+  // the money is recovered downstream: the webhook independently guards the same
+  // datetime and refunds any charge whose slot is no longer valid.
+  if (!isValidFutureDatetime(datetime)) {
+    return NextResponse.json({ message: 'Please choose a future date and time.' }, { status: 400 });
+  }
 
   const petSpecies: PetSpecies = isPetSpecies(rawSpecies) ? rawSpecies : 'dog';
   const speciesLabel = SPECIES_META[petSpecies].label;
@@ -175,7 +199,10 @@ export async function POST(req: NextRequest) {
     }
     // Prevent intent hijacking — the authenticated user must own the intent
     if (intent.metadata?.user_id !== user.id) {
-      return NextResponse.json({ message: 'Payment does not belong to this user' }, { status: 403 });
+      return NextResponse.json(
+        { message: 'Payment does not belong to this user' },
+        { status: 403 },
+      );
     }
     verifiedAmountCents = intent.amount;
 
@@ -223,9 +250,23 @@ export async function POST(req: NextRequest) {
           { status: 409 },
         );
       } catch (refundErr) {
-        console.error('CRITICAL: refund failed after slot conflict', { stripePaymentIntentId, refundErr });
+        console.error('CRITICAL: refund failed after slot conflict', {
+          stripePaymentIntentId,
+          refundErr,
+        });
+        await alertAdminRefundFailed({
+          paymentIntentId: stripePaymentIntentId,
+          amountCents: verifiedAmountCents,
+          customerEmail: user.email,
+          datetime,
+          reason:
+            'Automated refund failed after a slot conflict during client booking finalization.',
+        });
         return NextResponse.json(
-          { message: 'That slot was just taken and the automatic refund failed. Please contact support immediately — your payment is being investigated.' },
+          {
+            message:
+              'That slot was just taken and the automatic refund failed. Please contact support immediately — your payment is being investigated.',
+          },
           { status: 409 },
         );
       }
@@ -246,11 +287,13 @@ export async function POST(req: NextRequest) {
     datetime,
     notes: notes ?? null,
     payment_method: paymentMethod,
-    ...(paymentMethod === 'stripe' && stripePaymentIntentId ? {
-      stripe_payment_intent_id: stripePaymentIntentId,
-      amount_cents: verifiedAmountCents,
-      payment_status: 'paid',
-    } : {}),
+    ...(paymentMethod === 'stripe' && stripePaymentIntentId
+      ? {
+          stripe_payment_intent_id: stripePaymentIntentId,
+          amount_cents: verifiedAmountCents,
+          payment_status: 'paid',
+        }
+      : {}),
   });
 
   if (insertError) {
@@ -277,7 +320,10 @@ export async function POST(req: NextRequest) {
       );
     }
     console.error('Booking insert error:', insertError);
-    return NextResponse.json({ message: 'Failed to save booking. Please try again.' }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Failed to save booking. Please try again.' },
+      { status: 500 },
+    );
   }
 
   const formattedDate = formatBookingDateLong(datetime);
@@ -288,11 +334,30 @@ export async function POST(req: NextRequest) {
     .select('phone, address')
     .eq('user_id', user.id)
     .maybeSingle();
-  const userPhone = (profileRow as { phone?: string | null; address?: string | null } | null)?.phone ?? null;
-  const userAddress = (profileRow as { phone?: string | null; address?: string | null } | null)?.address ?? null;
+  const userPhone =
+    (profileRow as { phone?: string | null; address?: string | null } | null)?.phone ?? null;
+  const userAddress =
+    (profileRow as { phone?: string | null; address?: string | null } | null)?.address ?? null;
 
-  const customerHtml = buildCustomerHtml(dogName, serviceName, formattedDate, petSpecies, paymentMethod, notes);
-  const providerHtml = buildProviderHtml(customerName, user.email, dogName, serviceName, formattedDate, petSpecies, paymentMethod, notes, userAddress ?? undefined);
+  const customerHtml = buildCustomerHtml(
+    dogName,
+    serviceName,
+    formattedDate,
+    petSpecies,
+    paymentMethod,
+    notes,
+  );
+  const providerHtml = buildProviderHtml(
+    customerName,
+    user.email,
+    dogName,
+    serviceName,
+    formattedDate,
+    petSpecies,
+    paymentMethod,
+    notes,
+    userAddress ?? undefined,
+  );
 
   const confirmationSms = userPhone
     ? sendSms(
@@ -332,7 +397,10 @@ export async function POST(req: NextRequest) {
 
   if (customerResult.status === 'rejected') {
     console.error('Customer email error:', customerResult.reason);
-    return NextResponse.json({ message: 'Booking saved but confirmation email failed.' }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Booking saved but confirmation email failed.' },
+      { status: 500 },
+    );
   }
 
   if (providerResult.status === 'rejected') {

@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendSms } from '@/lib/twilio';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
-import { formatBookingDateLong } from '@/lib/format-date';
+import { formatBookingDateLong, isValidFutureDatetime } from '@/lib/format-date';
 
 // Reschedule rate limit — legit users rarely reschedule >10/hr; abuse pattern is
 // loop-reschedule to mail-bomb customer or admin with notifications.
@@ -24,12 +24,7 @@ const transporter = nodemailer.createTransport({
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? '';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://projectpaw.vercel.app';
 
-function buildCustomerHtml(
-  dogName: string,
-  serviceName: string,
-  oldDate: string,
-  newDate: string,
-) {
+function buildCustomerHtml(dogName: string, serviceName: string, oldDate: string, newDate: string) {
   return `
     <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; background: #0f0d09; color: #F5CBA7; border-radius: 16px; overflow: hidden;">
       <div style="background: linear-gradient(135deg, #B2A4FF, #8b7df0); padding: 32px; text-align: center;">
@@ -110,7 +105,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser(token);
   if (authError || !user?.email) {
     return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
   }
@@ -134,7 +132,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const retryAfter = Math.max(userLimit.retryAfterSeconds, ipLimit.retryAfterSeconds);
     const minutes = Math.ceil(retryAfter / 60);
     return NextResponse.json(
-      { message: `Too many reschedule attempts. Please try again in ${minutes} minute${minutes === 1 ? '' : 's'}.` },
+      {
+        message: `Too many reschedule attempts. Please try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`,
+      },
       {
         status: 429,
         headers: { 'Retry-After': String(retryAfter), 'X-RateLimit-Limit': String(PER_USER_MAX) },
@@ -143,10 +143,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const { datetime } = (await req.json()) as { datetime: string };
-  if (!datetime) {
-    return NextResponse.json({ message: 'Datetime required' }, { status: 400 });
-  }
-  if (new Date(datetime) <= new Date()) {
+  if (!isValidFutureDatetime(datetime)) {
     return NextResponse.json({ message: 'Please choose a future date and time.' }, { status: 400 });
   }
 
@@ -200,7 +197,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       );
     }
     console.error('Reschedule update error:', updateError);
-    return NextResponse.json({ message: 'Failed to reschedule. Please try again.' }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Failed to reschedule. Please try again.' },
+      { status: 500 },
+    );
   }
 
   const oldFormatted = formatBookingDateLong(oldDatetime);
