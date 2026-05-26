@@ -31,7 +31,7 @@ export const FAQS: FaqItem[] = [
   },
   {
     q: 'Who will be taking care of my dog?',
-    a: "Sara — every time. Unlike marketplace apps where you get matched with a different sitter each booking, ProjectPaw is one provider with 400+ happy dogs and 4+ years of experience. She handles every service personally, so your dog sees a familiar face from grooming day to overnight boarding. Available 7 days a week.",
+    a: "Sara leads every booking personally, with a small trusted team that helps her deliver care across select services. She oversees every appointment, handles all scheduling herself, and is your main point of contact from first message to pickup. With 400+ happy dogs and 4+ years of experience, your dog will always know who's in charge. Available 7 days a week.",
   },
   {
     q: 'Can I book at short notice?',
@@ -51,7 +51,7 @@ export const FAQS: FaqItem[] = [
   },
   {
     q: 'What payment methods do you accept?',
-    a: "Three options: credit or debit card online (handled by Stripe — the same processor Shopify and Lyft use), cash on arrival, or Interac e-Transfer. Card bookings are charged at checkout. Cash and e-Transfer bookings just need to be settled when you show up.",
+    a: 'Three options: credit or debit card online (handled by Stripe — the same processor Shopify and Lyft use), cash on arrival, or Interac e-Transfer. Card bookings are charged at checkout. Cash and e-Transfer bookings just need to be settled when you show up.',
   },
   {
     q: "What's your cancellation and refund policy?",
@@ -87,7 +87,8 @@ const BUSINESS_JSONLD = {
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
   name: 'ProjectPaw',
-  description: 'Dog grooming, walking, boarding, drop-ins, custom services, and in-home pet sitting in Toronto.',
+  description:
+    'Dog grooming, walking, boarding, drop-ins, custom services, and in-home pet sitting in Toronto.',
   email: CONTACT_EMAIL,
   ...(CONTACT_PHONE_E164 ? { telephone: CONTACT_PHONE_E164 } : {}),
   areaServed: 'Toronto, Ontario, Canada',
@@ -153,7 +154,8 @@ export function FaqSection() {
           </a>
           {CONTACT_PHONE_DISPLAY && (
             <>
-              {' '}or call{' '}
+              {' '}
+              or call{' '}
               <a
                 href={`tel:${CONTACT_PHONE_E164}`}
                 className="whitespace-nowrap text-doggy underline decoration-doggy/40 underline-offset-4 transition-colors hover:decoration-doggy"
@@ -234,7 +236,10 @@ export function FaqSection() {
               href={`mailto:${CONTACT_EMAIL}`}
               className="group inline-flex items-center justify-center gap-2 rounded-xl border border-paw/15 bg-paw/[0.03] px-6 py-3 font-pawprint text-sm font-semibold text-paw/80 transition-all duration-300 hover:border-doggy/40 hover:bg-doggy/[0.06] hover:text-paw"
             >
-              <Mail className="size-4 text-doggy/70 transition-colors group-hover:text-doggy" strokeWidth={2} />
+              <Mail
+                className="size-4 text-doggy/70 transition-colors group-hover:text-doggy"
+                strokeWidth={2}
+              />
               {CONTACT_EMAIL}
             </a>
             {CONTACT_PHONE_DISPLAY && (
@@ -242,7 +247,10 @@ export function FaqSection() {
                 href={`tel:${CONTACT_PHONE_E164}`}
                 className="group inline-flex items-center justify-center gap-2 rounded-xl border border-paw/15 bg-paw/[0.03] px-6 py-3 font-pawprint text-sm font-semibold text-paw/80 transition-all duration-300 hover:border-doggy/40 hover:bg-doggy/[0.06] hover:text-paw"
               >
-                <Phone className="size-4 text-doggy/70 transition-colors group-hover:text-doggy" strokeWidth={2} />
+                <Phone
+                  className="size-4 text-doggy/70 transition-colors group-hover:text-doggy"
+                  strokeWidth={2}
+                />
                 {CONTACT_PHONE_DISPLAY}
               </a>
             )}
