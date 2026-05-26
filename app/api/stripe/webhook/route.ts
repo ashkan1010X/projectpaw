@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import Stripe from 'stripe';
-import { stripe } from '@/lib/stripe';
+import { stripe, isAlreadyRefundedError } from '@/lib/stripe';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sendSms } from '@/lib/twilio';
 import { isPetSpecies, SPECIES_META, type PetSpecies } from '@/lib/species';
@@ -86,15 +86,17 @@ export async function POST(req: NextRequest) {
       await stripe.refunds.create({ payment_intent: intent.id });
       console.warn('Webhook: refunded payment for now-past slot', intent.id);
     } catch (e) {
-      console.error('Webhook: CRITICAL refund failure (past slot) for', intent.id, e);
-      await alertAdminRefundFailed({
-        paymentIntentId: intent.id,
-        amountCents: intent.amount,
-        customerEmail: userEmail,
-        datetime,
-        reason:
-          'Automated refund failed after the booked slot fell into the past (delayed payment).',
-      });
+      if (!isAlreadyRefundedError(e)) {
+        console.error('Webhook: CRITICAL refund failure (past slot) for', intent.id, e);
+        await alertAdminRefundFailed({
+          paymentIntentId: intent.id,
+          amountCents: intent.amount,
+          customerEmail: userEmail,
+          datetime,
+          reason:
+            'Automated refund failed after the booked slot fell into the past (delayed payment).',
+        });
+      }
     }
     return NextResponse.json({ received: true, action: 'refunded_past_slot' });
   }
@@ -112,14 +114,16 @@ export async function POST(req: NextRequest) {
       await stripe.refunds.create({ payment_intent: intent.id });
       console.warn('Webhook: refunded conflicting payment', intent.id);
     } catch (e) {
-      console.error('Webhook: CRITICAL refund failure for', intent.id, e);
-      await alertAdminRefundFailed({
-        paymentIntentId: intent.id,
-        amountCents: intent.amount,
-        customerEmail: userEmail,
-        datetime,
-        reason: 'Automated refund failed after a slot conflict was detected at webhook time.',
-      });
+      if (!isAlreadyRefundedError(e)) {
+        console.error('Webhook: CRITICAL refund failure for', intent.id, e);
+        await alertAdminRefundFailed({
+          paymentIntentId: intent.id,
+          amountCents: intent.amount,
+          customerEmail: userEmail,
+          datetime,
+          reason: 'Automated refund failed after a slot conflict was detected at webhook time.',
+        });
+      }
     }
     return NextResponse.json({ received: true, action: 'refunded_conflict' });
   }

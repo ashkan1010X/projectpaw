@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import { supabase } from '@/lib/supabase';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-import { stripe } from '@/lib/stripe';
+import { stripe, isAlreadyRefundedError } from '@/lib/stripe';
 import { sendSms } from '@/lib/twilio';
 import { isPetSpecies, SPECIES_META, type PetSpecies } from '@/lib/species';
 import { isPaymentMethod, PAYMENT_META, type PaymentMethod } from '@/lib/payment';
@@ -175,9 +175,10 @@ export async function POST(req: NextRequest) {
     stripePaymentIntentId?: string;
   };
 
-  // Reject past slots regardless of what the client sends. For Stripe payments
-  // the money is recovered downstream: the webhook independently guards the same
-  // datetime and refunds any charge whose slot is no longer valid.
+  // Reject past slots regardless of what the client sends. No money is stranded:
+  // for a Stripe payment, either the PI hasn't succeeded yet (the verify check
+  // below returns 402) or it has — in which case the webhook independently guards
+  // the same datetime and refunds the charge. Cash/e-transfer take no payment.
   if (!isValidFutureDatetime(datetime)) {
     return NextResponse.json({ message: 'Please choose a future date and time.' }, { status: 400 });
   }
@@ -250,6 +251,17 @@ export async function POST(req: NextRequest) {
           { status: 409 },
         );
       } catch (refundErr) {
+        // The webhook may have refunded this same PI first (both paths detect the
+        // conflict). That's not a failure — the customer's money is back. Show the
+        // friendly message and don't page the admin.
+        if (isAlreadyRefundedError(refundErr)) {
+          return NextResponse.json(
+            {
+              message: 'That slot was just taken — your payment has been refunded automatically.',
+            },
+            { status: 409 },
+          );
+        }
         console.error('CRITICAL: refund failed after slot conflict', {
           stripePaymentIntentId,
           refundErr,
