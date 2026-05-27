@@ -13,9 +13,7 @@ interface RescheduleDialogProps {
   onConfirm: (newDatetime: string) => Promise<void>;
 }
 
-async function fetchTakenSlots(
-  dateStr: string,
-): Promise<{ hour: number; minute: number }[]> {
+async function fetchTakenSlots(dateStr: string): Promise<{ hour: number; minute: number }[]> {
   try {
     const res = await fetch(`/api/bookings/availability?date=${dateStr}`);
     if (!res.ok) return [];
@@ -75,8 +73,7 @@ export function RescheduleDialog({
 
   if (!isOpen) return null;
 
-  const isUnchanged =
-    new Date(newDatetime).getTime() === new Date(currentDatetime).getTime();
+  const isUnchanged = new Date(newDatetime).getTime() === new Date(currentDatetime).getTime();
 
   async function handleConfirm() {
     if (!newDatetime) {

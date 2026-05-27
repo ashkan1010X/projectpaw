@@ -151,7 +151,12 @@ export async function POST(req: NextRequest) {
   const [ipLimit, emailLimit] = await Promise.all([
     checkRateLimit({ bucket: 'register_ip', identifier: ip, max: 5, windowMinutes: 60 }),
     email
-      ? checkRateLimit({ bucket: 'register_email', identifier: email.toLowerCase().trim(), max: 3, windowMinutes: 60 })
+      ? checkRateLimit({
+          bucket: 'register_email',
+          identifier: email.toLowerCase().trim(),
+          max: 3,
+          windowMinutes: 60,
+        })
       : Promise.resolve({ allowed: true, remaining: 3, retryAfterSeconds: 0 }),
   ]);
 

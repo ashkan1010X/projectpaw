@@ -91,38 +91,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Universal authenticated fetch — handles 401 + refresh + retry automatically
-  const fetchWithAuth = useCallback(async (url: string, options: RequestInit = {}): Promise<Response> => {
-    const currentToken = tokenRef.current;
+  const fetchWithAuth = useCallback(
+    async (url: string, options: RequestInit = {}): Promise<Response> => {
+      const currentToken = tokenRef.current;
 
-    const headersWithAuth = {
-      ...(options.headers ?? {}),
-      ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {}),
-    };
+      const headersWithAuth = {
+        ...(options.headers ?? {}),
+        ...(currentToken ? { Authorization: `Bearer ${currentToken}` } : {}),
+      };
 
-    let res = await fetch(url, { ...options, headers: headersWithAuth });
+      let res = await fetch(url, { ...options, headers: headersWithAuth });
 
-    if (res.status === 401) {
-      const newToken = await doRefresh();
-      if (!newToken) {
-        // Refresh failed — clear session and redirect to login
-        tokenRef.current = null;
-        refreshTokenRef.current = null;
-        setUser(null);
-        setToken(null);
-        localStorage.removeItem('token');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('doguser');
-        window.location.href = '/login';
-        throw new Error('Session expired. Redirecting to login…');
+      if (res.status === 401) {
+        const newToken = await doRefresh();
+        if (!newToken) {
+          // Refresh failed — clear session and redirect to login
+          tokenRef.current = null;
+          refreshTokenRef.current = null;
+          setUser(null);
+          setToken(null);
+          localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('doguser');
+          window.location.href = '/login';
+          throw new Error('Session expired. Redirecting to login…');
+        }
+        res = await fetch(url, {
+          ...options,
+          headers: { ...(options.headers ?? {}), Authorization: `Bearer ${newToken}` },
+        });
       }
-      res = await fetch(url, {
-        ...options,
-        headers: { ...(options.headers ?? {}), Authorization: `Bearer ${newToken}` },
-      });
-    }
 
-    return res;
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+      return res;
+    },
+    [],
+  ); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Boot: restore session + auto-refresh if expired
   useEffect(() => {
@@ -213,7 +216,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, initialized, login, logout, updateName, refreshSession, fetchWithAuth }}>
+    <AuthContext.Provider
+      value={{ user, token, initialized, login, logout, updateName, refreshSession, fetchWithAuth }}
+    >
       {children}
     </AuthContext.Provider>
   );

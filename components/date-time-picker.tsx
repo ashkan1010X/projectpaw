@@ -6,8 +6,18 @@ import { CalendarIcon, ChevronLeft, ChevronRight, ArrowLeft, Clock } from 'lucid
 import { cn } from '@/lib/utils';
 
 const MONTH_NAMES = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ];
 const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
@@ -27,7 +37,10 @@ const TIME_SLOTS = Array.from({ length: (LAST_HOUR - FIRST_HOUR + 1) * 2 }, (_, 
   return { label: `${displayHour}:${displayMinute} ${period}`, hour, minute };
 });
 
-interface TakenSlot { hour: number; minute: number }
+interface TakenSlot {
+  hour: number;
+  minute: number;
+}
 
 interface DateTimePickerProps {
   value: string;
@@ -64,10 +77,7 @@ function buildCalendarDays(year: number, month: number): (Date | null)[] {
   const first = new Date(year, month, 1);
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const leadingNulls: null[] = Array(first.getDay()).fill(null);
-  const days: Date[] = Array.from(
-    { length: daysInMonth },
-    (_, i) => new Date(year, month, i + 1),
-  );
+  const days: Date[] = Array.from({ length: daysInMonth }, (_, i) => new Date(year, month, i + 1));
   return [...leadingNulls, ...days];
 }
 
@@ -130,11 +140,7 @@ export function DateTimePicker({
     if (!open) return;
     function onMouseDown(e: MouseEvent) {
       const target = e.target as Node;
-      if (
-        triggerRef.current?.contains(target) ||
-        popoverRef.current?.contains(target)
-      )
-        return;
+      if (triggerRef.current?.contains(target) || popoverRef.current?.contains(target)) return;
       setOpen(false);
     }
     document.addEventListener('mousedown', onMouseDown);
@@ -323,9 +329,7 @@ export function DateTimePicker({
         ) : (
           <div className="space-y-1.5">
             {TIME_SLOTS.map(({ label, hour, minute }) => {
-              const isTaken = takenSlots.some(
-                (s) => s.hour === hour && s.minute === minute,
-              );
+              const isTaken = takenSlots.some((s) => s.hour === hour && s.minute === minute);
               const isPast = !selectedDate
                 ? true
                 : sameDay(selectedDate, min) &&
@@ -357,7 +361,9 @@ export function DateTimePicker({
                         Taken
                       </span>
                     </span>
-                  ) : label}
+                  ) : (
+                    label
+                  )}
                 </button>
               );
             })}
@@ -389,7 +395,13 @@ export function DateTimePicker({
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => { if (open) { setOpen(false); } else { openPopover(); } }}
+        onClick={() => {
+          if (open) {
+            setOpen(false);
+          } else {
+            openPopover();
+          }
+        }}
         className={cn(
           'w-full rounded-xl border bg-paw/[0.03] px-4 py-3',
           'flex items-center justify-between gap-3',

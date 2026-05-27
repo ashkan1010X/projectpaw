@@ -13,9 +13,11 @@
 ## Layout Sections
 
 ### 1. Stats Row (updated)
+
 Three stat cards remain. The middle card changes from "Last Service" to **"Next Up"** — shows the service name of the hero booking (the soonest upcoming confirmed booking), or `—` if none.
 
 ### 2. Hero Card (next upcoming booking)
+
 - Soonest upcoming booking (non-cancelled, datetime > now) gets a featured card
 - Purple-tinted background: `bg-gradient-to-br from-doggy/[0.12] to-doggy/[0.04]` with `border-doggy/[0.2]`
 - Shows: service name (large, `font-elegant`), dog name, formatted date/time, and a countdown label ("3 days away" / "Tomorrow" / "Today")
@@ -23,6 +25,7 @@ Three stat cards remain. The middle card changes from "Last Service" to **"Next 
 - `animate-fade-in` on mount
 
 ### 3. Also Upcoming (compact list)
+
 - All remaining upcoming bookings (confirmed, datetime > now, excluding the hero)
 - Smaller cards, same border style as current booking rows
 - Cancel button present on each
@@ -30,6 +33,7 @@ Three stat cards remain. The middle card changes from "Last Service" to **"Next 
 - If only one upcoming booking exists, this section is hidden (hero card only)
 
 ### 4. Past & Cancelled (history section)
+
 - All bookings where `status === 'cancelled'` OR `datetime <= now`
 - Cards rendered at `opacity-60`, darker background (`bg-[#141210]`), no Cancel button
 - Rebook button on each
@@ -38,9 +42,11 @@ Three stat cards remain. The middle card changes from "Last Service" to **"Next 
 - If no past bookings, section is hidden entirely
 
 ### 5. Empty State (no bookings at all)
+
 - Unchanged from current: friendly message + "Book Your First Service" CTA → `/services`
 
 ### 6. Empty Upcoming State (has past but no upcoming)
+
 - New state: "No upcoming bookings" message inside a subtle card above the history section
 - CTA: "Book Again →" linking to `/services`
 
@@ -50,13 +56,13 @@ Three stat cards remain. The middle card changes from "Last Service" to **"Next 
 
 ```typescript
 const now = new Date();
-const upcoming = bookings.filter(
-  (b) => b.status !== 'cancelled' && new Date(b.datetime) > now
-).sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
+const upcoming = bookings
+  .filter((b) => b.status !== 'cancelled' && new Date(b.datetime) > now)
+  .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
 
-const past = bookings.filter(
-  (b) => b.status === 'cancelled' || new Date(b.datetime) <= now
-).sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime()); // newest first
+const past = bookings
+  .filter((b) => b.status === 'cancelled' || new Date(b.datetime) <= now)
+  .sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime()); // newest first
 
 const heroBooking = upcoming[0] ?? null;
 const alsoUpcoming = upcoming.slice(1);
@@ -66,9 +72,7 @@ const alsoUpcoming = upcoming.slice(1);
 
 ```typescript
 function daysAway(datetime: string): string {
-  const diff = Math.ceil(
-    (new Date(datetime).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-  );
+  const diff = Math.ceil((new Date(datetime).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   if (diff === 0) return 'Today';
   if (diff === 1) return 'Tomorrow';
   return `${diff} days away`;
@@ -87,6 +91,7 @@ function daysAway(datetime: string): string {
 ## Testing
 
 After implementation, run Playwright across Galaxy S20 (360px), iPhone 14 (390px), iPad (768px), Desktop (1280px) and verify:
+
 - Hero card renders correctly with countdown
 - Cancel works from hero card and also-upcoming rows
 - Rebook works from history rows

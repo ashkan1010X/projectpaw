@@ -2,7 +2,15 @@
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { Check, Phone, PawPrint, CalendarPlus, ArrowRight, Sparkles, PartyPopper } from 'lucide-react';
+import {
+  Check,
+  Phone,
+  PawPrint,
+  CalendarPlus,
+  ArrowRight,
+  Sparkles,
+  PartyPopper,
+} from 'lucide-react';
 
 // LinkedIn-style profile-completion checklist with a celebration moment
 // when the user hits 4/4. Lives on the dashboard; hides itself afterwards.
@@ -228,8 +236,8 @@ export function OnboardingChecklist({
                   step.done
                     ? 'bg-doggy/15 text-doggy ring-1 ring-doggy/30'
                     : isNext
-                    ? 'bg-doggy text-white shadow-lg shadow-doggy/35 ring-1 ring-doggy/40'
-                    : 'bg-paw/[0.06] text-paw/45 ring-1 ring-paw/10'
+                      ? 'bg-doggy text-white shadow-lg shadow-doggy/35 ring-1 ring-doggy/40'
+                      : 'bg-paw/[0.06] text-paw/45 ring-1 ring-paw/10'
                 }`}
                 aria-hidden
               >

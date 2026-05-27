@@ -9,7 +9,10 @@ const BUCKET = 'dog-photos';
 async function getUser(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return { error: 'Unauthorized', status: 401 as const };
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser(token);
   if (error || !user) return { error: 'Invalid session', status: 401 as const };
   return { user };
 }
@@ -31,9 +34,12 @@ function extractStoragePath(url: string | null): string | null {
 async function deleteStoragePhoto(url: string | null) {
   const path = extractStoragePath(url);
   if (!path) return;
-  await supabaseAdmin.storage.from(BUCKET).remove([path]).catch((e) => {
-    console.error('Pet photo cleanup error:', e);
-  });
+  await supabaseAdmin.storage
+    .from(BUCKET)
+    .remove([path])
+    .catch((e) => {
+      console.error('Pet photo cleanup error:', e);
+    });
 }
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -42,13 +48,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const { id } = await params;
 
-  const body = (await req.json().catch(() => ({}))) as Partial<Omit<PetRow, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'sort_order'>>;
+  const body = (await req.json().catch(() => ({}))) as Partial<
+    Omit<PetRow, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'sort_order'>
+  >;
 
   const updates: Record<string, string | null> = {};
   if (body.name !== undefined) {
     const name = sanitize(body.name);
     if (!name) return NextResponse.json({ message: "Pet's name is required." }, { status: 400 });
-    if (name.length > 60) return NextResponse.json({ message: 'Name is too long (max 60).' }, { status: 400 });
+    if (name.length > 60)
+      return NextResponse.json({ message: 'Name is too long (max 60).' }, { status: 400 });
     updates.name = name;
   }
   if (body.species !== undefined) {

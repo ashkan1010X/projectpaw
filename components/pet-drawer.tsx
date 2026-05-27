@@ -176,16 +176,24 @@ export function PetDrawer({ open, initial, saving, error, onClose, onSave, mode 
                 className="group relative size-24 cursor-pointer rounded-full transition-transform duration-300 hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-doggy/60"
               >
                 {form.photo_url ? (
-                  <Image src={form.photo_url} alt="Pet photo" fill className="rounded-full object-cover" sizes="96px" />
+                  <Image
+                    src={form.photo_url}
+                    alt="Pet photo"
+                    fill
+                    className="rounded-full object-cover"
+                    sizes="96px"
+                  />
                 ) : (
                   <div className="flex size-full items-center justify-center rounded-full border-2 border-dashed border-doggy/30 bg-doggy/[0.08]">
                     <PawPrint className="size-9 text-doggy/40" strokeWidth={1.5} />
                   </div>
                 )}
-                <div className={cn(
-                  'absolute inset-0 flex items-center justify-center rounded-full bg-black/50 transition-opacity duration-200',
-                  photoUploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
-                )}>
+                <div
+                  className={cn(
+                    'absolute inset-0 flex items-center justify-center rounded-full bg-black/50 transition-opacity duration-200',
+                    photoUploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+                  )}
+                >
                   {photoUploading ? (
                     <Loader2 className="size-6 animate-spin text-white" strokeWidth={1.5} />
                   ) : (
@@ -209,11 +217,11 @@ export function PetDrawer({ open, initial, saving, error, onClose, onSave, mode 
                   Remove photo
                 </button>
               ) : (
-                <p className="font-pawprint text-[11px] text-paw/30">Optional · JPG/PNG · 5 MB max</p>
+                <p className="font-pawprint text-[11px] text-paw/30">
+                  Optional · JPG/PNG · 5 MB max
+                </p>
               )}
-              {photoError && (
-                <p className="font-pawprint text-[11px] text-red-400">{photoError}</p>
-              )}
+              {photoError && <p className="font-pawprint text-[11px] text-red-400">{photoError}</p>}
               <input
                 ref={fileRef}
                 type="file"
@@ -232,11 +240,7 @@ export function PetDrawer({ open, initial, saving, error, onClose, onSave, mode 
               <label className="mb-1.5 block font-pawprint text-xs text-paw/55">
                 Pet Type <span className="text-doggy">*</span>
               </label>
-              <div
-                role="radiogroup"
-                aria-label="Pet type"
-                className="flex flex-wrap gap-1.5"
-              >
+              <div role="radiogroup" aria-label="Pet type" className="flex flex-wrap gap-1.5">
                 {PET_SPECIES.map((s) => {
                   const meta = SPECIES_META[s];
                   const Icon = meta.Icon;
@@ -273,10 +277,16 @@ export function PetDrawer({ open, initial, saving, error, onClose, onSave, mode 
                 id="pet-name"
                 type="text"
                 value={form.name}
-                onChange={(e) => { set('name')(e); if (nameError) setNameError(null); }}
+                onChange={(e) => {
+                  set('name')(e);
+                  if (nameError) setNameError(null);
+                }}
                 placeholder="e.g. Biscuit"
                 autoFocus
-                className={cn(inputClass, nameError && 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/15')}
+                className={cn(
+                  inputClass,
+                  nameError && 'border-red-500/50 focus:border-red-500/70 focus:ring-red-500/15',
+                )}
                 maxLength={60}
               />
               {nameError && (
@@ -287,19 +297,55 @@ export function PetDrawer({ open, initial, saving, error, onClose, onSave, mode 
             {/* Breed + Age */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="pet-breed" className="mb-1.5 block font-pawprint text-xs text-paw/55">Breed</label>
-                <input id="pet-breed" type="text" value={form.breed} onChange={set('breed')} placeholder={SPECIES_META[form.species].breedPlaceholder} className={inputClass} maxLength={60} />
+                <label
+                  htmlFor="pet-breed"
+                  className="mb-1.5 block font-pawprint text-xs text-paw/55"
+                >
+                  Breed
+                </label>
+                <input
+                  id="pet-breed"
+                  type="text"
+                  value={form.breed}
+                  onChange={set('breed')}
+                  placeholder={SPECIES_META[form.species].breedPlaceholder}
+                  className={inputClass}
+                  maxLength={60}
+                />
               </div>
               <div>
-                <label htmlFor="pet-age" className="mb-1.5 block font-pawprint text-xs text-paw/55">Age</label>
-                <input id="pet-age" type="text" value={form.age} onChange={set('age')} placeholder="e.g. 3 yrs" className={inputClass} maxLength={20} />
+                <label htmlFor="pet-age" className="mb-1.5 block font-pawprint text-xs text-paw/55">
+                  Age
+                </label>
+                <input
+                  id="pet-age"
+                  type="text"
+                  value={form.age}
+                  onChange={set('age')}
+                  placeholder="e.g. 3 yrs"
+                  className={inputClass}
+                  maxLength={20}
+                />
               </div>
             </div>
 
             {/* Weight */}
             <div>
-              <label htmlFor="pet-weight" className="mb-1.5 block font-pawprint text-xs text-paw/55">Weight</label>
-              <input id="pet-weight" type="text" value={form.weight} onChange={set('weight')} placeholder="e.g. 25 lbs" className={inputClass} maxLength={20} />
+              <label
+                htmlFor="pet-weight"
+                className="mb-1.5 block font-pawprint text-xs text-paw/55"
+              >
+                Weight
+              </label>
+              <input
+                id="pet-weight"
+                type="text"
+                value={form.weight}
+                onChange={set('weight')}
+                placeholder="e.g. 25 lbs"
+                className={inputClass}
+                maxLength={20}
+              />
             </div>
 
             {/* Notes */}
@@ -343,7 +389,9 @@ export function PetDrawer({ open, initial, saving, error, onClose, onSave, mode 
             className="group relative flex-1 cursor-pointer overflow-hidden rounded-xl bg-doggy py-3 font-pawprint text-sm font-bold text-white shadow-lg shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-            <span className="relative">{saving ? 'Saving…' : mode === 'add' ? 'Add Pet' : 'Save'}</span>
+            <span className="relative">
+              {saving ? 'Saving…' : mode === 'add' ? 'Add Pet' : 'Save'}
+            </span>
           </button>
         </div>
       </div>

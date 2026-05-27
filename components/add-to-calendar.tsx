@@ -13,15 +13,13 @@ interface AddToCalendarProps {
 
 function fmtIcsDate(d: Date): string {
   // YYYYMMDDTHHmmssZ format (UTC)
-  return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  return d
+    .toISOString()
+    .replace(/[-:]/g, '')
+    .replace(/\.\d{3}/, '');
 }
 
-function buildGoogleUrl(
-  title: string,
-  details: string,
-  start: Date,
-  end: Date,
-): string {
+function buildGoogleUrl(title: string, details: string, start: Date, end: Date): string {
   const params = new URLSearchParams({
     action: 'TEMPLATE',
     text: title,
@@ -31,13 +29,7 @@ function buildGoogleUrl(
   return `https://www.google.com/calendar/render?${params.toString()}`;
 }
 
-function buildIcsBlob(
-  uid: string,
-  title: string,
-  details: string,
-  start: Date,
-  end: Date,
-): Blob {
+function buildIcsBlob(uid: string, title: string, details: string, start: Date, end: Date): Blob {
   const ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',

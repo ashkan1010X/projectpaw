@@ -50,6 +50,7 @@ CREATE POLICY "Users can update own profile"
 - Max file size: 5 MB (enforced client-side before upload)
 
 Storage RLS policy:
+
 ```sql
 CREATE POLICY "Authenticated users can upload their own dog photo"
   ON storage.objects FOR INSERT
@@ -94,6 +95,7 @@ CREATE POLICY "Users can delete own dog photo"
 ## Files
 
 ### New files
+
 - `app/profile/page.tsx` — client component, auth-gated
 - `app/profile/loading.tsx` — skeleton matching the two-column layout
 - `components/dog-photo-upload.tsx` — circular upload component (photo, spinner, paw placeholder, camera badge)
@@ -101,6 +103,7 @@ CREATE POLICY "Users can delete own dog photo"
 - `app/api/profile/route.ts` — GET + PATCH handlers
 
 ### Modified files
+
 - `components/nav-bar.tsx` — replace "Hi, name" + logout button with pill dropdown
 - `components/booking-modal.tsx` — read `dog_name` from profile API on open, pre-fill the dog name field
 - `contexts/auth-context.tsx` — add `updateName(name: string)` helper so profile save can sync the displayed name
@@ -112,12 +115,14 @@ CREATE POLICY "Users can delete own dog photo"
 ### Layout (desktop: two-column, mobile: single-column stack)
 
 **Left column — Personal Info:**
+
 - Full Name — editable text input (also updates `user_metadata.name` on save)
 - Email — view-only, dashed border, "locked" badge
 - Phone — editable
 - Address — editable
 
 **Right column — My Dog card:**
+
 - Gradient card (`rgba(178,164,255,0.07)` background, `rgba(178,164,255,0.15)` border)
 - Centered 108px circular photo with camera badge (📷) at bottom-right
   - No photo: paw placeholder (🐾), dashed purple border
@@ -127,6 +132,7 @@ CREATE POLICY "Users can delete own dog photo"
 - Breed + Age — 2-column grid inputs
 
 **Footer:**
+
 - Left: success toast slot ("✓ Profile saved" in emerald, fades out after 3s)
 - Right: Cancel button + Save Changes button (purple gradient, shadow)
 
@@ -149,6 +155,7 @@ CREATE POLICY "Users can delete own dog photo"
 6. Cancel → reset local state to last saved values
 
 ### Auth guard
+
 If `!user || !token` after `initialized`, redirect to `/login`.
 
 ---
@@ -198,6 +205,7 @@ Replace the current desktop "Hi, name" + Dashboard/Admin/Logout buttons with:
 ```
 
 Dropdown menu (absolute positioned, right-aligned):
+
 - My Profile → `/profile`
 - My Bookings → `/dashboard`
 - Admin → `/admin` (only if `user.email === ADMIN_EMAIL`)
@@ -221,6 +229,7 @@ Only pre-fill if the user hasn't already provided an `initialDogName` (rebook fl
 ## Loading Skeleton (`app/profile/loading.tsx`)
 
 Two-column skeleton matching the layout:
+
 - Left: 4 field skeletons (label + input bar, `animate-pulse bg-paw/[0.08]`)
 - Right: centered circle skeleton + 3 field skeletons
 
@@ -228,13 +237,13 @@ Two-column skeleton matching the layout:
 
 ## Error Handling
 
-| Scenario | Behaviour |
-|----------|-----------|
-| Profile fetch fails | Show inline error, fields empty but editable |
-| File > 5MB | Error toast immediately, no upload started |
-| Upload to Storage fails | Error toast, photo reverts to previous |
-| PATCH /api/profile fails | Error toast "Failed to save — try again" |
-| Name update fails | Log error, profile still saved (non-blocking) |
+| Scenario                 | Behaviour                                     |
+| ------------------------ | --------------------------------------------- |
+| Profile fetch fails      | Show inline error, fields empty but editable  |
+| File > 5MB               | Error toast immediately, no upload started    |
+| Upload to Storage fails  | Error toast, photo reverts to previous        |
+| PATCH /api/profile fails | Error toast "Failed to save — try again"      |
+| Name update fails        | Log error, profile still saved (non-blocking) |
 
 ---
 

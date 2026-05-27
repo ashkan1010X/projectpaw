@@ -10,7 +10,10 @@ export async function POST(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser(token);
   if (authError || !user) return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
 
   const formData = await req.formData();
@@ -38,7 +41,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Upload failed' }, { status: 500 });
   }
 
-  const { data: { publicUrl } } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(path);
+  const {
+    data: { publicUrl },
+  } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(path);
 
   return NextResponse.json({ url: publicUrl });
 }

@@ -12,18 +12,19 @@
 
 ## File Structure
 
-| File | Action | Purpose |
-|------|--------|---------|
-| `components/confirm-dialog.tsx` | **Create** | Branded reusable confirmation modal |
-| `app/admin/page.tsx` | **Modify** | Use ConfirmDialog for delete; per-field validation in drawer |
-| `app/dashboard/page.tsx` | **Modify** | Loading skeleton; use ConfirmDialog for cancel booking |
-| `components/booking-modal.tsx` | **Modify** | Per-field validation for dogName and datetime |
+| File                            | Action     | Purpose                                                      |
+| ------------------------------- | ---------- | ------------------------------------------------------------ |
+| `components/confirm-dialog.tsx` | **Create** | Branded reusable confirmation modal                          |
+| `app/admin/page.tsx`            | **Modify** | Use ConfirmDialog for delete; per-field validation in drawer |
+| `app/dashboard/page.tsx`        | **Modify** | Loading skeleton; use ConfirmDialog for cancel booking       |
+| `components/booking-modal.tsx`  | **Modify** | Per-field validation for dogName and datetime                |
 
 ---
 
 ### Task 1: ConfirmDialog component
 
 **Files:**
+
 - Create: `components/confirm-dialog.tsx`
 
 **Context:** The app uses a dark design system. Colors: `paw` (#F5CBA7 tan), `doggy` (#B2A4FF purple), `accent` (#F9D923 yellow), background `#1a1612`. Fonts: `font-elegant` (Playfair Display), `font-pawprint` (Baloo 2). All Tailwind, no plain CSS. This component must handle Escape key, backdrop click to cancel, and aria roles for accessibility. It is used in two places: admin delete service (destructive = true) and dashboard cancel booking (destructive = true).
@@ -78,16 +79,10 @@ export function ConfirmDialog({
       onClick={(e) => e.target === e.currentTarget && onCancel()}
     >
       <div className="w-full max-w-sm rounded-2xl border border-paw/[0.12] bg-[#1a1612] p-6 shadow-2xl">
-        <h2
-          id="confirm-title"
-          className="font-elegant text-xl font-black text-paw"
-        >
+        <h2 id="confirm-title" className="font-elegant text-xl font-black text-paw">
           {title}
         </h2>
-        <p
-          id="confirm-message"
-          className="mt-2 font-pawprint text-sm text-paw/55"
-        >
+        <p id="confirm-message" className="mt-2 font-pawprint text-sm text-paw/55">
           {message}
         </p>
         <div className="mt-6 flex gap-3">
@@ -127,6 +122,7 @@ git commit -m "feat(ui): add reusable ConfirmDialog component"
 ### Task 2: Admin — replace window.confirm/alert with ConfirmDialog
 
 **Files:**
+
 - Modify: `app/admin/page.tsx`
 
 **Context:** The admin page currently calls `window.confirm('Delete this service? ...')` and `window.alert('Failed to delete service.')` / `window.alert('Network error...')` inside `handleDelete`. We replace these with a `ConfirmDialog` + in-component error state. The deletion flow becomes: click Del → open dialog → user confirms → call API → on failure, set `deleteError` string shown as a toast-style banner.
@@ -184,20 +180,26 @@ async function confirmDelete() {
 Inside the `return (...)` of `AdminPage`, just before the closing `</main>` tag, add:
 
 ```tsx
-{/* Delete error banner */}
-{deleteError && (
-  <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-xl border border-red-500/25 bg-[#1a1612] px-5 py-3 shadow-2xl">
-    <p className="font-pawprint text-sm text-red-400">{deleteError}</p>
-    <button
-      onClick={() => setDeleteError(null)}
-      className="ml-3 font-pawprint text-xs text-red-400/60 hover:text-red-400"
-    >
-      Dismiss
-    </button>
-  </div>
-)}
+{
+  /* Delete error banner */
+}
+{
+  deleteError && (
+    <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-xl border border-red-500/25 bg-[#1a1612] px-5 py-3 shadow-2xl">
+      <p className="font-pawprint text-sm text-red-400">{deleteError}</p>
+      <button
+        onClick={() => setDeleteError(null)}
+        className="ml-3 font-pawprint text-xs text-red-400/60 hover:text-red-400"
+      >
+        Dismiss
+      </button>
+    </div>
+  );
+}
 
-{/* Delete confirmation dialog */}
+{
+  /* Delete confirmation dialog */
+}
 <ConfirmDialog
   isOpen={pendingDeleteId !== null}
   title="Delete Service"
@@ -207,7 +209,7 @@ Inside the `return (...)` of `AdminPage`, just before the closing `</main>` tag,
   destructive
   onConfirm={confirmDelete}
   onCancel={() => setPendingDeleteId(null)}
-/>
+/>;
 ```
 
 - [ ] **Step 5: Verify no window.confirm or window.alert remain**
@@ -230,6 +232,7 @@ git commit -m "fix(admin): replace window.confirm/alert with branded ConfirmDial
 ### Task 3: Admin — per-field inline validation in drawer
 
 **Files:**
+
 - Modify: `app/admin/page.tsx`
 
 **Context:** The admin drawer currently collects name, price, duration, description and shows a single `drawerError` string at the bottom on submit. We add `DrawerErrors` state — one optional string per field — validated on blur and cleared as the user types. The existing `drawerError` state stays for API-level errors (distinct from field-level validation errors).
@@ -275,6 +278,7 @@ function validateField(field: keyof DrawerErrors, value: string): string | undef
 For each field in the form, add `onBlur` and update `onChange` to also clear the field error. Here are the complete input elements to replace:
 
 **Name input** (replace existing `<input value={form.name} ...>`):
+
 ```tsx
 <input
   value={form.name}
@@ -291,13 +295,14 @@ For each field in the form, add `onBlur` and update `onChange` to also clear the
     fieldErrors.name ? 'border-red-500/60' : 'border-paw/10',
   )}
   placeholder="e.g. Grooming"
-/>
-{fieldErrors.name && (
-  <p className="mt-1 font-pawprint text-xs text-red-400">{fieldErrors.name}</p>
-)}
+/>;
+{
+  fieldErrors.name && <p className="mt-1 font-pawprint text-xs text-red-400">{fieldErrors.name}</p>;
+}
 ```
 
 **Price input** (replace existing `<input type="number" ...>`):
+
 ```tsx
 <input
   type="number"
@@ -316,13 +321,16 @@ For each field in the form, add `onBlur` and update `onChange` to also clear the
     fieldErrors.price ? 'border-red-500/60' : 'border-paw/10',
   )}
   placeholder="30"
-/>
-{fieldErrors.price && (
-  <p className="mt-1 font-pawprint text-xs text-red-400">{fieldErrors.price}</p>
-)}
+/>;
+{
+  fieldErrors.price && (
+    <p className="mt-1 font-pawprint text-xs text-red-400">{fieldErrors.price}</p>
+  );
+}
 ```
 
 **Duration input** (replace existing `<input value={form.duration} ...>`):
+
 ```tsx
 <input
   value={form.duration}
@@ -339,13 +347,16 @@ For each field in the form, add `onBlur` and update `onChange` to also clear the
     fieldErrors.duration ? 'border-red-500/60' : 'border-paw/10',
   )}
   placeholder="90 min"
-/>
-{fieldErrors.duration && (
-  <p className="mt-1 font-pawprint text-xs text-red-400">{fieldErrors.duration}</p>
-)}
+/>;
+{
+  fieldErrors.duration && (
+    <p className="mt-1 font-pawprint text-xs text-red-400">{fieldErrors.duration}</p>
+  );
+}
 ```
 
 **Description textarea** (replace existing `<textarea value={form.description} ...>`):
+
 ```tsx
 <textarea
   value={form.description}
@@ -363,10 +374,12 @@ For each field in the form, add `onBlur` and update `onChange` to also clear the
     fieldErrors.description ? 'border-red-500/60' : 'border-paw/10',
   )}
   placeholder="Describe the service..."
-/>
-{fieldErrors.description && (
-  <p className="mt-1 font-pawprint text-xs text-red-400">{fieldErrors.description}</p>
-)}
+/>;
+{
+  fieldErrors.description && (
+    <p className="mt-1 font-pawprint text-xs text-red-400">{fieldErrors.description}</p>
+  );
+}
 ```
 
 - [ ] **Step 4: Update handleSave to validate all fields first**
@@ -393,6 +406,7 @@ async function handleSave() {
 ```
 
 Also clear fieldErrors when drawer closes. In `closeDrawer`:
+
 ```tsx
 function closeDrawer() {
   setDrawerOpen(false);
@@ -413,6 +427,7 @@ git commit -m "feat(admin): inline per-field validation in service drawer"
 ### Task 4: Dashboard — loading skeleton
 
 **Files:**
+
 - Modify: `app/dashboard/page.tsx`
 
 **Context:** Currently `app/dashboard/page.tsx` returns `null` when `loading === true`. This causes a blank white flash. Replace with a skeleton that mirrors the page's actual structure: a header section, a stats row (3 boxes), and a list of booking rows. Use `animate-pulse` for the shimmer effect. The skeleton must match the real layout precisely to avoid layout shift.
@@ -474,11 +489,13 @@ function DashboardSkeleton() {
 - [ ] **Step 2: Replace `if (loading) return null`**
 
 Find:
+
 ```tsx
 if (loading) return null;
 ```
 
 Replace with:
+
 ```tsx
 if (loading) return <DashboardSkeleton />;
 ```
@@ -495,6 +512,7 @@ git commit -m "feat(dashboard): loading skeleton replaces blank null state"
 ### Task 5: Dashboard — ConfirmDialog for cancel booking
 
 **Files:**
+
 - Modify: `app/dashboard/page.tsx`
 
 **Context:** Currently clicking "Cancel" on a booking immediately fires the cancel API with no confirmation step. This is a destructive action that should require confirmation. We use the `ConfirmDialog` we built in Task 1. The pattern: clicking Cancel sets `pendingCancelBooking: Booking | null`, the dialog renders with the booking's service name and dog name in the message, confirming calls `handleCancel`.
@@ -502,6 +520,7 @@ git commit -m "feat(dashboard): loading skeleton replaces blank null state"
 - [ ] **Step 1: Import ConfirmDialog**
 
 Add to imports in `app/dashboard/page.tsx`:
+
 ```tsx
 import { ConfirmDialog } from '@/components/confirm-dialog';
 ```
@@ -509,6 +528,7 @@ import { ConfirmDialog } from '@/components/confirm-dialog';
 - [ ] **Step 2: Add pendingCancelBooking state**
 
 Add after the existing state declarations:
+
 ```tsx
 const [pendingCancelBooking, setPendingCancelBooking] = useState<Booking | null>(null);
 ```
@@ -526,22 +546,26 @@ onClick={() => setPendingCancelBooking(booking)}
 Inside the `return (...)`, just before the `{/* Rebook modal */}` block, add:
 
 ```tsx
-{/* Cancel confirmation */}
-{pendingCancelBooking && (
-  <ConfirmDialog
-    isOpen
-    title="Cancel Booking"
-    message={`Cancel ${pendingCancelBooking.service_name} for ${pendingCancelBooking.dog_name}? This cannot be undone.`}
-    confirmLabel="Yes, Cancel"
-    cancelLabel="Keep it"
-    destructive
-    onConfirm={() => {
-      void handleCancel(pendingCancelBooking);
-      setPendingCancelBooking(null);
-    }}
-    onCancel={() => setPendingCancelBooking(null)}
-  />
-)}
+{
+  /* Cancel confirmation */
+}
+{
+  pendingCancelBooking && (
+    <ConfirmDialog
+      isOpen
+      title="Cancel Booking"
+      message={`Cancel ${pendingCancelBooking.service_name} for ${pendingCancelBooking.dog_name}? This cannot be undone.`}
+      confirmLabel="Yes, Cancel"
+      cancelLabel="Keep it"
+      destructive
+      onConfirm={() => {
+        void handleCancel(pendingCancelBooking);
+        setPendingCancelBooking(null);
+      }}
+      onCancel={() => setPendingCancelBooking(null)}
+    />
+  );
+}
 ```
 
 - [ ] **Step 5: Commit**
@@ -556,6 +580,7 @@ git commit -m "feat(dashboard): confirm dialog before cancelling a booking"
 ### Task 6: Booking modal — per-field inline validation
 
 **Files:**
+
 - Modify: `components/booking-modal.tsx`
 
 **Context:** The booking modal already uses HTML5 `required` on inputs, but browser-native validation looks inconsistent across platforms. We replace it with controlled validation: `dogName` must be non-empty, `datetime` must be non-empty and in the future. Show per-field errors below the field; the field border turns red. Remove `required` from the inputs (we control it ourselves). The global `error` state stays for API-level failures.

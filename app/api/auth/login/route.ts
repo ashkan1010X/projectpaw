@@ -35,7 +35,9 @@ export async function POST(req: NextRequest) {
     const retryAfter = Math.max(emailLimit.retryAfterSeconds, ipLimit.retryAfterSeconds);
     const minutes = Math.ceil(retryAfter / 60);
     return NextResponse.json(
-      { message: `Too many login attempts. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.` },
+      {
+        message: `Too many login attempts. Try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`,
+      },
       {
         status: 429,
         headers: { 'Retry-After': String(retryAfter), 'X-RateLimit-Limit': String(PER_EMAIL_MAX) },

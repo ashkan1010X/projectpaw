@@ -71,17 +71,28 @@ export function DogPhotoUpload({ currentUrl, onUpload, onError }: DogPhotoUpload
         )}
       >
         {preview ? (
-          <Image src={preview} alt="Dog photo" fill className="rounded-full object-cover" sizes="108px" />
+          <Image
+            src={preview}
+            alt="Dog photo"
+            fill
+            className="rounded-full object-cover"
+            sizes="108px"
+          />
         ) : (
-          <div className="flex size-full items-center justify-center rounded-full border-2 border-dashed border-doggy/30 bg-doggy/[0.08]" style={{ boxShadow: '0 0 28px rgba(178,164,255,0.10)' }}>
+          <div
+            className="flex size-full items-center justify-center rounded-full border-2 border-dashed border-doggy/30 bg-doggy/[0.08]"
+            style={{ boxShadow: '0 0 28px rgba(178,164,255,0.10)' }}
+          >
             <PawPrint className="size-10 text-doggy/40" strokeWidth={1.5} />
           </div>
         )}
 
-        <div className={cn(
-          'absolute inset-0 flex items-center justify-center rounded-full bg-black/50 transition-opacity duration-200',
-          uploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
-        )}>
+        <div
+          className={cn(
+            'absolute inset-0 flex items-center justify-center rounded-full bg-black/50 transition-opacity duration-200',
+            uploading ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+          )}
+        >
           {uploading ? (
             <Loader2 className="size-7 animate-spin text-white" strokeWidth={1.5} />
           ) : (
@@ -96,9 +107,7 @@ export function DogPhotoUpload({ currentUrl, onUpload, onError }: DogPhotoUpload
         )}
       </button>
 
-      <p className="font-pawprint text-[11px] text-paw/30">
-        Click to upload · JPG/PNG · 5 MB max
-      </p>
+      <p className="font-pawprint text-[11px] text-paw/30">Click to upload · JPG/PNG · 5 MB max</p>
 
       <input
         ref={inputRef}

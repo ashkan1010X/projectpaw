@@ -12,23 +12,24 @@
 
 ## File Map
 
-| File | Action | Purpose |
-|------|--------|---------|
-| `app/api/profile/route.ts` | Create | GET + PATCH /api/profile |
-| `app/api/profile/photo/route.ts` | Create | POST /api/profile/photo (upload) |
-| `app/profile/page.tsx` | Create | Profile page (client component) |
-| `app/profile/loading.tsx` | Create | Skeleton |
-| `components/toast.tsx` | Create | Success/error toast |
-| `components/dog-photo-upload.tsx` | Create | Circular photo upload widget |
-| `components/nav-bar.tsx` | Modify | Replace static name with pill dropdown |
-| `components/booking-modal.tsx` | Modify | Auto-fill dog name from profile |
-| `contexts/auth-context.tsx` | Modify | Add `updateName` helper |
+| File                              | Action | Purpose                                |
+| --------------------------------- | ------ | -------------------------------------- |
+| `app/api/profile/route.ts`        | Create | GET + PATCH /api/profile               |
+| `app/api/profile/photo/route.ts`  | Create | POST /api/profile/photo (upload)       |
+| `app/profile/page.tsx`            | Create | Profile page (client component)        |
+| `app/profile/loading.tsx`         | Create | Skeleton                               |
+| `components/toast.tsx`            | Create | Success/error toast                    |
+| `components/dog-photo-upload.tsx` | Create | Circular photo upload widget           |
+| `components/nav-bar.tsx`          | Modify | Replace static name with pill dropdown |
+| `components/booking-modal.tsx`    | Modify | Auto-fill dog name from profile        |
+| `contexts/auth-context.tsx`       | Modify | Add `updateName` helper                |
 
 ---
 
 ### Task 1: Supabase — profiles table + Storage bucket
 
 **Files:**
+
 - Supabase SQL (run in Supabase dashboard SQL editor or via MCP `execute_sql`)
 
 - [ ] **Step 1: Create profiles table**
@@ -65,6 +66,7 @@ CREATE POLICY "Users can update own profile"
 - [ ] **Step 2: Create dog-photos Storage bucket**
 
 In Supabase → Storage → New bucket:
+
 - Name: `dog-photos`
 - Public: **ON** (so public URLs work without auth tokens)
 - File size limit: `5242880` (5 MB)
@@ -111,6 +113,7 @@ git commit --allow-empty -m "chore: supabase profiles table + dog-photos storage
 ### Task 2: Auth context — add updateName
 
 **Files:**
+
 - Modify: `contexts/auth-context.tsx`
 
 The profile save updates the user's display name. After saving, we need the nav to reflect the new name immediately. `updateName` updates the in-memory + localStorage state without a full re-login.
@@ -215,6 +218,7 @@ git commit -m "feat(auth): add updateName helper to auth context"
 ### Task 3: Toast component
 
 **Files:**
+
 - Create: `components/toast.tsx`
 
 - [ ] **Step 1: Create the Toast component**
@@ -286,6 +290,7 @@ git commit -m "feat(ui): add Toast component (success/error, 3s auto-dismiss)"
 ### Task 4: API — GET + PATCH /api/profile
 
 **Files:**
+
 - Create: `app/api/profile/route.ts`
 
 - [ ] **Step 1: Create the route**
@@ -307,7 +312,10 @@ type ProfileBody = {
 async function getAuthUser(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return null;
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser(token);
   if (error || !user) return null;
   return user;
 }
@@ -382,7 +390,8 @@ Start dev server (`npm run dev`). In browser console while logged in:
 
 ```javascript
 fetch('/api/profile', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
-  .then(r => r.json()).then(console.log)
+  .then((r) => r.json())
+  .then(console.log);
 ```
 
 Expected: `{ profile: null, name: "Ashkan", email: "ashkan861@gmail.com" }`
@@ -399,6 +408,7 @@ git commit -m "feat(api): add GET + PATCH /api/profile"
 ### Task 5: API — POST /api/profile/photo
 
 **Files:**
+
 - Create: `app/api/profile/photo/route.ts`
 
 - [ ] **Step 1: Create the photo upload route**
@@ -423,7 +433,10 @@ export async function POST(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser(token);
   if (authError || !user) return NextResponse.json({ message: 'Invalid session' }, { status: 401 });
 
   const formData = await req.formData();
@@ -464,7 +477,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: 'Upload failed' }, { status: 500 });
   }
 
-  const { data: { publicUrl } } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(path);
+  const {
+    data: { publicUrl },
+  } = supabaseAdmin.storage.from(BUCKET).getPublicUrl(path);
 
   return NextResponse.json({ url: publicUrl });
 }
@@ -490,6 +505,7 @@ git commit -m "feat(api): add POST /api/profile/photo for Supabase Storage uploa
 ### Task 6: DogPhotoUpload component
 
 **Files:**
+
 - Create: `components/dog-photo-upload.tsx`
 
 - [ ] **Step 1: Create the component**
@@ -639,6 +655,7 @@ git commit -m "feat(ui): add DogPhotoUpload component with instant preview + Sup
 ### Task 7: Profile page
 
 **Files:**
+
 - Create: `app/profile/page.tsx`
 - Create: `app/profile/loading.tsx`
 
@@ -916,6 +933,7 @@ Expected: no errors.
 Start dev server. Log in as `ashkan861@gmail.com`. Go to `http://localhost:3000/profile`.
 
 Expected:
+
 - Page loads with your name and email pre-filled
 - Dog section shows paw placeholder photo
 - All fields are editable except email (dashed border)
@@ -934,6 +952,7 @@ git commit -m "feat(profile): add /profile page with personal info + dog card"
 ### Task 8: Nav pill dropdown
 
 **Files:**
+
 - Modify: `components/nav-bar.tsx`
 
 Replace the current desktop "Hi, name" + separate Dashboard/Admin/Logout buttons with a pill chip that opens a dropdown. Mobile drawer gets a "My Profile" link added.
@@ -946,7 +965,16 @@ Open `components/nav-bar.tsx`. Make these targeted changes:
 
 ```typescript
 import { useState, useRef, useEffect } from 'react';
-import { PawPrint, Home, Info, Images, Scissors, LayoutDashboard, Settings, ChevronDown } from 'lucide-react';
+import {
+  PawPrint,
+  Home,
+  Info,
+  Images,
+  Scissors,
+  LayoutDashboard,
+  Settings,
+  ChevronDown,
+} from 'lucide-react';
 ```
 
 **2. Add dropdown state** inside `NavBar()` after `const [isOpen, setIsOpen] = useState(false);`:
@@ -1098,6 +1126,7 @@ git commit -m "feat(nav): replace static name with pill dropdown (My Profile, My
 ### Task 9: Booking modal — auto-fill dog name from profile
 
 **Files:**
+
 - Modify: `components/booking-modal.tsx`
 
 When the booking modal opens and `initialDogName` is empty, fetch the profile and pre-fill dog name.
@@ -1147,6 +1176,7 @@ git commit -m "feat(booking): auto-fill dog name from profile when modal opens"
 ### Task 10: Playwright mobile test
 
 **Files:**
+
 - Create: `/tmp/playwright-test-profile.js`
 
 - [ ] **Step 1: Write and run the test**
@@ -1193,20 +1223,32 @@ const VIEWPORTS = [
     const dogSection = p.locator('text=My Dog');
     const saveBtn = p.locator('button:has-text("Save Changes")');
 
-    console.log(`  Name input visible: ${await nameInput.isVisible().catch(() => false) ? '✅' : '❌'}`);
-    console.log(`  Email locked badge: ${await emailLocked.isVisible().catch(() => false) ? '✅' : '❌'}`);
-    console.log(`  Dog section visible: ${await dogSection.isVisible().catch(() => false) ? '✅' : '❌'}`);
-    console.log(`  Save button visible: ${await saveBtn.isVisible().catch(() => false) ? '✅' : '❌'}`);
+    console.log(
+      `  Name input visible: ${(await nameInput.isVisible().catch(() => false)) ? '✅' : '❌'}`,
+    );
+    console.log(
+      `  Email locked badge: ${(await emailLocked.isVisible().catch(() => false)) ? '✅' : '❌'}`,
+    );
+    console.log(
+      `  Dog section visible: ${(await dogSection.isVisible().catch(() => false)) ? '✅' : '❌'}`,
+    );
+    console.log(
+      `  Save button visible: ${(await saveBtn.isVisible().catch(() => false)) ? '✅' : '❌'}`,
+    );
 
     // Check nav pill on desktop
     if (vp.width >= 768) {
       const pill = p.locator('button[aria-label="Open account menu"]');
-      console.log(`  Nav pill visible: ${await pill.isVisible().catch(() => false) ? '✅' : '❌'}`);
+      console.log(
+        `  Nav pill visible: ${(await pill.isVisible().catch(() => false)) ? '✅' : '❌'}`,
+      );
       // Open dropdown
       await pill.click();
       await p.waitForTimeout(200);
       const profileLink = p.locator('text=My Profile').first();
-      console.log(`  Dropdown My Profile: ${await profileLink.isVisible().catch(() => false) ? '✅' : '❌'}`);
+      console.log(
+        `  Dropdown My Profile: ${(await profileLink.isVisible().catch(() => false)) ? '✅' : '❌'}`,
+      );
       await p.keyboard.press('Escape');
     }
 
@@ -1221,6 +1263,7 @@ const VIEWPORTS = [
 ```
 
 Run it:
+
 ```bash
 cd "C:/Users/ashka/.claude/plugins/cache/playwright-skill/playwright-skill/4.1.0/skills/playwright-skill" && node run.js /tmp/playwright-test-profile.js
 ```
@@ -1244,6 +1287,7 @@ git push origin main
 ## Self-Review
 
 **Spec coverage:**
+
 - ✅ `profiles` table + RLS — Task 1
 - ✅ Supabase Storage `dog-photos` bucket — Task 1
 - ✅ `GET /api/profile` — Task 4

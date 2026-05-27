@@ -12,16 +12,17 @@
 
 ## Files
 
-| Action | Path |
-|--------|------|
+| Action | Path                              |
+| ------ | --------------------------------- |
 | Create | `components/date-time-picker.tsx` |
-| Modify | `components/booking-modal.tsx` |
+| Modify | `components/booking-modal.tsx`    |
 
 ---
 
 ### Task 1: Create the DateTimePicker component
 
 **Files:**
+
 - Create: `components/date-time-picker.tsx`
 
 - [ ] **Step 1: Create the file with the full component**
@@ -344,6 +345,7 @@ export function DateTimePicker({
 - [ ] **Step 2: Verify no TypeScript errors**
 
 Run:
+
 ```bash
 npx tsc --noEmit
 ```
@@ -353,6 +355,7 @@ Expected: no errors related to `date-time-picker.tsx`. If you see "Cannot find m
 - [ ] **Step 3: Start dev server and open the booking modal**
 
 Run:
+
 ```bash
 npm run dev
 ```
@@ -373,6 +376,7 @@ git commit -m "feat(picker): add custom DateTimePicker component with calendar g
 ### Task 2: Wire DateTimePicker into BookingModal
 
 **Files:**
+
 - Modify: `components/booking-modal.tsx`
 
 Context: The booking modal currently has a `datetime-local` input at lines 304–327. The `minDatetime` const at line 73 is also no longer needed.
@@ -388,6 +392,7 @@ import { DateTimePicker } from '@/components/date-time-picker';
 - [ ] **Step 2: Remove the minDatetime const**
 
 Delete line 73:
+
 ```typescript
 const minDatetime = new Date().toISOString().slice(0, 16);
 ```
@@ -444,6 +449,7 @@ Replace it with:
 - [ ] **Step 4: Verify TypeScript is clean**
 
 Run:
+
 ```bash
 npx tsc --noEmit
 ```
@@ -455,6 +461,7 @@ Expected: 0 errors. If `minDatetime` still appears in a TypeScript error, search
 With dev server running (http://localhost:3000), go to Services and open any booking modal.
 
 Test these flows:
+
 1. Click "Date & Time" field → popover opens with calendar
 2. Click a future date → date is highlighted in purple, time slots activate
 3. Click a time slot → popover closes, trigger shows "Wed, May 21 · 10 AM" format
@@ -474,6 +481,7 @@ git commit -m "feat(booking): replace datetime-local with DateTimePicker popover
 ### Task 3: Playwright visual verification
 
 **Files:**
+
 - Test script (temp, auto-cleaned): `/tmp/playwright-test-datepicker.js`
 
 - [ ] **Step 1: Write the Playwright test**
@@ -485,7 +493,8 @@ const { chromium } = require('playwright');
 const TARGET_URL = 'http://localhost:3000';
 const EMAIL = 'ashkan861@gmail.com';
 const PASSWORD = 'Motorola100!';
-const SKILL_DIR = 'C:/Users/ashka/.claude/plugins/cache/playwright-skill/playwright-skill/4.1.0/skills/playwright-skill';
+const SKILL_DIR =
+  'C:/Users/ashka/.claude/plugins/cache/playwright-skill/playwright-skill/4.1.0/skills/playwright-skill';
 
 (async () => {
   const browser = await chromium.launch({ headless: false, slowMo: 200 });
@@ -507,8 +516,8 @@ const SKILL_DIR = 'C:/Users/ashka/.claude/plugins/cache/playwright-skill/playwri
 
   const viewports = [
     { name: 'iPhone-14', width: 390, height: 844 },
-    { name: 'iPad',      width: 768, height: 1024 },
-    { name: 'Desktop',   width: 1280, height: 900 },
+    { name: 'iPad', width: 768, height: 1024 },
+    { name: 'Desktop', width: 1280, height: 900 },
   ];
 
   for (const vp of viewports) {
@@ -521,17 +530,28 @@ const SKILL_DIR = 'C:/Users/ashka/.claude/plugins/cache/playwright-skill/playwri
     await p.waitForTimeout(500);
 
     // Check trigger renders
-    const triggerVisible = await p.locator('button:has-text("Select date")').isVisible().catch(() => false);
+    const triggerVisible = await p
+      .locator('button:has-text("Select date")')
+      .isVisible()
+      .catch(() => false);
 
     // Click the date picker trigger
     await p.locator('button:has-text("Select date")').click();
     await p.waitForTimeout(400);
 
     // Check popover opened (calendar grid visible)
-    const calendarVisible = await p.locator('text=January, February, March, April, May, June, July, August, September, October, November, December').isVisible().catch(() => {
-      // Try checking for Su Mo headers
-      return p.locator('div:has-text("Su")').isVisible().catch(() => false);
-    });
+    const calendarVisible = await p
+      .locator(
+        'text=January, February, March, April, May, June, July, August, September, October, November, December',
+      )
+      .isVisible()
+      .catch(() => {
+        // Try checking for Su Mo headers
+        return p
+          .locator('div:has-text("Su")')
+          .isVisible()
+          .catch(() => false);
+      });
 
     // Click a future date (20th of current displayed month)
     const dayButtons = p.locator('[style*="fixed"] button').filter({ hasText: '20' });
@@ -550,7 +570,11 @@ const SKILL_DIR = 'C:/Users/ashka/.claude/plugins/cache/playwright-skill/playwri
     }
 
     // Check trigger now shows selection (popover should be closed)
-    const triggerFilled = await p.locator('button').filter({ hasText: /·\s*10 AM/ }).isVisible().catch(() => false);
+    const triggerFilled = await p
+      .locator('button')
+      .filter({ hasText: /·\s*10 AM/ })
+      .isVisible()
+      .catch(() => false);
 
     await p.screenshot({ path: `C:/Users/ashka/AppData/Local/Temp/datepicker-${vp.name}.png` });
     console.log(`\n${vp.name} (${vp.width}px):`);
@@ -577,6 +601,7 @@ cd "C:/Users/ashka/.claude/plugins/cache/playwright-skill/playwright-skill/4.1.0
 ```
 
 Expected output (all ✅ on each viewport):
+
 ```
 iPhone-14 (390px):
   Trigger renders: ✅
@@ -597,6 +622,7 @@ Done.
 - [ ] **Step 3: Fix any failures, then push to main**
 
 If all viewports pass:
+
 ```bash
 git push origin main
 ```

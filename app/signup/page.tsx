@@ -3,7 +3,23 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { PawPrint, User, Mail, MailCheck, Lock, Eye, EyeOff, ArrowRight, Sparkles, Check, CheckCircle2, Circle, ShieldAlert, ShieldCheck, Loader2 } from 'lucide-react';
+import {
+  PawPrint,
+  User,
+  Mail,
+  MailCheck,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Sparkles,
+  Check,
+  CheckCircle2,
+  Circle,
+  ShieldAlert,
+  ShieldCheck,
+  Loader2,
+} from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { isPasswordPwned } from '@/lib/hibp';
 import { cn } from '@/lib/utils';
@@ -188,9 +204,7 @@ export default function SignupPage() {
                 <h1 className="mb-3 font-elegant text-4xl font-black tracking-tight text-paw">
                   Check your inbox
                 </h1>
-                <p className="font-pawprint text-sm text-paw/60">
-                  We sent a confirmation link to
-                </p>
+                <p className="font-pawprint text-sm text-paw/60">We sent a confirmation link to</p>
                 <p className="mt-1 font-pawprint text-sm font-semibold text-paw/90">{email}</p>
                 <p className="mt-3 font-pawprint text-sm text-paw/50">
                   Click the link to activate your account.
@@ -209,256 +223,270 @@ export default function SignupPage() {
           )}
 
           {/* ── Main form (hidden once success) ── */}
-          {!success && <>
-          {/* Mark (mobile only) */}
-          <div className="mb-8 flex flex-col items-center gap-4 text-center lg:hidden animate-fade-down">
-            <div className="flex size-14 items-center justify-center rounded-2xl border border-paw/15 bg-paw/[0.05]">
-              <PawPrint className="size-6 text-doggy" strokeWidth={1.5} />
-            </div>
-          </div>
-
-          <div className="mb-8 animate-fade-up">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#F9D923]/25 bg-[#F9D923]/[0.08] px-3 py-1">
-              <Sparkles className="size-3 text-[#F9D923]" />
-              <span className="font-pawprint text-[10px] font-bold uppercase tracking-[0.2em] text-[#F9D923]">
-                Free Forever
-              </span>
-            </div>
-            <h1 className="font-elegant text-5xl font-black tracking-tight text-paw">
-              Create <em className="not-italic text-doggy">account</em>.
-            </h1>
-            <p className="mt-2 font-pawprint text-sm text-paw/50">
-              Takes less than a minute. No card required.
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5 animate-fade-up delay-100">
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="name"
-                className="font-pawprint text-xs font-semibold uppercase tracking-[0.18em] text-paw/50"
-              >
-                Full Name
-              </label>
-              <div className="group relative">
-                <User
-                  className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-paw/30 transition-colors duration-300 group-focus-within:text-doggy"
-                  strokeWidth={1.5}
-                />
-                <input
-                  id="name"
-                  type="text"
-                  required
-                  autoComplete="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Jane Doe"
-                  className={cn(
-                    'w-full rounded-xl border border-paw/[0.1] bg-paw/[0.03] py-3.5 pl-11 pr-4',
-                    'font-pawprint text-sm text-paw placeholder:text-paw/25',
-                    'outline-none transition-all duration-300',
-                    'focus:border-doggy/60 focus:bg-paw/[0.05] focus:ring-2 focus:ring-doggy/15',
-                  )}
-                />
+          {!success && (
+            <>
+              {/* Mark (mobile only) */}
+              <div className="mb-8 flex flex-col items-center gap-4 text-center lg:hidden animate-fade-down">
+                <div className="flex size-14 items-center justify-center rounded-2xl border border-paw/15 bg-paw/[0.05]">
+                  <PawPrint className="size-6 text-doggy" strokeWidth={1.5} />
+                </div>
               </div>
-            </div>
 
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor="email"
-                className="font-pawprint text-xs font-semibold uppercase tracking-[0.18em] text-paw/50"
-              >
-                Email
-              </label>
-              <div className="group relative">
-                <Mail
-                  className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-paw/30 transition-colors duration-300 group-focus-within:text-doggy"
-                  strokeWidth={1.5}
-                />
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className={cn(
-                    'w-full rounded-xl border border-paw/[0.1] bg-paw/[0.03] py-3.5 pl-11 pr-4',
-                    'font-pawprint text-sm text-paw placeholder:text-paw/25',
-                    'outline-none transition-all duration-300',
-                    'focus:border-doggy/60 focus:bg-paw/[0.05] focus:ring-2 focus:ring-doggy/15',
-                  )}
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="password"
-                  className="font-pawprint text-xs font-semibold uppercase tracking-[0.18em] text-paw/50"
-                >
-                  Password
-                </label>
-                {password && (
-                  <span className="font-pawprint text-xs font-semibold text-paw/60">
-                    {strengthLabel}
+              <div className="mb-8 animate-fade-up">
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#F9D923]/25 bg-[#F9D923]/[0.08] px-3 py-1">
+                  <Sparkles className="size-3 text-[#F9D923]" />
+                  <span className="font-pawprint text-[10px] font-bold uppercase tracking-[0.2em] text-[#F9D923]">
+                    Free Forever
                   </span>
-                )}
+                </div>
+                <h1 className="font-elegant text-5xl font-black tracking-tight text-paw">
+                  Create <em className="not-italic text-doggy">account</em>.
+                </h1>
+                <p className="mt-2 font-pawprint text-sm text-paw/50">
+                  Takes less than a minute. No card required.
+                </p>
               </div>
-              <div className="group relative">
-                <Lock
-                  className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-paw/30 transition-colors duration-300 group-focus-within:text-doggy"
-                  strokeWidth={1.5}
-                />
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="At least 8 characters"
-                  className={cn(
-                    'w-full rounded-xl border border-paw/[0.1] bg-paw/[0.03] py-3.5 pl-11 pr-11',
-                    'font-pawprint text-sm text-paw placeholder:text-paw/25',
-                    'outline-none transition-all duration-300',
-                    'focus:border-doggy/60 focus:bg-paw/[0.05] focus:ring-2 focus:ring-doggy/15',
-                  )}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-1.5 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-paw/30 outline-none transition-colors duration-200 hover:text-paw/70 focus:ring-2 focus:ring-doggy/30"
-                >
-                  {showPassword ? (
-                    <EyeOff className="size-4" strokeWidth={1.5} />
-                  ) : (
-                    <Eye className="size-4" strokeWidth={1.5} />
-                  )}
-                </button>
-              </div>
-              {password && (
-                <div className="flex gap-1">
-                  {[1, 2, 3, 4].map((bar) => (
-                    <div
-                      key={bar}
+
+              <form
+                onSubmit={handleSubmit}
+                className="flex flex-col gap-5 animate-fade-up delay-100"
+              >
+                <div className="flex flex-col gap-2">
+                  <label
+                    htmlFor="name"
+                    className="font-pawprint text-xs font-semibold uppercase tracking-[0.18em] text-paw/50"
+                  >
+                    Full Name
+                  </label>
+                  <div className="group relative">
+                    <User
+                      className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-paw/30 transition-colors duration-300 group-focus-within:text-doggy"
+                      strokeWidth={1.5}
+                    />
+                    <input
+                      id="name"
+                      type="text"
+                      required
+                      autoComplete="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Jane Doe"
                       className={cn(
-                        'h-1 flex-1 rounded-full transition-all duration-300',
-                        bar <= passwordStrength ? strengthColor : 'bg-paw/[0.08]',
+                        'w-full rounded-xl border border-paw/[0.1] bg-paw/[0.03] py-3.5 pl-11 pr-4',
+                        'font-pawprint text-sm text-paw placeholder:text-paw/25',
+                        'outline-none transition-all duration-300',
+                        'focus:border-doggy/60 focus:bg-paw/[0.05] focus:ring-2 focus:ring-doggy/15',
                       )}
                     />
-                  ))}
-                </div>
-              )}
-
-              {/* Password requirements checklist */}
-              {password && (
-                <div className="grid grid-cols-2 gap-x-3 gap-y-1 animate-fade-in">
-                  {([
-                    [reqs.length,  '8+ characters'],
-                    [reqs.upper,   'Uppercase A–Z'],
-                    [reqs.number,  'Number 0–9'],
-                    [reqs.special, 'Special character'],
-                  ] as [boolean, string][]).map(([met, label]) => (
-                    <div key={label} className="flex items-center gap-1.5">
-                      {met
-                        ? <CheckCircle2 className="size-3 shrink-0 text-emerald-400 transition-colors duration-300" />
-                        : <Circle className="size-3 shrink-0 text-paw/20 transition-colors duration-300" />
-                      }
-                      <span className={cn(
-                        'font-pawprint text-[11px] transition-colors duration-300',
-                        met ? 'text-emerald-400' : 'text-paw/35',
-                      )}>
-                        {label}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* HIBP breach check — live, debounced */}
-              {hibpStatus === 'checking' && (
-                <div className="flex items-center gap-1.5 font-pawprint text-xs text-paw/45 animate-fade-in">
-                  <Loader2 className="size-3 animate-spin" />
-                  Checking against known breaches...
-                </div>
-              )}
-              {hibpStatus === 'safe' && (
-                <div className="flex items-center gap-1.5 font-pawprint text-xs text-emerald-400 animate-fade-in">
-                  <ShieldCheck className="size-3.5" />
-                  Not found in any known breach
-                </div>
-              )}
-              {hibpStatus === 'pwned' && (
-                <div
-                  role="alert"
-                  className="flex items-start gap-2 rounded-lg border border-amber-500/25 bg-amber-500/[0.06] px-3 py-2 animate-fade-in"
-                >
-                  <ShieldAlert className="mt-0.5 size-3.5 shrink-0 text-amber-400" />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-pawprint text-xs font-semibold text-amber-300">
-                      Seen in {hibpBreachCount.toLocaleString()} password leak{hibpBreachCount === 1 ? '' : 's'}
-                    </p>
-                    <p className="mt-0.5 font-pawprint text-[11px] text-amber-300/75">
-                      Pick one only you&apos;d think of — even a single custom word keeps it yours.
-                    </p>
                   </div>
                 </div>
-              )}
-            </div>
 
-            {error && (
-              <div className="rounded-xl border border-red-500/25 bg-red-500/[0.08] px-4 py-3 animate-fade-in">
-                <p className="font-pawprint text-sm text-red-400">{error}</p>
+                <div className="flex flex-col gap-2">
+                  <label
+                    htmlFor="email"
+                    className="font-pawprint text-xs font-semibold uppercase tracking-[0.18em] text-paw/50"
+                  >
+                    Email
+                  </label>
+                  <div className="group relative">
+                    <Mail
+                      className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-paw/30 transition-colors duration-300 group-focus-within:text-doggy"
+                      strokeWidth={1.5}
+                    />
+                    <input
+                      id="email"
+                      type="email"
+                      required
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      className={cn(
+                        'w-full rounded-xl border border-paw/[0.1] bg-paw/[0.03] py-3.5 pl-11 pr-4',
+                        'font-pawprint text-sm text-paw placeholder:text-paw/25',
+                        'outline-none transition-all duration-300',
+                        'focus:border-doggy/60 focus:bg-paw/[0.05] focus:ring-2 focus:ring-doggy/15',
+                      )}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor="password"
+                      className="font-pawprint text-xs font-semibold uppercase tracking-[0.18em] text-paw/50"
+                    >
+                      Password
+                    </label>
+                    {password && (
+                      <span className="font-pawprint text-xs font-semibold text-paw/60">
+                        {strengthLabel}
+                      </span>
+                    )}
+                  </div>
+                  <div className="group relative">
+                    <Lock
+                      className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-paw/30 transition-colors duration-300 group-focus-within:text-doggy"
+                      strokeWidth={1.5}
+                    />
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      autoComplete="new-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="At least 8 characters"
+                      className={cn(
+                        'w-full rounded-xl border border-paw/[0.1] bg-paw/[0.03] py-3.5 pl-11 pr-11',
+                        'font-pawprint text-sm text-paw placeholder:text-paw/25',
+                        'outline-none transition-all duration-300',
+                        'focus:border-doggy/60 focus:bg-paw/[0.05] focus:ring-2 focus:ring-doggy/15',
+                      )}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      className="absolute right-1.5 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center rounded-md text-paw/30 outline-none transition-colors duration-200 hover:text-paw/70 focus:ring-2 focus:ring-doggy/30"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="size-4" strokeWidth={1.5} />
+                      ) : (
+                        <Eye className="size-4" strokeWidth={1.5} />
+                      )}
+                    </button>
+                  </div>
+                  {password && (
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4].map((bar) => (
+                        <div
+                          key={bar}
+                          className={cn(
+                            'h-1 flex-1 rounded-full transition-all duration-300',
+                            bar <= passwordStrength ? strengthColor : 'bg-paw/[0.08]',
+                          )}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Password requirements checklist */}
+                  {password && (
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 animate-fade-in">
+                      {(
+                        [
+                          [reqs.length, '8+ characters'],
+                          [reqs.upper, 'Uppercase A–Z'],
+                          [reqs.number, 'Number 0–9'],
+                          [reqs.special, 'Special character'],
+                        ] as [boolean, string][]
+                      ).map(([met, label]) => (
+                        <div key={label} className="flex items-center gap-1.5">
+                          {met ? (
+                            <CheckCircle2 className="size-3 shrink-0 text-emerald-400 transition-colors duration-300" />
+                          ) : (
+                            <Circle className="size-3 shrink-0 text-paw/20 transition-colors duration-300" />
+                          )}
+                          <span
+                            className={cn(
+                              'font-pawprint text-[11px] transition-colors duration-300',
+                              met ? 'text-emerald-400' : 'text-paw/35',
+                            )}
+                          >
+                            {label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* HIBP breach check — live, debounced */}
+                  {hibpStatus === 'checking' && (
+                    <div className="flex items-center gap-1.5 font-pawprint text-xs text-paw/45 animate-fade-in">
+                      <Loader2 className="size-3 animate-spin" />
+                      Checking against known breaches...
+                    </div>
+                  )}
+                  {hibpStatus === 'safe' && (
+                    <div className="flex items-center gap-1.5 font-pawprint text-xs text-emerald-400 animate-fade-in">
+                      <ShieldCheck className="size-3.5" />
+                      Not found in any known breach
+                    </div>
+                  )}
+                  {hibpStatus === 'pwned' && (
+                    <div
+                      role="alert"
+                      className="flex items-start gap-2 rounded-lg border border-amber-500/25 bg-amber-500/[0.06] px-3 py-2 animate-fade-in"
+                    >
+                      <ShieldAlert className="mt-0.5 size-3.5 shrink-0 text-amber-400" />
+                      <div className="min-w-0 flex-1">
+                        <p className="font-pawprint text-xs font-semibold text-amber-300">
+                          Seen in {hibpBreachCount.toLocaleString()} password leak
+                          {hibpBreachCount === 1 ? '' : 's'}
+                        </p>
+                        <p className="mt-0.5 font-pawprint text-[11px] text-amber-300/75">
+                          Pick one only you&apos;d think of — even a single custom word keeps it
+                          yours.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {error && (
+                  <div className="rounded-xl border border-red-500/25 bg-red-500/[0.08] px-4 py-3 animate-fade-in">
+                    <p className="font-pawprint text-sm text-red-400">{error}</p>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || hibpStatus === 'pwned' || hibpStatus === 'checking'}
+                  className="group relative mt-2 flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl bg-doggy py-3.5 font-pawprint text-sm font-bold text-white shadow-xl shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
+                  <span className="relative">
+                    {loading ? 'Creating account...' : 'Create Account'}
+                  </span>
+                  {!loading && (
+                    <ArrowRight className="relative size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  )}
+                </button>
+
+                <p className="text-center font-pawprint text-xs leading-7 text-paw/35">
+                  By creating an account, you agree to our{' '}
+                  <a
+                    href="#"
+                    className="inline-block rounded px-1 py-1 text-paw/65 underline underline-offset-2 hover:text-paw focus:outline-none focus:ring-2 focus:ring-doggy/30"
+                  >
+                    Terms
+                  </a>{' '}
+                  and{' '}
+                  <a
+                    href="#"
+                    className="inline-block rounded px-1 py-1 text-paw/65 underline underline-offset-2 hover:text-paw focus:outline-none focus:ring-2 focus:ring-doggy/30"
+                  >
+                    Privacy Policy
+                  </a>
+                  .
+                </p>
+              </form>
+
+              <div className="mt-8 border-t border-paw/[0.06] pt-6 text-center animate-fade-in delay-300">
+                <p className="font-pawprint text-sm leading-9 text-paw/55">
+                  Already have an account?{' '}
+                  <Link
+                    href="/login"
+                    className="-my-1 inline-flex min-h-9 items-center rounded-md px-2 py-2 font-bold text-doggy transition-colors hover:text-doggy/80 focus:outline-none focus:ring-2 focus:ring-doggy/30"
+                  >
+                    Sign in
+                  </Link>
+                </p>
               </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || hibpStatus === 'pwned' || hibpStatus === 'checking'}
-              className="group relative mt-2 flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl bg-doggy py-3.5 font-pawprint text-sm font-bold text-white shadow-xl shadow-doggy/30 transition-all duration-300 hover:shadow-doggy/50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
-              <span className="relative">{loading ? 'Creating account...' : 'Create Account'}</span>
-              {!loading && (
-                <ArrowRight className="relative size-4 transition-transform duration-300 group-hover:translate-x-1" />
-              )}
-            </button>
-
-            <p className="text-center font-pawprint text-xs leading-7 text-paw/35">
-              By creating an account, you agree to our{' '}
-              <a
-                href="#"
-                className="inline-block rounded px-1 py-1 text-paw/65 underline underline-offset-2 hover:text-paw focus:outline-none focus:ring-2 focus:ring-doggy/30"
-              >
-                Terms
-              </a>{' '}
-              and{' '}
-              <a
-                href="#"
-                className="inline-block rounded px-1 py-1 text-paw/65 underline underline-offset-2 hover:text-paw focus:outline-none focus:ring-2 focus:ring-doggy/30"
-              >
-                Privacy Policy
-              </a>
-              .
-            </p>
-          </form>
-
-          <div className="mt-8 border-t border-paw/[0.06] pt-6 text-center animate-fade-in delay-300">
-            <p className="font-pawprint text-sm leading-9 text-paw/55">
-              Already have an account?{' '}
-              <Link
-                href="/login"
-                className="-my-1 inline-flex min-h-9 items-center rounded-md px-2 py-2 font-bold text-doggy transition-colors hover:text-doggy/80 focus:outline-none focus:ring-2 focus:ring-doggy/30"
-              >
-                Sign in
-              </Link>
-            </p>
-          </div>
-          </>}
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -21,7 +21,10 @@ export type PetRow = {
 async function getUser(req: NextRequest) {
   const token = req.headers.get('authorization')?.replace('Bearer ', '');
   if (!token) return { error: 'Unauthorized', status: 401 as const };
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser(token);
   if (error || !user) return { error: 'Invalid session', status: 401 as const };
   return { user };
 }
@@ -67,7 +70,8 @@ export async function POST(req: NextRequest) {
 
   const name = sanitize(body.name);
   if (!name) return NextResponse.json({ message: "Pet's name is required." }, { status: 400 });
-  if (name.length > 60) return NextResponse.json({ message: 'Name is too long (max 60).' }, { status: 400 });
+  if (name.length > 60)
+    return NextResponse.json({ message: 'Name is too long (max 60).' }, { status: 400 });
 
   const species: PetSpecies = isPetSpecies(body.species) ? body.species : 'dog';
 

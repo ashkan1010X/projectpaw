@@ -3,7 +3,18 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { PawPrint, Lock, Eye, EyeOff, Loader2, CheckCircle2, Circle, ArrowRight, ShieldAlert, ShieldCheck } from 'lucide-react';
+import {
+  PawPrint,
+  Lock,
+  Eye,
+  EyeOff,
+  Loader2,
+  CheckCircle2,
+  Circle,
+  ArrowRight,
+  ShieldAlert,
+  ShieldCheck,
+} from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { isPasswordPwned } from '@/lib/hibp';
 import { cn } from '@/lib/utils';
@@ -67,7 +78,9 @@ export default function ResetPasswordPage() {
   };
   const strength = Object.values(reqs).filter(Boolean).length;
   const strengthLabel = ['', 'Weak', 'Fair', 'Good', 'Strong'][strength];
-  const strengthColor = ['', 'bg-red-500', 'bg-amber-500', 'bg-[#F9D923]', 'bg-emerald-500'][strength];
+  const strengthColor = ['', 'bg-red-500', 'bg-amber-500', 'bg-[#F9D923]', 'bg-emerald-500'][
+    strength
+  ];
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -134,9 +147,7 @@ export default function ResetPasswordPage() {
             <h1 className="mb-3 font-elegant text-4xl font-black tracking-tight text-paw">
               Password updated
             </h1>
-            <p className="font-pawprint text-sm text-paw/65">
-              Redirecting you to sign in...
-            </p>
+            <p className="font-pawprint text-sm text-paw/65">Redirecting you to sign in...</p>
           </div>
         ) : !validLink ? (
           <div className="text-center animate-fade-up">
@@ -227,21 +238,26 @@ export default function ResetPasswordPage() {
                 {/* Password requirements checklist */}
                 {password && (
                   <div className="grid grid-cols-2 gap-x-3 gap-y-1 animate-fade-in">
-                    {([
-                      [reqs.length,  '8+ characters'],
-                      [reqs.upper,   'Uppercase A–Z'],
-                      [reqs.number,  'Number 0–9'],
-                      [reqs.special, 'Special character'],
-                    ] as [boolean, string][]).map(([met, label]) => (
+                    {(
+                      [
+                        [reqs.length, '8+ characters'],
+                        [reqs.upper, 'Uppercase A–Z'],
+                        [reqs.number, 'Number 0–9'],
+                        [reqs.special, 'Special character'],
+                      ] as [boolean, string][]
+                    ).map(([met, label]) => (
                       <div key={label} className="flex items-center gap-1.5">
-                        {met
-                          ? <CheckCircle2 className="size-3 shrink-0 text-emerald-400 transition-colors duration-300" />
-                          : <Circle className="size-3 shrink-0 text-paw/20 transition-colors duration-300" />
-                        }
-                        <span className={cn(
-                          'font-pawprint text-[11px] transition-colors duration-300',
-                          met ? 'text-emerald-400' : 'text-paw/35',
-                        )}>
+                        {met ? (
+                          <CheckCircle2 className="size-3 shrink-0 text-emerald-400 transition-colors duration-300" />
+                        ) : (
+                          <Circle className="size-3 shrink-0 text-paw/20 transition-colors duration-300" />
+                        )}
+                        <span
+                          className={cn(
+                            'font-pawprint text-[11px] transition-colors duration-300',
+                            met ? 'text-emerald-400' : 'text-paw/35',
+                          )}
+                        >
                           {label}
                         </span>
                       </div>
@@ -270,10 +286,12 @@ export default function ResetPasswordPage() {
                     <ShieldAlert className="mt-0.5 size-3.5 shrink-0 text-amber-400" />
                     <div className="min-w-0 flex-1">
                       <p className="font-pawprint text-xs font-semibold text-amber-300">
-                        Seen in {hibpBreachCount.toLocaleString()} password leak{hibpBreachCount === 1 ? '' : 's'}
+                        Seen in {hibpBreachCount.toLocaleString()} password leak
+                        {hibpBreachCount === 1 ? '' : 's'}
                       </p>
                       <p className="mt-0.5 font-pawprint text-[11px] text-amber-300/75">
-                        Pick one only you&apos;d think of — even a single custom word keeps it yours.
+                        Pick one only you&apos;d think of — even a single custom word keeps it
+                        yours.
                       </p>
                     </div>
                   </div>

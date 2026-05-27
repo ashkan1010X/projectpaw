@@ -71,10 +71,20 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!initialized) return;
-    if (!user || !token) { router.replace('/login'); return; }
+    if (!user || !token) {
+      router.replace('/login');
+      return;
+    }
 
     Promise.all([
-      fetchWithAuth('/api/profile').then((r) => r.json() as Promise<{ profile: { phone?: string; address?: string } | null; name: string; email: string }>),
+      fetchWithAuth('/api/profile').then(
+        (r) =>
+          r.json() as Promise<{
+            profile: { phone?: string; address?: string } | null;
+            name: string;
+            email: string;
+          }>,
+      ),
       fetchWithAuth('/api/pets').then((r) => r.json() as Promise<{ pets: Pet[] }>),
     ])
       .then(([profileRes, petsRes]) => {
@@ -110,7 +120,10 @@ export default function ProfilePage() {
       updateName(name);
       setToast({ message: 'Profile saved', variant: 'success' });
     } catch (err) {
-      setToast({ message: err instanceof Error ? err.message : 'Failed to save — try again', variant: 'error' });
+      setToast({
+        message: err instanceof Error ? err.message : 'Failed to save — try again',
+        variant: 'error',
+      });
     } finally {
       setSaving(false);
     }
@@ -214,20 +227,33 @@ export default function ProfilePage() {
           </p>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label htmlFor="name" className="mb-1.5 block font-pawprint text-xs text-paw/50">Full Name</label>
-              <input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className={inputClass} />
+              <label htmlFor="name" className="mb-1.5 block font-pawprint text-xs text-paw/50">
+                Full Name
+              </label>
+              <input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                className={inputClass}
+              />
             </div>
             <div>
               <label className="mb-1.5 flex items-center gap-2 font-pawprint text-xs text-paw/50">
                 Email
-                <span className="rounded bg-paw/[0.06] px-1.5 py-0.5 font-pawprint text-[10px] text-paw/25">locked</span>
+                <span className="rounded bg-paw/[0.06] px-1.5 py-0.5 font-pawprint text-[10px] text-paw/25">
+                  locked
+                </span>
               </label>
               <div className={lockedClass}>{email}</div>
             </div>
             <div>
               <label htmlFor="phone" className="mb-1.5 block font-pawprint text-xs text-paw/50">
                 Phone
-                <span className="ml-2 font-pawprint text-[10px] text-paw/30">for SMS reminders</span>
+                <span className="ml-2 font-pawprint text-[10px] text-paw/30">
+                  for SMS reminders
+                </span>
               </label>
               <PhoneInput
                 id="phone"
@@ -236,8 +262,17 @@ export default function ProfilePage() {
               />
             </div>
             <div>
-              <label htmlFor="address" className="mb-1.5 block font-pawprint text-xs text-paw/50">Address</label>
-              <input id="address" type="text" value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} placeholder="e.g. 123 Main St, Toronto" className={inputClass} />
+              <label htmlFor="address" className="mb-1.5 block font-pawprint text-xs text-paw/50">
+                Address
+              </label>
+              <input
+                id="address"
+                type="text"
+                value={form.address}
+                onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+                placeholder="e.g. 123 Main St, Toronto"
+                className={inputClass}
+              />
             </div>
           </div>
 
@@ -245,7 +280,10 @@ export default function ProfilePage() {
           <div className="mt-6 flex justify-end gap-3">
             <button
               type="button"
-              onClick={() => { setForm({ ...savedRef.current }); setName(user?.name ?? ''); }}
+              onClick={() => {
+                setForm({ ...savedRef.current });
+                setName(user?.name ?? '');
+              }}
               className="cursor-pointer rounded-xl border border-paw/[0.12] px-5 py-2.5 font-pawprint text-sm font-semibold text-paw/45 transition-all duration-300 hover:border-paw/25 hover:text-paw/70"
             >
               Cancel
@@ -263,7 +301,10 @@ export default function ProfilePage() {
       </form>
 
       {/* Your Pets section */}
-      <section className="mt-6 rounded-2xl border border-doggy/[0.15] bg-gradient-to-b from-doggy/[0.07] to-paw/[0.03] p-6" style={{ boxShadow: 'inset 0 1px 0 rgba(178,164,255,0.08)' }}>
+      <section
+        className="mt-6 rounded-2xl border border-doggy/[0.15] bg-gradient-to-b from-doggy/[0.07] to-paw/[0.03] p-6"
+        style={{ boxShadow: 'inset 0 1px 0 rgba(178,164,255,0.08)' }}
+      >
         <div className="mb-5 flex items-center justify-between">
           <div>
             <p className="font-pawprint text-[10px] font-bold uppercase tracking-[0.14em] text-paw/35">
@@ -271,7 +312,7 @@ export default function ProfilePage() {
             </p>
             <p className="mt-1 font-pawprint text-xs text-paw/45">
               {pets.length === 0
-                ? "Add your first pet to start booking"
+                ? 'Add your first pet to start booking'
                 : `${pets.length} pet${pets.length === 1 ? '' : 's'} saved`}
             </p>
           </div>
@@ -280,7 +321,10 @@ export default function ProfilePage() {
               onClick={openAddPet}
               className="group flex items-center gap-1.5 rounded-xl border border-doggy/30 bg-doggy/[0.08] px-3.5 py-2 font-pawprint text-xs font-bold text-doggy transition-all duration-300 hover:border-doggy/50 hover:bg-doggy/[0.15]"
             >
-              <Plus className="size-3.5 transition-transform duration-300 group-hover:rotate-90" strokeWidth={2.5} />
+              <Plus
+                className="size-3.5 transition-transform duration-300 group-hover:rotate-90"
+                strokeWidth={2.5}
+              />
               Add Pet
             </button>
           )}
@@ -327,7 +371,10 @@ export default function ProfilePage() {
                       style={{ width: 52, height: 52 }}
                     />
                   ) : (
-                    <div className="flex size-13 items-center justify-center rounded-full border border-doggy/25 bg-doggy/[0.1]" style={{ width: 52, height: 52 }}>
+                    <div
+                      className="flex size-13 items-center justify-center rounded-full border border-doggy/25 bg-doggy/[0.1]"
+                      style={{ width: 52, height: 52 }}
+                    >
                       <PawPrint className="size-6 text-doggy/55" strokeWidth={1.5} />
                     </div>
                   )}
@@ -335,7 +382,9 @@ export default function ProfilePage() {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="truncate font-elegant text-base font-black text-paw">{pet.name}</p>
+                    <p className="truncate font-elegant text-base font-black text-paw">
+                      {pet.name}
+                    </p>
                     {(() => {
                       const meta = SPECIES_META[isPetSpecies(pet.species) ? pet.species : 'dog'];
                       const Icon = meta.Icon;
@@ -348,7 +397,8 @@ export default function ProfilePage() {
                     })()}
                   </div>
                   <p className="truncate font-pawprint text-xs text-paw/50">
-                    {[pet.breed, pet.age, pet.weight].filter(Boolean).join(' · ') || 'No details yet'}
+                    {[pet.breed, pet.age, pet.weight].filter(Boolean).join(' · ') ||
+                      'No details yet'}
                   </p>
                 </div>
 
@@ -380,7 +430,10 @@ export default function ProfilePage() {
                 onClick={openAddPet}
                 className="group flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-paw/15 px-4 py-4 font-pawprint text-sm font-semibold text-paw/45 transition-all duration-300 hover:border-doggy/40 hover:bg-doggy/[0.04] hover:text-doggy"
               >
-                <Plus className="size-4 transition-transform duration-300 group-hover:rotate-90" strokeWidth={2} />
+                <Plus
+                  className="size-4 transition-transform duration-300 group-hover:rotate-90"
+                  strokeWidth={2}
+                />
                 Add another pet
               </button>
             )}
@@ -412,11 +465,7 @@ export default function ProfilePage() {
       />
 
       {toast && (
-        <Toast
-          message={toast.message}
-          variant={toast.variant}
-          onDismiss={() => setToast(null)}
-        />
+        <Toast message={toast.message} variant={toast.variant} onDismiss={() => setToast(null)} />
       )}
     </main>
   );

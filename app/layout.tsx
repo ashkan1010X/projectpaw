@@ -29,7 +29,8 @@ const baloo2 = Baloo_2({
 
 export const metadata: Metadata = {
   title: 'ProjectPaw — Dog Services',
-  description: 'Book grooming, walking, boarding, drop-ins, custom services, and in-home pet sitting for your dog in Toronto.',
+  description:
+    'Book grooming, walking, boarding, drop-ins, custom services, and in-home pet sitting for your dog in Toronto.',
 };
 
 export default function RootLayout({
@@ -45,7 +46,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[#0f0d09] text-paw">
         <AuthProvider>
           <NavBar />
-          <main id="main-content" className="flex-1">{children}</main>
+          <main id="main-content" className="flex-1">
+            {children}
+          </main>
           <StickyMobileCta />
         </AuthProvider>
       </body>

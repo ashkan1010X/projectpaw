@@ -50,10 +50,9 @@ export function StickyMobileCta() {
     const footer = document.querySelector('footer');
     if (!footer) return;
 
-    const obs = new IntersectionObserver(
-      ([entry]) => setFooterInView(entry.isIntersecting),
-      { rootMargin: '0px 0px -10% 0px' },
-    );
+    const obs = new IntersectionObserver(([entry]) => setFooterInView(entry.isIntersecting), {
+      rootMargin: '0px 0px -10% 0px',
+    });
     obs.observe(footer);
     return () => obs.disconnect();
   }, [pathname]);

@@ -49,17 +49,17 @@ export default function PrivacyPage() {
         <Subhead>Information you give us directly</Subhead>
         <ul className="space-y-2 pl-5 [list-style:disc] marker:text-doggy/60">
           <li>
-            <Strong>Account information</Strong> — your name, email address, and password.
-            Passwords are stored only as one-way cryptographic hashes managed by Supabase Auth; we
-            never see, log, or store them in plain text.
+            <Strong>Account information</Strong> — your name, email address, and password. Passwords
+            are stored only as one-way cryptographic hashes managed by Supabase Auth; we never see,
+            log, or store them in plain text.
           </li>
           <li>
             <Strong>Profile information</Strong> — phone number (for SMS), optional home address,
             and information about your pet: name, species, age, breed, photo, and notes.
           </li>
           <li>
-            <Strong>Booking information</Strong> — service selected, date and time, and any
-            special instructions you include with a booking.
+            <Strong>Booking information</Strong> — service selected, date and time, and any special
+            instructions you include with a booking.
           </li>
           <li>
             <Strong>Payment information</Strong> — credit and debit card details are handled
@@ -80,8 +80,8 @@ export default function PrivacyPage() {
             used only for security, rate-limiting, and fraud prevention.
           </li>
           <li>
-            <Strong>Browser local storage</Strong> — authentication tokens so you stay signed in.
-            We do not use third-party cookies, advertising trackers, or analytics pixels.
+            <Strong>Browser local storage</Strong> — authentication tokens so you stay signed in. We
+            do not use third-party cookies, advertising trackers, or analytics pixels.
           </li>
           <li>
             <Strong>Booking activity</Strong> — your booking history, cancellation events, and
@@ -112,9 +112,9 @@ export default function PrivacyPage() {
 
       <Section id="legal-basis" title="3. Legal Basis and Automated Decisions">
         <p>
-          For visitors in the European Union, the <Strong>General Data Protection Regulation
-          (GDPR)</Strong> requires us to state our legal basis for processing your personal data.
-          We rely on:
+          For visitors in the European Union, the{' '}
+          <Strong>General Data Protection Regulation (GDPR)</Strong> requires us to state our legal
+          basis for processing your personal data. We rely on:
         </p>
         <ul className="space-y-2 pl-5 [list-style:disc] marker:text-doggy/60">
           <li>
@@ -219,9 +219,9 @@ export default function PrivacyPage() {
             <Strong>Communication logs</Strong> — 1 year.
           </li>
           <li>
-            <Strong>Inactive accounts</Strong> — you may close your account at any time. We do
-            not currently auto-delete inactive accounts; if you would like your account removed
-            without logging in, email Sara and we&apos;ll process it within 30 days.
+            <Strong>Inactive accounts</Strong> — you may close your account at any time. We do not
+            currently auto-delete inactive accounts; if you would like your account removed without
+            logging in, email Sara and we&apos;ll process it within 30 days.
           </li>
         </ul>
         <p>You may request immediate deletion of your account at any time (see Section 8).</p>
@@ -235,8 +235,8 @@ export default function PrivacyPage() {
             in known data breaches via the Have I Been Pwned API.
           </li>
           <li>
-            Card payments are handled by Stripe, a PCI-DSS Level 1 provider — your card number
-            never touches our servers.
+            Card payments are handled by Stripe, a PCI-DSS Level 1 provider — your card number never
+            touches our servers.
           </li>
           <li>
             Database access is restricted by Supabase row-level security policies. Each user can
@@ -273,8 +273,8 @@ export default function PrivacyPage() {
             data
           </li>
           <li>
-            <Strong>Withdraw consent</Strong> — opt out of SMS (reply STOP) or close your account
-            at any time
+            <Strong>Withdraw consent</Strong> — opt out of SMS (reply STOP) or close your account at
+            any time
           </li>
           <li>
             <Strong>Restrict processing</Strong> — limit how we handle your data while we resolve a
@@ -284,8 +284,8 @@ export default function PrivacyPage() {
             <Strong>Port your data</Strong> — receive a machine-readable export of your account
           </li>
           <li>
-            <Strong>Complain</Strong> — file a complaint with the Office of the Privacy
-            Commissioner of Canada (priv.gc.ca) or your local data protection authority
+            <Strong>Complain</Strong> — file a complaint with the Office of the Privacy Commissioner
+            of Canada (priv.gc.ca) or your local data protection authority
           </li>
         </ul>
         <p>
@@ -327,8 +327,8 @@ export default function PrivacyPage() {
 
       <Section id="changes" title="12. Changes to This Policy">
         <p>
-          If we update this policy in a way that materially affects your rights, we will notify
-          you by email at least 30 days before the changes take effect. The &quot;Last updated&quot;
+          If we update this policy in a way that materially affects your rights, we will notify you
+          by email at least 30 days before the changes take effect. The &quot;Last updated&quot;
           date at the top reflects the most recent version.
         </p>
       </Section>

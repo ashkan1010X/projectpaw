@@ -71,10 +71,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Mark as sent regardless — avoids retry spam if SMS fails
-    await supabaseAdmin
-      .from('bookings')
-      .update({ reminder_sent: true })
-      .eq('id', booking.id);
+    await supabaseAdmin.from('bookings').update({ reminder_sent: true }).eq('id', booking.id);
   }
 
   return NextResponse.json({ sent, total: bookings.length });

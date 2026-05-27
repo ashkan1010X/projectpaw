@@ -180,28 +180,33 @@ The goal is continuous growth: every session should leave Ruflo smarter than it 
 Every UI feature must meet the standard of the best production apps (Airbnb, Linear, Stripe, Notion). Never ship the "good enough" version when the top-tier version takes 5 minutes more.
 
 **Form inputs:**
+
 - Use `<input type="text">` for single-sentence fields — never `<textarea>` for data that is conceptually one line. Textarea implies multi-paragraph content.
 - Sanitize text on save: `value.replace(/\s+/g, ' ').trim()` — collapse all whitespace/newlines before writing to the DB. Never trust raw textarea output.
 - Per-field validation: `onBlur` sets the error, `onChange` clears it. Never validate only on submit. Show the error message inline below the field, not in a toast or at the top of the form.
 - Red border (`border-red-500/60`) + small red message below the field — not a generic "form has errors" banner.
 
 **Dialogs and confirmations:**
+
 - Never use `window.confirm`, `window.alert`, or `window.prompt` — always use the branded `<ConfirmDialog>` component.
 - Destructive actions (delete, cancel booking) use the red/`destructive` variant with `AlertTriangle` icon.
 - Non-destructive confirmations use the `Info` icon and doggy color.
 - Always include: focus trap, Escape to close, focus restored to trigger element on close, `type="button"` on all dialog buttons.
 
 **Loading states:**
+
 - Never return `null` while loading — always show a skeleton.
 - Skeletons use `animate-pulse` with `bg-paw/[0.08]` (dark-theme shimmer, not white flash).
 - Match the skeleton shape to the actual content layout.
 
 **Cursor behavior (non-negotiable):**
+
 - Every `button`, toggle (`[role="switch"]`), and interactive label must show `cursor-pointer` — this is set globally in `globals.css` and must never be overridden to `cursor-default`.
 - Disabled buttons/inputs must show `cursor-not-allowed` — also set globally.
 - Never add a new interactive element without verifying the cursor changes on hover.
 
 **Accessibility (non-negotiable):**
+
 - Every interactive element that doesn't have visible text must have `aria-label`.
 - When a page has dual mobile/desktop layouts in the DOM, both versions need `aria-label` — Playwright `.first()` picks the hidden one otherwise.
 

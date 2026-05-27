@@ -1,11 +1,4 @@
-import {
-  Scissors,
-  Footprints,
-  Home,
-  Sun,
-  Sparkles,
-  type LucideIcon,
-} from 'lucide-react';
+import { Scissors, Footprints, Home, Sun, Sparkles, type LucideIcon } from 'lucide-react';
 
 import type { PetSpecies } from './species';
 

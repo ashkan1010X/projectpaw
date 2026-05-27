@@ -101,7 +101,9 @@ export function NavBar() {
                 strokeWidth={2.5}
               />
             </span>
-            <span className="transition-all duration-300 group-hover:tracking-wider">ProjectPaw</span>
+            <span className="transition-all duration-300 group-hover:tracking-wider">
+              ProjectPaw
+            </span>
           </Link>
 
           {/* Desktop links */}

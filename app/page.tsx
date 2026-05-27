@@ -67,7 +67,13 @@ const TRUST_BADGES = [
   { icon: Heart, label: 'Insured' },
 ];
 
-const HOW_IT_WORKS: { icon: LucideIcon; step: string; title: string; description: string; accent: string }[] = [
+const HOW_IT_WORKS: {
+  icon: LucideIcon;
+  step: string;
+  title: string;
+  description: string;
+  accent: string;
+}[] = [
   {
     icon: Search,
     step: '01',
@@ -172,8 +178,8 @@ export default function HomePage() {
 
           {/* Subtext */}
           <p className="max-w-xl font-pawprint text-lg leading-[1.7] text-paw/55 md:text-xl animate-fade-up delay-200">
-            Grooming, walking, boarding, drop-ins and house sitting — all in one trusted place.
-            Give your furry friend the life they deserve.
+            Grooming, walking, boarding, drop-ins and house sitting — all in one trusted place. Give
+            your furry friend the life they deserve.
           </p>
 
           {/* CTAs */}

@@ -9,6 +9,7 @@ This is a real production app built for an actual business, not a demo.
 ## What it does
 
 **For pet owners:**
+
 - Browse 6 services with live pricing pulled from the database
 - Create an account with email confirmation
 - Add one or more pets with photos
@@ -18,6 +19,7 @@ This is a real production app built for an actual business, not a demo.
 - Cancel or reschedule from the dashboard
 
 **For the provider:**
+
 - Gets an SMS when a new booking comes in
 - Can reply to booking SMS threads
 - Daily cron job at 9 AM sends reminders for upcoming appointments

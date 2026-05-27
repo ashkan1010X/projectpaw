@@ -7,14 +7,17 @@ export function isPaymentMethod(v: unknown): v is PaymentMethod {
   return typeof v === 'string' && (PAYMENT_METHODS as readonly string[]).includes(v);
 }
 
-export const PAYMENT_META: Record<PaymentMethod, {
-  label: string;
-  shortLabel: string;
-  emoji: string;
-  Icon: LucideIcon;
-  hint: string;
-  emailLine: string;
-}> = {
+export const PAYMENT_META: Record<
+  PaymentMethod,
+  {
+    label: string;
+    shortLabel: string;
+    emoji: string;
+    Icon: LucideIcon;
+    hint: string;
+    emailLine: string;
+  }
+> = {
   cash: {
     label: 'Cash',
     shortLabel: 'Cash',

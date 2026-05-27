@@ -162,7 +162,10 @@ export function PhoneInput({ value, onChange, className, id }: PhoneInputProps) 
         <span className="font-semibold text-paw/80 text-xs">{country.code}</span>
         <span className="text-paw/45 text-xs">{country.dial}</span>
         <ChevronDown
-          className={cn('size-3 text-paw/25 transition-transform duration-150', open && 'rotate-180')}
+          className={cn(
+            'size-3 text-paw/25 transition-transform duration-150',
+            open && 'rotate-180',
+          )}
           strokeWidth={2}
         />
       </button>

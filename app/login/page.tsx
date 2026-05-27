@@ -168,7 +168,11 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5 animate-fade-up delay-100" noValidate>
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col gap-5 animate-fade-up delay-100"
+            noValidate
+          >
             <div className="flex flex-col gap-2">
               <label
                 htmlFor="email"

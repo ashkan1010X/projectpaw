@@ -21,10 +21,7 @@ export interface CompressOptions {
  * for FormData upload. If the input is already small (< 800 KB) and
  * doesn't need resizing, returns the original to avoid quality loss.
  */
-export async function compressImage(
-  file: File,
-  opts: CompressOptions = {},
-): Promise<File> {
+export async function compressImage(file: File, opts: CompressOptions = {}): Promise<File> {
   const maxDim = opts.maxDimension ?? MAX_DIMENSION;
   const quality = opts.quality ?? JPEG_QUALITY;
 

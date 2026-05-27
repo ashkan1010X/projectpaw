@@ -84,10 +84,7 @@ export function PhoneSheet({ open, initialPhone, saving, error, onClose, onSave 
               <p className="font-pawprint text-[10px] font-bold uppercase tracking-[0.18em] text-paw/35">
                 Step 2 of 4
               </p>
-              <h2
-                id="phone-sheet-title"
-                className="font-elegant text-lg font-black text-paw"
-              >
+              <h2 id="phone-sheet-title" className="font-elegant text-lg font-black text-paw">
                 Add your phone
               </h2>
             </div>
@@ -115,9 +112,7 @@ export function PhoneSheet({ open, initialPhone, saving, error, onClose, onSave 
             </label>
             <PhoneInput value={phone} onChange={setPhone} />
             {(validationError || error) && (
-              <p className="mt-2 font-pawprint text-xs text-red-400">
-                {validationError ?? error}
-              </p>
+              <p className="mt-2 font-pawprint text-xs text-red-400">{validationError ?? error}</p>
             )}
           </div>
 

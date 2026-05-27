@@ -285,10 +285,14 @@ export default function AdminPage() {
         <div className="relative flex-1 min-w-[160px] max-w-xs">
           <svg
             className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-paw/30"
-            fill="none" stroke="currentColor" strokeWidth={2}
-            viewBox="0 0 24 24" aria-hidden="true"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={2}
+            viewBox="0 0 24 24"
+            aria-hidden="true"
           >
-            <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
           </svg>
           <input
             type="search"
@@ -342,7 +346,11 @@ export default function AdminPage() {
         {/* Clear all filters */}
         {(search || filterPopular !== 'all' || sortBy !== 'default') && (
           <button
-            onClick={() => { setSearch(''); setFilterPopular('all'); setSortBy('default'); }}
+            onClick={() => {
+              setSearch('');
+              setFilterPopular('all');
+              setSortBy('default');
+            }}
             className="font-pawprint text-xs text-paw/40 hover:text-paw/70 transition-colors underline underline-offset-2"
           >
             Clear filters
@@ -371,7 +379,11 @@ export default function AdminPage() {
             <div className="px-5 py-10 text-center">
               <p className="font-pawprint text-sm text-paw/40">No services match your filters.</p>
               <button
-                onClick={() => { setSearch(''); setFilterPopular('all'); setSortBy('default'); }}
+                onClick={() => {
+                  setSearch('');
+                  setFilterPopular('all');
+                  setSortBy('default');
+                }}
                 className="mt-2 font-pawprint text-xs text-doggy hover:text-doggy/80 underline underline-offset-2"
               >
                 Clear filters
@@ -558,7 +570,9 @@ export default function AdminPage() {
                     placeholder="90 min"
                   />
                   {fieldErrors.duration && (
-                    <p className="mt-1 font-pawprint text-xs text-red-400">{fieldErrors.duration}</p>
+                    <p className="mt-1 font-pawprint text-xs text-red-400">
+                      {fieldErrors.duration}
+                    </p>
                   )}
                 </div>
               </div>
@@ -589,7 +603,9 @@ export default function AdminPage() {
                   placeholder="Describe the service…"
                 />
                 {fieldErrors.description && (
-                  <p className="mt-1 font-pawprint text-xs text-red-400">{fieldErrors.description}</p>
+                  <p className="mt-1 font-pawprint text-xs text-red-400">
+                    {fieldErrors.description}
+                  </p>
                 )}
               </div>
 
