@@ -2,7 +2,7 @@
   "mcpServers": {
     "ruflo": {
       "command": "cmd",
-      "args": ["/c", "npx", "-y", "ruflo@latest", "mcp", "start"],
+      "args": ["/c", "ruflo", "mcp", "start"],
       "env": {
         "npm_config_update_notifier": "false",
         "CLAUDE_FLOW_MODE": "v3",
@@ -11,7 +11,7 @@
         "CLAUDE_FLOW_MAX_AGENTS": "15",
         "CLAUDE_FLOW_MEMORY_BACKEND": "hybrid"
       },
-      "autoStart": false
+      "autoStart": true
     }
   }
 }
