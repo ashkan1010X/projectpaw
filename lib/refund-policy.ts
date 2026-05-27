@@ -7,19 +7,21 @@
 // Policy (Stripe-paid bookings only; callers gate on payment_method/status):
 //   1. GRACE  — full refund if cancelled within 1h of booking creation,
 //               capped so the window never runs past the appointment itself.
-//   2. FULL   — full refund if cancelled more than 24h before the appointment.
-//   3. PARTIAL— 50% otherwise.
+//   2. NONE   — no refund once the appointment start time has passed
+//               (no-show / late cancel). Matches Terms of Service §5.
+//   3. FULL   — full refund if cancelled more than 24h before the appointment.
+//   4. PARTIAL— 50% otherwise.
 
 const GRACE_PERIOD_MS = 60 * 60 * 1000; // 1 hour after booking
 const FULL_REFUND_NOTICE_MS = 24 * 60 * 60 * 1000; // 24 hours before appointment
 
-export type RefundTier = 'grace' | 'full' | 'partial';
+export type RefundTier = 'grace' | 'full' | 'partial' | 'none';
 
 export interface RefundDecision {
   refundedCents: number;
-  paymentStatus: 'refunded_full' | 'refunded_partial';
+  paymentStatus: 'refunded_full' | 'refunded_partial' | 'no_refund';
   tier: RefundTier;
-  /** "Full refund" | "50% refund" — the headline for "<label> of $X". */
+  /** "Full refund" | "50% refund" | "No refund" — the headline. */
   amountLabel: string;
   /** Short cause clause for "<label> of $X — <reason>." */
   reason: string;
@@ -46,6 +48,19 @@ export function computeRefund(params: {
       tier: 'grace',
       amountLabel: 'Full refund',
       reason: 'cancelled within an hour of booking',
+    };
+  }
+
+  // No refund once the appointment start time has passed (no-show / late cancel).
+  // Grace can't fire here — graceEndsMs is capped at appointmentMs — so this is safe
+  // to check after grace. Terms of Service §5.
+  if (nowMs >= appointmentMs) {
+    return {
+      refundedCents: 0,
+      paymentStatus: 'no_refund',
+      tier: 'none',
+      amountLabel: 'No refund',
+      reason: 'the appointment time has already passed',
     };
   }
 

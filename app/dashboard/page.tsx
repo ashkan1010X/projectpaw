@@ -51,6 +51,14 @@ function refundPreview(booking: Booking) {
     bookingCreatedAt: booking.created_at,
     appointmentDatetime: booking.datetime,
   });
+  if (decision.tier === 'none') {
+    return (
+      <>
+        <strong className="text-paw">No refund</strong> — {decision.reason}. Cancelling now just
+        clears it from your list.
+      </>
+    );
+  }
   return (
     <>
       You&apos;ll be refunded{' '}

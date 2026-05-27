@@ -115,6 +115,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   let newPaymentStatus: string | null = booking.payment_status as string | null;
   let refundNote: string | null = null;
   let manualRefundPending = false;
+  let noRefundReason: string | null = null;
 
   if (
     booking.payment_method === 'stripe' &&
@@ -129,22 +130,29 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     });
     refundedCents = decision.refundedCents;
     newPaymentStatus = decision.paymentStatus;
-    refundNote = `${decision.amountLabel} of $${(refundedCents / 100).toFixed(2)} CAD issued — ${decision.reason}.`;
 
-    try {
-      await stripe.refunds.create({
-        payment_intent: booking.stripe_payment_intent_id as string,
-        amount: refundedCents,
-      });
-    } catch (err) {
-      console.error('Stripe refund error:', err);
-      // Refund failed (test/live key mismatch, already refunded, etc.)
-      // Leave payment_status as 'paid' so the DB update succeeds — admin sees
-      // status=cancelled + payment_status=paid and knows a manual refund is needed.
-      refundedCents = 0;
-      newPaymentStatus = booking.payment_status as string;
-      refundNote = null;
-      manualRefundPending = true;
+    if (refundedCents > 0) {
+      refundNote = `${decision.amountLabel} of $${(refundedCents / 100).toFixed(2)} CAD issued — ${decision.reason}.`;
+      try {
+        await stripe.refunds.create({
+          payment_intent: booking.stripe_payment_intent_id as string,
+          amount: refundedCents,
+        });
+      } catch (err) {
+        console.error('Stripe refund error:', err);
+        // Refund failed (test/live key mismatch, already refunded, etc.)
+        // Leave payment_status as 'paid' so the DB update succeeds — admin sees
+        // status=cancelled + payment_status=paid and knows a manual refund is needed.
+        refundedCents = 0;
+        newPaymentStatus = booking.payment_status as string;
+        refundNote = null;
+        manualRefundPending = true;
+      }
+    } else {
+      // 'none' tier — appointment already passed, no Stripe refund (Terms §5).
+      // payment_status='no_refund' is still recorded below so admin sees it was an
+      // intentional no-refund, not a stuck manual case.
+      noRefundReason = decision.reason;
     }
   }
 
@@ -216,6 +224,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           <p style="margin: 0 0 4px; font-family: sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(232,168,58,0.85);">Refund Being Processed</p>
           <p style="margin: 0; font-family: sans-serif; font-size: 14px; color: #F5CBA7;">Your refund is being reviewed by our team. We'll follow up within 1 business day with confirmation.</p>
           <p style="margin: 6px 0 0; font-family: sans-serif; font-size: 12px; color: rgba(245,203,167,0.55);">Questions? Just reply to this email — we're here to help.</p>
+        </div>`
+            : ''
+        }
+        ${
+          noRefundReason
+            ? `
+        <div style="margin-top: 20px; padding: 16px 18px; border-radius: 12px; background: rgba(245,203,167,0.05); border: 1px solid rgba(245,203,167,0.15);">
+          <p style="margin: 0 0 4px; font-family: sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(245,203,167,0.6);">No Refund</p>
+          <p style="margin: 0; font-family: sans-serif; font-size: 14px; color: #F5CBA7;">As ${noRefundReason}, no refund applies under our cancellation policy.</p>
+          <p style="margin: 6px 0 0; font-family: sans-serif; font-size: 12px; color: rgba(245,203,167,0.55);">If a genuine emergency kept you from cancelling sooner, reply to this email — Sara will work with you.</p>
         </div>`
             : ''
         }

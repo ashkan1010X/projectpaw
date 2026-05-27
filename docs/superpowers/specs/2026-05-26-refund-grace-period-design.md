@@ -191,3 +191,56 @@ set the manual-refund-pending path, and fire `alertAdminRefundFailed`. The
 - `components/faq-section.tsx` (grace wording)
 - `app/terms/page.tsx` (grace clause)
 - `components/booking-modal.tsx` (grace wording)
+
+---
+
+## Follow-up: no-show / after-start tier (2026-05-27)
+
+The "Aside (NOT in scope)" drift flagged above (lines 145–149) is now resolved.
+
+**Problem:** Terms §5 promises **no refund** for "no-shows or cancellations after the
+service start time," but `computeRefund` had no branch for that case — a cancel
+once the appointment had already passed yielded a negative `appointmentMs - nowMs`,
+failed the `>24h` check, and fell through to the **50% partial** branch. Written
+policy and code disagreed (Terms said $0, code paid $10 on a $20 booking).
+
+**Fix — a fourth tier `none`:** added to `computeRefund`, evaluated **after** grace
+and **before** full:
+
+```ts
+if (nowMs >= appointmentMs) {
+  return { refundedCents: 0, paymentStatus: 'no_refund', tier: 'none',
+           amountLabel: 'No refund', reason: 'the appointment time has already passed' };
+}
+```
+
+Order is safe: grace can't fire here because `graceEndsMs` is capped at
+`appointmentMs`, so a past-appointment cancel never enters the grace branch.
+
+**`payment_status = 'no_refund'`** is a new value. The `bookings.payment_status`
+column has **no CHECK constraint** (verified via Supabase MCP — existing values:
+`paid`, `refunded_full`, `refunded_partial`, `null`), so the new value is recorded
+without a migration. Recording it distinguishes an intentional no-refund from the
+`manualRefundPending` case (which deliberately leaves `payment_status = 'paid'`).
+
+**Caller changes:**
+- Both cancel routes: wrap the `stripe.refunds.create` call + `refundNote` in
+  `if (refundedCents > 0)` (Stripe rejects a $0 refund). The `none` tier skips
+  Stripe entirely but still records `payment_status='no_refund'`.
+- `sms/reply` DB-update gate changed from `refundedCents > 0` to
+  `newPaymentStatus !== booking.payment_status`, so `no_refund` is persisted
+  (matches the dashboard cancel route's gate).
+- **Dashboard preview** special-cases `tier === 'none'`: renders "**No refund** —
+  the appointment time has already passed. Cancelling now just clears it from your
+  list." instead of "refunded $0.00". This is the key warn-before-confirm surface.
+- **Cancel email** gains a neutral grey "No Refund" block (parallel to the green
+  refund / amber manual-pending blocks) with a soft emergency-exception line.
+- **FAQ** answer extended: "...and no refund once the appointment start time has
+  passed." Terms §5 already had the rule, so no Terms change.
+
+**Boundary:** `>=` (at the exact start second the customer is already late; "no-shows"
+in Terms §5 supports the face-value reading).
+
+**Out of scope still:** no-show *fee* (charging more than forfeiting the paid amount)
+and Sara's operational way to mark a true no-show vs a late cancel — both await
+real customers. See `memory/pending_cancellation_followups.md`.

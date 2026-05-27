@@ -249,7 +249,7 @@ function StripeCardSection({
         <p className="font-pawprint text-[11px] leading-relaxed text-paw/60">
           <strong className="text-paw/80">Cancellation policy:</strong> Full refund if cancelled
           within an hour of booking or more than 24 hours before your appointment. 50% refund within
-          24 hours.
+          24 hours. No refund once the appointment start time has passed.
         </p>
       </div>
 

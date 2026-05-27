@@ -55,7 +55,7 @@ export const FAQS: FaqItem[] = [
   },
   {
     q: "What's your cancellation and refund policy?",
-    a: "Cancel any booking free from your dashboard, or just reply X to your confirmation text — no questions asked, no late fees. If you paid by cash or e-Transfer, there's nothing to refund. If you paid by card: full refund if you cancel within an hour of booking or more than 24 hours before your appointment, and 50% if it's less than 24 hours out. Refunds land back on your card automatically within 5–10 business days. Life happens — if you need things sorted out faster, or your situation doesn't quite fit the policy, reach out to Sara directly. She's available 7 days a week and will work with you to find a fair solution.",
+    a: "Cancel any booking free from your dashboard, or just reply X to your confirmation text — no questions asked, no late fees. If you paid by cash or e-Transfer, there's nothing to refund. If you paid by card: full refund if you cancel within an hour of booking or more than 24 hours before your appointment, 50% if it's less than 24 hours out, and no refund once the appointment start time has passed. Refunds land back on your card automatically within 5–10 business days. Life happens — if you need things sorted out faster, or your situation doesn't quite fit the policy, reach out to Sara directly. She's available 7 days a week and will work with you to find a fair solution.",
   },
   {
     q: 'Can I reschedule instead of cancelling?',

@@ -108,26 +108,30 @@ export async function POST(req: NextRequest) {
       });
       refundedCents = decision.refundedCents;
       newPaymentStatus = decision.paymentStatus;
-      refundNote = `${decision.amountLabel} of $${(refundedCents / 100).toFixed(2)} CAD issued (${decision.reason}).`;
-      try {
-        await stripe.refunds.create({
-          payment_intent: booking.stripe_payment_intent_id as string,
-          amount: refundedCents,
-        });
-      } catch (e) {
-        console.error('SMS cancel: Stripe refund failed', e);
-        // Keep payment_status unchanged so DB update succeeds — admin handles refund manually.
-        refundedCents = 0;
-        newPaymentStatus = booking.payment_status as string;
-        refundNote = null;
+      if (refundedCents > 0) {
+        refundNote = `${decision.amountLabel} of $${(refundedCents / 100).toFixed(2)} CAD issued (${decision.reason}).`;
+        try {
+          await stripe.refunds.create({
+            payment_intent: booking.stripe_payment_intent_id as string,
+            amount: refundedCents,
+          });
+        } catch (e) {
+          console.error('SMS cancel: Stripe refund failed', e);
+          // Keep payment_status unchanged so DB update succeeds — admin handles refund manually.
+          refundedCents = 0;
+          newPaymentStatus = booking.payment_status as string;
+          refundNote = null;
+        }
       }
+      // else: 'none' tier — appointment already passed, no refund (Terms §5).
+      // newPaymentStatus='no_refund' is recorded below for admin clarity.
     }
 
     const { error: updateError } = await supabaseAdmin
       .from('bookings')
       .update({
         status: 'cancelled',
-        ...(refundedCents > 0
+        ...(newPaymentStatus !== booking.payment_status
           ? {
               payment_status: newPaymentStatus,
               refunded_cents: refundedCents,
