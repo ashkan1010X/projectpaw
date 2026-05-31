@@ -37,8 +37,8 @@ test.describe('NavBar — mobile (iPhone 14)', () => {
     await expect(mobileNav.getByRole('link', { name: 'About' })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'Gallery' })).toBeVisible();
     await expect(mobileNav.getByRole('link', { name: 'Services' })).toBeVisible();
-    // Branded header and tagline visible
-    await expect(page.getByText('Find your perfect paw match')).toBeVisible();
+    // Branded drawer dialog is open
+    await expect(page.getByRole('dialog', { name: 'Navigation menu' })).toBeVisible();
   });
 
   test('closes drawer when a link is clicked', async ({ page }) => {
@@ -49,16 +49,16 @@ test.describe('NavBar — mobile (iPhone 14)', () => {
     // Click About link
     await mobileNav.getByRole('link', { name: 'About' }).click();
     // Drawer should close
-    await expect(page.getByText('Find your perfect paw match')).not.toBeVisible();
+    await expect(page.getByRole('dialog', { name: 'Navigation menu' })).not.toBeVisible();
     await expect(page).toHaveURL('/about');
   });
 
   test('shows auth controls in drawer (logged out)', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Open navigation menu' }).click();
-    // Login and Sign Up accessible inside the drawer
-    await expect(page.getByRole('link', { name: 'Login' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Sign Up' })).toBeVisible();
+    // Log In and Sign Up accessible inside the drawer
+    await expect(page.getByRole('link', { name: 'Log In' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Sign Up Free' })).toBeVisible();
   });
 
   test('active route has doggy highlight', async ({ page }) => {

@@ -11,18 +11,20 @@ This is a real production app built for an actual business, not a demo.
 **For pet owners:**
 
 - Browse 6 services with live pricing pulled from the database
-- Create an account with email confirmation
+- Search the FAQ live and create an account with email confirmation
 - Add one or more pets with photos
-- Book any service with 24/7 time slot availability (overnight services need off-hours slots)
-- Pay via Stripe at checkout
+- Book any service with 24/7 time slot availability (overnight services need off-hours slots), with double-booked slots blocked at the database level
+- Pay by card (Stripe), cash, or Interac e-Transfer
 - Get an email confirmation and SMS reminder before the appointment
-- Cancel or reschedule from the dashboard
+- Cancel or reschedule from the dashboard — or just reply **X** to the confirmation text
+- See the exact refund up front before cancelling (full within an hour of booking or 24h+ out, 50% inside 24h, none once the appointment has started)
 
 **For the provider:**
 
-- Gets an SMS when a new booking comes in
-- Can reply to booking SMS threads
+- Gets an email and SMS when a booking is made or cancelled
+- Customers can cancel by replying to the booking SMS thread
 - Daily cron job at 9 AM sends reminders for upcoming appointments
+- Failed Stripe refunds are captured in a dead-letter table and flagged by email for manual recovery
 
 ---
 
@@ -118,6 +120,15 @@ contexts/            # auth context (JWT stored in localStorage)
 Auth is client-side only. The token is stored in `localStorage` under the key `token` and sent as a `Bearer` header on every API request. Server routes verify it with `supabase.auth.getUser(token)`.
 
 Photos (profile + pets) go through a client-side compression step before upload: images are resized to 1920px max and re-encoded as JPEG at 85% quality. HEIC files from iPhones are supported. This keeps uploads under the 10 MB server limit regardless of what the user picks from their photo library.
+
+---
+
+## Security
+
+- **Rate limiting** on login, signup, password reset, cancel, and reschedule (sliding-window, per-email + per-IP buckets backed by a Supabase table)
+- **Breached-password blocking** via a DIY HaveIBeenPwned k-anonymity check — the password never leaves the device, and known-leaked passwords are rejected at signup and reset
+- **Account-enumeration defence** — forgot-password runs in constant time regardless of whether the email exists
+- All user-supplied values are HTML-escaped in transactional emails, and the cron endpoint fails closed when its secret is unset
 
 ---
 
