@@ -270,7 +270,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6">
-            {SERVICES_PREVIEW.map(({ icon: Icon, label, price, color }, i) => (
+            {SERVICES_PREVIEW.map(({ icon: Icon, label, price, color }) => (
               <Link
                 key={label}
                 href="/services"

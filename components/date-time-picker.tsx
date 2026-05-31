@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { CalendarIcon, ChevronLeft, ChevronRight, ArrowLeft, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -81,17 +81,10 @@ function buildCalendarDays(year: number, month: number): (Date | null)[] {
   return [...leadingNulls, ...days];
 }
 
-export function DateTimePicker({
-  value,
-  onChange,
-  error,
-  minDate,
-  fetchTakenSlots,
-}: DateTimePickerProps) {
+export function DateTimePicker({ onChange, error, minDate, fetchTakenSlots }: DateTimePickerProps) {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState<'date' | 'time'>('date');
   const [nowAtOpen, setNowAtOpen] = useState(() => new Date());
-  const [mounted, setMounted] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedHour, setSelectedHour] = useState<number | null>(null);
   const [selectedMinute, setSelectedMinute] = useState<number | null>(null);
@@ -108,7 +101,13 @@ export function DateTimePicker({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => setMounted(true), []);
+  // Hydration-safe client-only flag for the portal: false on the server,
+  // true after hydration — avoids setState-in-effect cascading renders.
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   const calendarDays = buildCalendarDays(viewYear, viewMonth);
 
@@ -228,6 +227,7 @@ export function DateTimePicker({
         <button
           type="button"
           onClick={prevMonth}
+          aria-label="Previous month"
           className="rounded-lg border border-paw/[0.1] bg-paw/[0.04] p-1.5 text-paw/50 transition-colors duration-150 hover:bg-paw/[0.08] hover:text-paw"
         >
           <ChevronLeft className="size-3.5" strokeWidth={2} />
@@ -238,6 +238,7 @@ export function DateTimePicker({
         <button
           type="button"
           onClick={nextMonth}
+          aria-label="Next month"
           className="rounded-lg border border-paw/[0.1] bg-paw/[0.04] p-1.5 text-paw/50 transition-colors duration-150 hover:bg-paw/[0.08] hover:text-paw"
         >
           <ChevronRight className="size-3.5" strokeWidth={2} />

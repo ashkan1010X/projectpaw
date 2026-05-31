@@ -111,6 +111,10 @@ export function OnboardingChecklist({
     if (typeof window === 'undefined') return;
     if (window.localStorage.getItem(CELEBRATED_KEY)) return;
 
+    // Fire the one-time celebration: persist the flag and start the auto-dismiss
+    // timer. This is a real side-effect on a genuine state transition, not a
+    // derivable value, so the synchronous setState here is intentional.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCelebrating(true);
     window.localStorage.setItem(CELEBRATED_KEY, '1');
     const t = window.setTimeout(() => setCelebrating(false), 4500);

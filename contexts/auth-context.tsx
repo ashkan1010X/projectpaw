@@ -124,8 +124,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return res;
     },
-    [],
-  ); // eslint-disable-line react-hooks/exhaustive-deps
+    [], // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
   // Boot: restore session + auto-refresh if expired
   useEffect(() => {

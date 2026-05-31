@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2, PawPrint, Sparkles, Clock, Bell, Heart, CalendarClock } from 'lucide-react';
+import { Loader2, Sparkles, Clock, Bell, Heart, CalendarClock } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import { BookingModal } from '@/components/booking-modal';
 import { supabase } from '@/lib/supabase';

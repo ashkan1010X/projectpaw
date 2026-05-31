@@ -35,7 +35,11 @@ export default function ResetPasswordPage() {
   const [hibpBreachCount, setHibpBreachCount] = useState(0);
 
   useEffect(() => {
+    // Debounced async breach check against the HIBP API — a genuine effect
+    // synchronizing with an external system. The transient idle/checking states
+    // are intentional, hence the targeted disable.
     if (password.length < 8) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHibpStatus('idle');
       return;
     }
