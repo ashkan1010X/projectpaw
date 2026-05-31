@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, HelpCircle, Mail, Phone } from 'lucide-react';
+import { ChevronDown, HelpCircle, Mail, Phone, Search, X } from 'lucide-react';
 
 export type FaqItem = { q: string; a: string };
 
@@ -99,6 +99,7 @@ export function FaqSection() {
   // Multi-open accordion (industry standard — Stripe, Linear, GitHub all allow multi-open
   // so users can compare two answers side by side without re-clicking)
   const [open, setOpen] = useState<Set<number>>(new Set([0]));
+  const [query, setQuery] = useState('');
 
   function toggle(i: number) {
     setOpen((prev) => {
@@ -108,6 +109,14 @@ export function FaqSection() {
       return next;
     });
   }
+
+  // Normalised search term. We match against both the question and the answer
+  // body so "refund" surfaces the cancellation answer even though the word only
+  // lives in the answer text.
+  const term = query.trim().toLowerCase();
+  const matches = (item: FaqItem) =>
+    !term || item.q.toLowerCase().includes(term) || item.a.toLowerCase().includes(term);
+  const visibleCount = term ? FAQS.filter(matches).length : FAQS.length;
 
   return (
     <section id="faq" className="relative px-6 py-24 md:py-32" aria-labelledby="faq-heading">
@@ -167,10 +176,56 @@ export function FaqSection() {
           .
         </p>
 
+        {/* Search — filters the accordion live. Premium FAQ pattern (Stripe/Notion):
+           lets users jump straight to an answer without scanning every question. */}
+        <div className="mt-12">
+          <label htmlFor="faq-search" className="sr-only">
+            Search frequently asked questions
+          </label>
+          <div className="group relative">
+            <Search
+              className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-paw/40 transition-colors group-focus-within:text-doggy"
+              strokeWidth={2}
+              aria-hidden="true"
+            />
+            <input
+              id="faq-search"
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search questions…"
+              autoComplete="off"
+              className="w-full rounded-2xl border border-paw/[0.12] bg-paw/[0.03] py-4 pl-11 pr-11 font-pawprint text-sm text-paw placeholder:text-paw/40 outline-none transition-all duration-200 focus:border-doggy/40 focus:bg-paw/[0.05] focus:ring-2 focus:ring-doggy/15 md:text-base [&::-webkit-search-cancel-button]:appearance-none"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                aria-label="Clear search"
+                className="absolute right-3 top-1/2 flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-paw/45 transition-colors hover:bg-paw/[0.06] hover:text-paw/80"
+              >
+                <X className="size-4" strokeWidth={2.5} />
+              </button>
+            )}
+          </div>
+          {/* Screen-reader-only result count — announces the filter working */}
+          <p aria-live="polite" className="sr-only">
+            {term
+              ? `${visibleCount} ${visibleCount === 1 ? 'question' : 'questions'} match your search`
+              : ''}
+          </p>
+        </div>
+
         {/* Accordion */}
-        <div className="mt-12 divide-y divide-paw/[0.08] overflow-hidden rounded-2xl border border-paw/[0.08] bg-paw/[0.015] backdrop-blur-sm">
+        <div className="mt-6 divide-y divide-paw/[0.08] overflow-hidden rounded-2xl border border-paw/[0.08] bg-paw/[0.015] backdrop-blur-sm">
           {FAQS.map(({ q, a }, i) => {
-            const isOpen = open.has(i);
+            // Map over the FULL list and skip non-matches so `i` stays the
+            // canonical index — open-state, panel ids and toggles never desync
+            // as the query changes.
+            if (!matches({ q, a })) return null;
+            // When a query is active, auto-expand every match so the answer is
+            // visible without an extra click; otherwise honour the manual set.
+            const isOpen = term ? true : open.has(i);
             return (
               <div key={q} className="group">
                 <button
@@ -223,6 +278,33 @@ export function FaqSection() {
               </div>
             );
           })}
+
+          {/* Empty state — no question matched the search */}
+          {term && visibleCount === 0 && (
+            <div className="flex flex-col items-center gap-4 px-6 py-14 text-center">
+              <div className="flex size-12 items-center justify-center rounded-full border border-paw/15 bg-paw/[0.04]">
+                <Search className="size-5 text-paw/40" strokeWidth={2} />
+              </div>
+              <div>
+                <p className="font-pawprint text-base font-semibold text-paw/80">
+                  No questions match &ldquo;{query.trim()}&rdquo;
+                </p>
+                <p className="mt-1 font-pawprint text-sm text-paw/45">
+                  Try a different word, or ask Sara directly — she usually replies same day.
+                </p>
+              </div>
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="group inline-flex items-center justify-center gap-2 rounded-xl border border-paw/15 bg-paw/[0.03] px-5 py-2.5 font-pawprint text-sm font-semibold text-paw/80 transition-all duration-300 hover:border-doggy/40 hover:bg-doggy/[0.06] hover:text-paw"
+              >
+                <Mail
+                  className="size-4 text-doggy/70 transition-colors group-hover:text-doggy"
+                  strokeWidth={2}
+                />
+                Email Sara
+              </a>
+            </div>
+          )}
         </div>
 
         {/* Bottom CTA — direct contact when FAQ didn't answer.
