@@ -21,21 +21,39 @@ for (const vp of VIEWPORTS) {
       await search.scrollIntoViewIfNeeded();
       await expect(search).toBeVisible();
 
+      // A broad term matches several questions. They must appear as a COLLAPSED
+      // list of titles — not a wall of auto-opened answers (the original bug).
+      await search.fill('dog');
+      const dogQ = page.getByRole('button', { name: /Who will be taking care of my dog/i });
+      await expect(dogQ).toBeVisible();
+      await expect(dogQ).toHaveAttribute('aria-expanded', 'false');
+
+      // Clicking a result expands it.
+      await dogQ.click();
+      await expect(dogQ).toHaveAttribute('aria-expanded', 'true');
+
       // "refund" lives in the answer body of the cancellation question — confirm
-      // it surfaces even though the word isn't in the question title.
+      // it surfaces (we match answer text) and filters out non-matches.
       await search.fill('refund');
-
-      const cancellationTrigger = page.getByRole('button', {
-        name: /cancellation and refund policy/i,
-      });
-      await expect(cancellationTrigger).toBeVisible();
-      // Auto-expanded while a query is active → its answer panel is shown.
-      await expect(cancellationTrigger).toHaveAttribute('aria-expanded', 'true');
-
-      // A non-matching question is filtered out of the DOM.
+      await expect(
+        page.getByRole('button', { name: /cancellation and refund policy/i }),
+      ).toBeVisible();
       await expect(
         page.getByRole('button', { name: /what payment methods do you accept/i }),
       ).toHaveCount(0);
+    });
+
+    test('auto-opens the answer once the search narrows to a single match', async ({ page }) => {
+      await page.goto('/');
+      const search = page.getByPlaceholder('Search questions…');
+      await search.scrollIntoViewIfNeeded();
+
+      // "reschedule" appears in exactly one question — once it's the only match,
+      // showing its answer without an extra click is the intended convenience.
+      await search.fill('reschedule');
+      const rescheduleQ = page.getByRole('button', { name: /reschedule instead of cancelling/i });
+      await expect(rescheduleQ).toBeVisible();
+      await expect(rescheduleQ).toHaveAttribute('aria-expanded', 'true');
     });
 
     test('clear button restores the full list', async ({ page }) => {

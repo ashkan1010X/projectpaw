@@ -223,9 +223,10 @@ export function FaqSection() {
             // canonical index — open-state, panel ids and toggles never desync
             // as the query changes.
             if (!matches({ q, a })) return null;
-            // When a query is active, auto-expand every match so the answer is
-            // visible without an extra click; otherwise honour the manual set.
-            const isOpen = term ? true : open.has(i);
+            // Searching narrows to a clean list of matching question titles; we
+            // only auto-open when the query has reached a single answer. Manual
+            // clicks always work (the `open` set), so any result can be expanded.
+            const isOpen = open.has(i) || (term !== '' && visibleCount === 1);
             return (
               <div key={q} className="group">
                 <button
