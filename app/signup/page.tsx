@@ -462,14 +462,14 @@ export default function SignupPage() {
                 <p className="text-center font-pawprint text-xs leading-7 text-paw/35">
                   By creating an account, you agree to our{' '}
                   <a
-                    href="#"
+                    href="/terms"
                     className="inline-block rounded px-1 py-1 text-paw/65 underline underline-offset-2 hover:text-paw focus:outline-none focus:ring-2 focus:ring-doggy/30"
                   >
                     Terms
                   </a>{' '}
                   and{' '}
                   <a
-                    href="#"
+                    href="/privacy"
                     className="inline-block rounded px-1 py-1 text-paw/65 underline underline-offset-2 hover:text-paw focus:outline-none focus:ring-2 focus:ring-doggy/30"
                   >
                     Privacy Policy

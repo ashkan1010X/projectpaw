@@ -72,11 +72,6 @@ export default function AboutPage() {
       {/* STORY */}
       <section className="border-t border-paw/[0.06] px-6 py-24">
         <div className="mx-auto max-w-3xl space-y-8">
-          <div className="mb-4 flex items-center gap-3 font-pawprint text-xs font-bold uppercase tracking-[0.2em] text-doggy">
-            <span className="h-px w-8 bg-doggy" />
-            Our Journey
-          </div>
-
           {[
             {
               lead: 'ProjectPaw was founded on a simple belief',
@@ -103,10 +98,7 @@ export default function AboutPage() {
       <section className="border-t border-paw/[0.06] px-6 py-24">
         <div className="mx-auto max-w-5xl">
           <div className="mb-14 text-center">
-            <span className="font-pawprint text-xs font-bold uppercase tracking-[0.2em] text-doggy">
-              Milestones
-            </span>
-            <h2 className="mt-3 font-elegant text-4xl font-black tracking-tight text-paw md:text-5xl">
+            <h2 className="font-elegant text-4xl font-black tracking-tight text-paw md:text-5xl">
               The Path So Far
             </h2>
           </div>

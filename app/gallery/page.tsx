@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { Camera, ArrowRight, Sparkles } from 'lucide-react';
+import { Camera, ArrowRight } from 'lucide-react';
 
 const DOG_IMAGES = [
   {
@@ -133,12 +133,6 @@ export default function GalleryPage() {
           <div className="pointer-events-none absolute left-1/2 top-0 size-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-doggy/[0.15] blur-[80px]" />
 
           <div className="relative z-10 flex flex-col items-center gap-5">
-            <div className="inline-flex items-center gap-2 rounded-full border border-paw/15 bg-paw/[0.04] px-3 py-1 backdrop-blur-sm">
-              <Sparkles className="size-3 text-[#F9D923]" />
-              <span className="font-pawprint text-[10px] font-bold uppercase tracking-[0.18em] text-paw/70">
-                Join Them
-              </span>
-            </div>
             <h2 className="text-balance font-elegant text-3xl font-black tracking-tight text-paw md:text-4xl">
               Want your dog featured here?
             </h2>
