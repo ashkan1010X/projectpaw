@@ -46,13 +46,17 @@ Next.js 15 with App Router, TypeScript, Tailwind CSS v4, shadcn/ui
 
 ## UI & Design
 
-For every UI task always follow this two-step workflow in order:
+For every UI task always follow this three-step workflow in order:
 
 Step 1 — Design system (ui-ux-pro-max): Invoke the ui-ux-pro-max skill (~/.claude/skills/ui-ux-pro-max/SKILL.md) first. Select the style, color palette, typography, and UX patterns. Output a design brief.
 
 Step 2 — Implementation (frontend-design): With the design brief, invoke the frontend-design skill (~/.claude/skills/frontend-design/SKILL.md) to implement the UI.
 
-These two skills must always be used together in this order.
+Step 3 — Taste pass (design-taste-frontend): Invoke the design-taste-frontend skill (.agents/skills/design-taste-frontend/SKILL.md) as a final anti-slop review of the implementation. This skill has its own design opinions (font/palette bans, its own dial system) — it does NOT get to re-decide palette or typography already locked in Step 1's design brief. Use it only for structural/anti-slop rules: layout diversification, motion discipline, CTA/contrast checks, copy audit, hero/nav layout rules. If any of its rules conflict with the Step 1 brief, the Step 1 brief wins.
+
+These three skills must always be used together in this order.
+
+Do not invoke other installed taste/style skills (gpt-taste, minimalist-ui, industrial-brutalist-ui, high-end-visual-design, brandkit, stitch-design-taste, design-taste-frontend-v1, redesign-existing-projects, image-to-code, imagegen-frontend-web, imagegen-frontend-mobile) as part of this default pipeline — several carry opinions (forced GSAP motion, banned fonts, no-gradients rules) that conflict with each other. Use them only when explicitly asked for that specific aesthetic or capability (e.g. "give this a brutalist look" → industrial-brutalist-ui; "build a brand kit" → brandkit; "redesign this legacy page" → redesign-existing-projects).
 
 ## Component Library
 

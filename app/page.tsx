@@ -196,31 +196,11 @@ export default function HomePage() {
               href="/signup"
               className="group inline-flex items-center justify-center gap-2 rounded-xl border border-paw/20 px-9 py-4 font-pawprint text-base font-semibold text-paw/80 backdrop-blur-sm transition-all duration-300 hover:border-paw/40 hover:bg-paw/[0.04] hover:text-paw hover:-translate-y-0.5"
             >
-              Sign Up Free
+              Get Started Free
               <span className="text-doggy transition-transform duration-300 group-hover:translate-x-1">
                 →
               </span>
             </Link>
-          </div>
-
-          {/* Trust strip */}
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-7 gap-y-3 animate-fade-up delay-400">
-            <div className="flex items-center gap-1.5">
-              <div className="flex">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className="size-3.5 fill-[#F9D923] text-[#F9D923]" />
-                ))}
-              </div>
-              <span className="font-pawprint text-xs text-paw/50">
-                <strong className="text-paw/80">4.9</strong> from 400+ families
-              </span>
-            </div>
-            {TRUST_BADGES.map(({ icon: Icon, label }) => (
-              <div key={label} className="flex items-center gap-1.5">
-                <Icon className="size-3.5 text-doggy" strokeWidth={2} />
-                <span className="font-pawprint text-xs text-paw/50">{label}</span>
-              </div>
-            ))}
           </div>
         </div>
 
@@ -229,6 +209,28 @@ export default function HomePage() {
           <div className="flex h-9 w-5 items-start justify-center rounded-full border border-paw/15 p-1">
             <div className="h-2 w-0.5 animate-bounce rounded-full bg-paw/40" />
           </div>
+        </div>
+      </section>
+
+      {/* TRUST BAR */}
+      <section className="border-y border-paw/[0.06] bg-paw/[0.015] px-6 py-5">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-x-7 gap-y-3">
+          <div className="flex items-center gap-1.5">
+            <div className="flex">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} className="size-3.5 fill-[#F9D923] text-[#F9D923]" />
+              ))}
+            </div>
+            <span className="font-pawprint text-xs text-paw/50">
+              <strong className="text-paw/80">4.9</strong> from 400+ families
+            </span>
+          </div>
+          {TRUST_BADGES.map(({ icon: Icon, label }) => (
+            <div key={label} className="flex items-center gap-1.5">
+              <Icon className="size-3.5 text-doggy" strokeWidth={2} />
+              <span className="font-pawprint text-xs text-paw/50">{label}</span>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -299,7 +301,7 @@ export default function HomePage() {
               href="/services"
               className="group inline-flex items-center gap-2 rounded-lg px-3 py-2.5 font-pawprint text-sm font-semibold text-doggy transition-all duration-300 hover:gap-3 hover:bg-doggy/[0.06] focus:outline-none focus:ring-2 focus:ring-doggy/40"
             >
-              View all services
+              Explore Services
               <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
           </div>
@@ -312,9 +314,6 @@ export default function HomePage() {
 
         <div className="relative mx-auto max-w-6xl">
           <div className="mb-16 flex flex-col items-center gap-3 text-center">
-            <span className="font-pawprint text-xs font-bold uppercase tracking-[0.2em] text-doggy">
-              How It Works
-            </span>
             <h2 className="font-elegant text-4xl font-black tracking-tight text-paw md:text-6xl">
               Booked in Under a Minute
             </h2>
@@ -383,9 +382,6 @@ export default function HomePage() {
 
         <div className="mx-auto max-w-7xl">
           <div className="mb-16 flex flex-col items-center gap-3 text-center">
-            <span className="font-pawprint text-xs font-bold uppercase tracking-[0.2em] text-doggy">
-              Happy Owners
-            </span>
             <h2 className="font-elegant text-4xl font-black tracking-tight text-paw md:text-6xl">
               Loved by Dog Families
             </h2>
@@ -445,13 +441,6 @@ export default function HomePage() {
           />
 
           <div className="relative z-10 flex flex-col items-center gap-7">
-            <div className="inline-flex items-center gap-2 rounded-full border border-paw/15 bg-paw/[0.04] px-3 py-1 backdrop-blur-sm">
-              <Sparkles className="size-3 text-[#F9D923]" />
-              <span className="font-pawprint text-[10px] font-bold uppercase tracking-[0.18em] text-paw/70">
-                Limited Time
-              </span>
-            </div>
-
             <h2 className="text-balance max-w-2xl font-elegant text-5xl font-black tracking-tight text-paw md:text-6xl">
               Ready to <em className="not-italic text-doggy">spoil</em> your pup?
             </h2>
