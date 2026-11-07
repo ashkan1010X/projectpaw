@@ -175,9 +175,13 @@ The goal is continuous growth: every session should leave Ruflo smarter than it 
 
 ## Model Selection
 
-- Default to Sonnet 4.6 for all implementation work (API routes, components, tests, commits)
-- Only request Opus 4.7 when the task genuinely requires deep reasoning: complex architecture decisions, ambiguous multi-system problems, or when stuck after multiple failed attempts
-- Always tell the user explicitly: "This task needs Opus 4.7" before switching — never switch silently
+The user is on the Claude Pro plan. Opus uses up usage limits faster than Sonnet, so Sonnet is the default. Refer to models by alias (`sonnet`, `opus`, `haiku`), not version numbers, so this rule doesn't go stale when new models ship.
+
+- Default to `sonnet` for all implementation work (API routes, components, tests, commits, docs)
+- Only recommend `opus` when the task genuinely requires deep reasoning: complex architecture decisions, ambiguous multi-system problems, or when stuck after multiple failed attempts
+- Claude cannot switch its own model — the user does. When Opus is needed, say: "This task needs Opus. Switch with `/model opus`, then back with `/model sonnet` when it's done." Never assume a switch happened
+- If the session is running on Opus for routine work, suggest switching back with `/model sonnet`
+- Only spawn subagents when the user asks, and run them on `sonnet` or `haiku`, never `opus`
 
 ## Top-Tier UI Details — MANDATORY
 
