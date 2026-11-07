@@ -10,7 +10,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Stack
 
-Next.js 15 with App Router, TypeScript, Tailwind CSS v4, shadcn/ui
+Next.js 16 with App Router, TypeScript, Tailwind CSS v4, shadcn/ui
 
 ## Language
 
